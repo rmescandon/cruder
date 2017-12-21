@@ -26,7 +26,8 @@ import (
 
 const create#TheType#TableSQL = `
 	CREATE TABLE IF NOT EXISTS #theType# (
-        #TheType.Db.Fields#
+		_#TheType.Db.ID#_
+        _#TheType.Db.Fields#_
 	)
 `
 

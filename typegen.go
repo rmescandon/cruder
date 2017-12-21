@@ -24,6 +24,7 @@ package cruder
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -31,43 +32,50 @@ import (
 	"os"
 )
 
-// GetTypesMaps returns a map of types
-func GetTypesMaps(filepath string) (map[string]map[string]string, error) {
-	emptyMap := make(map[string]map[string]string)
+type typeField struct {
+	Name string
+	Type string
+}
+
+// GetTypesMaps returns a map of types. Each key is the type name and the
+// value is a list of field name and type pairs
+func getTypesMaps(filepath string) (map[string][]typeField, error) {
+	emptyMap := make(map[string][]typeField)
 	f, err := os.Open(filepath)
 	if err != nil {
 		return emptyMap, err
 	}
 
-	metafile, err := parse(f)
+	buffer, metafile, err := parse(f)
 	if err != nil {
 		return emptyMap, err
 	}
 
-	structsList, err := getStructs(metafile)
+	structsMap, err := getStructs(metafile)
 	if err != nil {
 		return emptyMap, err
 	}
 
-	return decomposeStructs(structsList)
+	return decomposeStructs(buffer, structsMap)
 }
 
 // Parse parses io reader to ast.File pointer
-func parse(reader io.Reader) (*ast.File, error) {
+func parse(reader io.Reader) ([]byte, *ast.File, error) {
 	if reader == nil {
-		return nil, errors.New("Reader is null")
+		return nil, nil, errors.New("Reader is null")
 	}
 
 	var buf bytes.Buffer
 	_, err := io.Copy(&buf, reader)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	buffer := buf.Bytes()
 
 	fs := token.NewFileSet()
-	return parser.ParseFile(fs, "", buffer, parser.Trace)
+	astFile, err := parser.ParseFile(fs, "", buffer, parser.Trace)
+	return buffer, astFile, err
 }
 
 func getStructs(file *ast.File) (map[string]*ast.StructType, error) {
@@ -95,10 +103,10 @@ func getStructs(file *ast.File) (map[string]*ast.StructType, error) {
 	return structs, nil
 }
 
-func decomposeStructs(structs map[string]*ast.StructType) (map[string]map[string]string, error) {
-	structsMap := make(map[string]map[string]string)
+func decomposeStructs(buffer []byte, structs map[string]*ast.StructType) (map[string][]typeField, error) {
+	structsMap := make(map[string][]typeField)
 	for structName := range structs {
-		structMembers, err := decomposeStruct(structs[structName])
+		structMembers, err := decomposeStruct(buffer, structs[structName])
 		if err != nil {
 			return structsMap, err
 		}
@@ -107,12 +115,18 @@ func decomposeStructs(structs map[string]*ast.StructType) (map[string]map[string
 	return structsMap, nil
 }
 
-func decomposeStruct(structType *ast.StructType) (map[string]string, error) {
-	fields := make(map[string]string)
+func decomposeStruct(buffer []byte, structType *ast.StructType) ([]typeField, error) {
+	var fields []typeField
+
 	for _, field := range structType.Fields.List {
-		if len(field.Names) == 2 {
-			fields[field.Names[0].Name] = field.Names[1].Name
+		if len(field.Names) != 1 {
+			return fields, fmt.Errorf("Unexpected length of %v for a field", len(field.Names))
 		}
+
+		fields = append(fields, typeField{
+			Name: field.Names[0].Name,
+			Type: string(buffer[field.Type.Pos()-1 : field.Type.End()-1]),
+		})
 	}
 	return fields, nil
 }

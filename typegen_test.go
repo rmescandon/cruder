@@ -53,7 +53,7 @@ func (s *TypeGenSuite) SetUpTest(c *check.C) {}
 
 func (s *TypeGenSuite) TestParseContent(c *check.C) {
 	r := strings.NewReader(testTypeFileContent)
-	file, err := parse(r)
+	_, file, err := parse(r)
 
 	c.Assert(err, check.IsNil)
 	c.Assert(len(file.Decls), check.Equals, 1)
@@ -77,7 +77,7 @@ func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
 	_, err = f.WriteString(testTypeFileContent)
 	c.Assert(err, check.IsNil)
 
-	theMap, err := GetTypesMaps(f.Name())
+	theMap, err := getTypesMaps(f.Name())
 	c.Assert(err, check.IsNil)
 
 	c.Assert(len(theMap), check.Equals, 1)
@@ -85,16 +85,16 @@ func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
 		c.Assert(structName, check.Equals, "MyType")
 
 		theFields := theMap[structName]
-		for field := range theFields {
-			switch field {
+		for _, field := range theFields {
+			switch field.Name {
 			case "ID":
-				c.Assert(theFields[field], check.Equals, "int")
+				c.Assert(field.Type, check.Equals, "int")
 			case "Name":
-				c.Assert(theFields[field], check.Equals, "string")
+				c.Assert(field.Type, check.Equals, "string")
 			case "Description":
-				c.Assert(theFields[field], check.Equals, "string")
-			case "Subtypes":
-				c.Assert(theFields[field], check.Equals, "[]string")
+				c.Assert(field.Type, check.Equals, "string")
+			case "SubTypes":
+				c.Assert(field.Type, check.Equals, "[]string")
 			default:
 				c.Fail()
 			}
