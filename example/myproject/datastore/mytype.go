@@ -17,7 +17,12 @@
  *
  */
 
-package mytype
+package datastore
+
+import (
+	"database/sql"
+	"fmt"
+)
 
 // MyType test type to generate skeletom code
 type MyType struct {
@@ -25,4 +30,118 @@ type MyType struct {
 	Name        string
 	Description string
 	SubTypes    []string
+}
+
+const createMyTypeTableSQL = `
+	CREATE TABLE IF NOT EXISTS mytype (
+		id           serial primary key not null,
+		name         varchar(200),
+		description  varchar(200),
+		subtypes     varchar(200)
+	)
+`
+
+const listMyTypesSQL = "select id, name, description, subtypes from mytype order by id"
+const getMyTypeSQL = "select id, name, description, subtypes from mytype where id=$1"
+const findMyTypeSQL = "select id, name, description, subtypes, from mytype where name like '%$1%'"
+const createMyTypeSQL = "insert into mytype (name, description, subtypes) values ($1,$2,$3) RETURNING id"
+const updateMyTypeSQL = "update mytype set name=$1, description=$2, subtypes=$3 where id=$4"
+const deleteMyTypeSQL = "delete from mytype where id=$1"
+
+// CreateMyTypeTable creates the database table
+func (db *DB) CreateMyTypeTable() error {
+	_, err := db.Exec(createMyTypeTableSQL)
+	return err
+}
+
+// ListMyTypes returns all the registers of the table
+func (db *DB) ListMyTypes() ([]MyType, error) {
+	rows, err := db.Query(listMyTypesSQL)
+	if err != nil {
+		return []MyType{}, fmt.Errorf("Error retrieving database users: %v", err)
+	}
+	defer rows.Close()
+
+	return db.rowsToMyTypes(rows)
+}
+
+// GetMyType returns a specific register
+func (db *DB) GetMyType(id int) (MyType, error) {
+	row := db.QueryRow(getMyTypeSQL, id)
+	myType, err := db.rowToMyType(row)
+	if err != nil {
+		return MyType{}, fmt.Errorf("Error retrieving mytype register: %v", err)
+	}
+	return myType, err
+}
+
+// FindMyType searches for a specific register
+func (db *DB) FindMyType(name string) (MyType, error) {
+	row := db.QueryRow(findMyTypeSQL, name)
+	myType, err := db.rowToMyType(row)
+	if err != nil {
+		return MyType{}, fmt.Errorf("Error searching mytype registers: %v", err)
+	}
+	return myType, err
+}
+
+// CreateMyType Inserts a new register
+func (db *DB) CreateMyType(myType MyType) error {
+	_, err := db.Exec(createMyTypeSQL, myType.Name, myType.Description, myType.SubTypes)
+	if err != nil {
+		return fmt.Errorf("Error creating mytype register: %v", err)
+	}
+	return nil
+}
+
+// UpdateMyType updates a register
+func (db *DB) UpdateMyType(id int, myType MyType) error {
+	_, err := db.Exec(updateMyTypeSQL, myType.Name, myType.Description, myType.SubTypes, id)
+	if err != nil {
+		return fmt.Errorf("Error updating mytype register: %v", err)
+	}
+	return nil
+}
+
+// DeleteMyType deletes a register
+func (db *DB) DeleteMyType(id int) error {
+	_, err := db.Exec(deleteMyTypeSQL, id)
+	if err != nil {
+		return fmt.Errorf("Error deleting mytype register: %v", err)
+	}
+	return nil
+}
+
+func (db *DB) rowToMyType(row *sql.Row) (MyType, error) {
+	myType := MyType{}
+	err := row.Scan(&myType.ID, &myType.Name, &myType.Description, &myType.SubTypes)
+	if err != nil {
+		return MyType{}, err
+	}
+
+	return myType, nil
+}
+
+func (db *DB) rowsToMyType(rows *sql.Rows) (MyType, error) {
+	myType := MyType{}
+	err := rows.Scan(&myType.ID, &myType.Name, &myType.Description, &myType.SubTypes)
+	if err != nil {
+		return MyType{}, err
+	}
+
+	return myType, nil
+}
+
+func (db *DB) rowsToMyTypes(rows *sql.Rows) ([]MyType, error) {
+	myTypeList := []MyType{}
+
+	for rows.Next() {
+		myType, err := db.rowsToMyType(rows)
+		if err != nil {
+			return nil, err
+		}
+		myTypeList = append(myTypeList, myType)
+	}
+
+	return myTypeList, nil
 }

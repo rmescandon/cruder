@@ -1,0 +1,137 @@
+// -*- Mode: Go; indent-tabs-mode: t -*-
+
+/*
+ * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package datasource
+
+import (
+	"database/sql"
+	"fmt"
+)
+
+const create#TheType#TableSQL = `
+	CREATE TABLE IF NOT EXISTS #theType# (
+        #TheType.Db.Fields#
+	)
+`
+
+const list_#TheType#_sSQL = "select id, name, description, subtypes from _#thetype#_ order by id"
+const get_#TheType#_SQL = "select id, name, description, subtypes from _#thetype#_ where id=$1"
+const find_#TheType#_SQL = "select id, name, description, subtypes, from _#thetype#_ where name like '%$1%'"
+const create_#TheType#_SQL = "insert into _#thetype#_ (name, description, subtypes) values ($1,$2,$3) RETURNING id"
+const update_#TheType#_SQL = "update _#thetype#_ set name=$1, description=$2, subtypes=$3 where id=$4"
+const delete_#TheType#_SQL = "delete from _#thetype#_ where id=$1"
+
+// Create_#TheType#_Table creates the database table
+func (db *DB) Create_#TheType#_Table() error {
+	_, err := db.Exec(create_#TheType#_TableSQL)
+	return err
+}
+
+// List_#TheType#_s returns all the registers of the table
+func (db *DB) List_#TheType#_s() ([]_#TheType#_, error) {
+	rows, err := db.Query(list_#TheType#_sSQL)
+	if err != nil {
+		return []_#TheType#_{}, fmt.Errorf("Error retrieving database users: %v", err)
+	}
+	defer rows.Close()
+
+	return db.rowsTo_#TheType#_s(rows)
+}
+
+// Get_#TheType#_ returns a specific register
+func (db *DB) Get_#TheType#_(id int) (_#TheType#_, error) {
+	row := db.QueryRow(get_#TheType#_SQL, id)
+	_#theType#_, err := db.rowTo_#TheType#_(row)
+	if err != nil {
+		return _#TheType#_{}, fmt.Errorf("Error retrieving _#thetype#_ register: %v", err)
+	}
+	return _#theType#_, err
+}
+
+// Find_#TheType#_ searches for a specific register
+func (db *DB) Find_#TheType#_(name string) (_#TheType#_, error) {
+	row := db.QueryRow(find_#TheType#_SQL, name)
+	_#theType#_, err := db.rowTo_#TheType#_(row)
+	if err != nil {
+		return _#TheType#_{}, fmt.Errorf("Error searching _#thetype#_ registers: %v", err)
+	}
+	return _#theType#_, err
+}
+
+// Create_#TheType#_ Inserts a new register
+func (db *DB) Create_#TheType#_(_#theType#_ _#TheType#_) error {
+	_, err := db.Exec(create_#TheType#_SQL, _#theType.Fields#_)
+	if err != nil {
+		return fmt.Errorf("Error creating #thetype# register: %v", err)
+	}
+	return nil
+}
+
+// Update_#TheType#_ updates a register
+func (db *DB) Update_#TheType#_(id int, _#theType#_ _#TheType#_) error {
+	_, err := db.Exec(update_#TheType#_SQL, _#theType.Fields#_, id)
+	if err != nil {
+		return fmt.Errorf("Error updating _#thetype#_ register: %v", err)
+	}
+	return nil
+}
+
+// Delete_#TheType#_ deletes a register
+func (db *DB) Delete_#TheType#_(id int) error {
+	_, err := db.Exec(delete_#TheType#_SQL, id)
+	if err != nil {
+		return fmt.Errorf("Error deleting _#thetype#_ register: %v", err)
+	}
+	return nil
+}
+
+func (db *DB) rowTo_#TheType#_(row *sql.Row) (_#TheType#_, error) {
+	#theType# := _#TheType#_{}
+	err := row.Scan(&_#theType.ID#_, _#theType.Fields.Ref#_)
+	if err != nil {
+		return _#TheType#_{}, err
+	}
+
+	return #theType#, nil
+}
+
+func (db *DB) rowsTo_#TheType#_(rows *sql.Rows) (_#TheType#_, error) {
+	#theType# := _#TheType#_{}
+	err := rows.Scan(&_#theType.ID#_, _#theType.Fields.Ref#_)
+	if err != nil {
+		return _#TheType#_{}, err
+	}
+
+	return #theType#, nil
+}
+
+func (db *DB) rowsTo_#TheType#_s(rows *sql.Rows) ([]_#TheType#_, error) {
+	#theType#List := []_#TheType#_{}
+
+	for rows.Next() {
+		#theType#, err := db.rowsTo_#TheType#_(rows)
+		if err != nil {
+			return nil, err
+		}
+		#theType#List = append(#theType#List, #theType#)
+	}
+
+	return #theType#List, nil
+}
+

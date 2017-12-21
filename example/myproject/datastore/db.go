@@ -17,16 +17,15 @@
  *
  */
 
-package main
+package datastore
 
-type cmdCruder struct {
+import (
+	"database/sql"
+)
+
+type Datastore interface {
 }
 
-func (cmd *cmdCruder) Execute(args []string) error {
-	return nil
-}
-
-func init() {
-	cmd, _ := addCommand("cruder", "Generates the skeletom of a code for a REST go backend for a certain type", "", &cmdCruder{})
-	cmd.SubcommandsOptional = true
+type DB struct {
+	*sql.DB
 }
