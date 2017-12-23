@@ -20,6 +20,8 @@
 package cruder
 
 import (
+	"errors"
+	"path/filepath"
 	"strings"
 )
 
@@ -29,6 +31,13 @@ type TypeHolder struct {
 	IDFieldName string
 	IDFieldType string
 	Fields      []typeField
+}
+
+func newTypeHolder(typeName string, typeFields []typeField) *TypeHolder {
+	return &TypeHolder{
+		Name:   typeName,
+		Fields: typeFields,
+	}
 }
 
 func (holder *TypeHolder) typeIdentifier() string {
@@ -123,4 +132,17 @@ func (holder *TypeHolder) typeDbFieldsEnum() string {
 	}
 
 	return result
+}
+
+func (holder *TypeHolder) getOutputFilePathFor(category int) (string, error) {
+	switch category {
+	case Datastore:
+		return filepath.Join(Config.Output, "datastore", holder.Name, ".go"), nil
+	case Handler:
+		return filepath.Join(Config.Output, "service", holder.Name, ".go"), nil
+	case Router:
+		return filepath.Join(Config.Output, "service", "router.go"), nil
+	default:
+		return "", errors.New("Invalid output category")
+	}
 }

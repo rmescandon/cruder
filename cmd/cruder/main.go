@@ -28,13 +28,7 @@ import (
 	"github.com/rmescandon/cruder"
 )
 
-type commonOptions struct {
-	Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
-	File    string `short:"f" long:"file" description:"file with struct types to consider for generating the skeletom code"`
-}
-
-var options commonOptions
-var parser = flags.NewParser(&options, flags.HelpFlag)
+var parser = flags.NewParser(&cruder.Config, flags.HelpFlag)
 
 func addCommand(name string, shortHelp string, longHelp string, data interface{}) (*flags.Command, error) {
 	cmd, err := parser.AddCommand(name, shortHelp, longHelp, data)
@@ -63,18 +57,19 @@ func run() error {
 		fmt.Println(err)
 	}
 
-	if len(options.File) == 0 {
+	//TODO MOVE THIS TO CRUDER PACKAGE
+	if len(cruder.Config.File) == 0 {
 		parser.WriteHelp(os.Stdout)
 		return nil
 	}
 
-	if len(options.Verbose) > 0 {
+	if len(cruder.Config.Verbose) > 0 {
 		cruder.InitLogger(logging.DEBUG)
 	} else {
 		cruder.InitLogger(logging.WARNING)
 	}
 
-	err = generateSkeletonCode(options.File)
+	err = generateSkeletonCode(cruder.Config.File)
 
 	return err
 }
