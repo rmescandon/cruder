@@ -73,6 +73,7 @@ func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
 
 	f, err := ioutil.TempFile("", "")
 	c.Assert(err, check.IsNil)
+	defer f.Close()
 
 	_, err = f.WriteString(testTypeFileContent)
 	c.Assert(err, check.IsNil)

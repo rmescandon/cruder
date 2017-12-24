@@ -74,7 +74,8 @@ func parse(reader io.Reader) ([]byte, *ast.File, error) {
 	buffer := buf.Bytes()
 
 	fs := token.NewFileSet()
-	astFile, err := parser.ParseFile(fs, "", buffer, parser.Trace)
+	// TODO use parser.Trace Mode (last param) instead of 0 to see what is being parsed
+	astFile, err := parser.ParseFile(fs, "", buffer, 0)
 	return buffer, astFile, err
 }
 

@@ -19,10 +19,12 @@
 
 package cruder
 
+// Options type holding possible cli params
 type Options struct {
 	Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
 	File    string `short:"f" long:"file" description:"file with struct types to consider for generating the skeletom code"`
 	Output  string `short:"o" long:"output" description:"folder where building output structure of generated files"`
 }
 
+// Config holds received configuration from command line
 var Config Options

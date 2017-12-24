@@ -23,9 +23,11 @@ import (
 	"database/sql"
 )
 
+// Datastore interface for different data storages
 type Datastore interface {
 }
 
+// DB struct holding database implementation for datastore
 type DB struct {
 	*sql.DB
 }
