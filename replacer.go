@@ -35,12 +35,14 @@ const (
 )
 
 func replace(templateFile, typesFile string) error {
+	var templateContent string
 	typesMap, err := getTypesMaps(typesFile)
 	if err != nil {
 		return err
 	}
 
 	for typeName := range typesMap {
+		Log.Debugf("Found type: %v", typeName)
 		typeHolder := newTypeHolder(typeName, typesMap[typeName])
 
 		// don't write if file exists
@@ -51,7 +53,16 @@ func replace(templateFile, typesFile string) error {
 			continue
 		}
 
-		replacedStr, err := replaceOne(templateFile, typeHolder)
+		// read template content if first time
+		if len(templateContent) == 0 {
+			Log.Debugf("Loadig template: %v", templateFile)
+			templateContent, err = fileContentsAsString(templateFile)
+			if err != nil {
+				return fmt.Errorf("Error reading template file: %v", err)
+			}
+		}
+
+		replacedStr, err := replaceOne(templateContent, typeHolder)
 		if err != nil {
 			return fmt.Errorf("Error replacing type %v over template %v", typeHolder.Name, templateFile)
 		}
@@ -73,8 +84,8 @@ func replace(templateFile, typesFile string) error {
 	return nil
 }
 
-func replaceOne(templateFile string, typeHolder *TypeHolder) (string, error) {
-	replaced := templateFile
+func replaceOne(originalContent string, typeHolder *TypeHolder) (string, error) {
+	replaced := originalContent
 
 	replaced = strings.Replace(replaced, "_#TheType#_", typeHolder.Name, -1)
 	replaced = strings.Replace(replaced, "_#theType#_", typeHolder.typeIdentifier(), -1)

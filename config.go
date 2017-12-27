@@ -20,18 +20,28 @@
 package cruder
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+
+	yaml "gopkg.in/yaml.v1"
 
 	flags "github.com/jessevdk/go-flags"
 	logging "github.com/op/go-logging"
 )
 
+const (
+	defaultSettingsFile = "settings.yaml"
+)
+
 // Options type holding possible cli params
 type Options struct {
-	Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
-	File    string `short:"f" long:"file" description:"file with struct types to consider for generating the skeletom code"`
-	Output  string `short:"o" long:"output" description:"folder where building output structure of generated files"`
+	Verbose       []bool `short:"v" long:"verbose" description:"Verbose output"`
+	TypesFile     string `short:"t" long:"types" description:"file with struct types to consider for generating the skeletom code"`
+	Output        string `short:"o" long:"output" description:"folder where building output structure of generated files"`
+	Settings      string `short:"c" long:"config" description:"settings file path"`
+	Version       string `yaml:"version"`
+	TemplatesPath string `yaml:"templates"`
 }
 
 // Config holds received configuration from command line
@@ -40,10 +50,10 @@ var Config Options
 // ValidateAndInitialize check received params and initialize default ones
 func (c *Options) ValidateAndInitialize() error {
 
-	if len(c.File) == 0 {
+	if len(c.TypesFile) == 0 {
 		return &flags.Error{
 			Type:    flags.ErrHelp,
-			Message: "Type file not provided",
+			Message: "Types file not provided",
 		}
 	}
 
@@ -55,7 +65,7 @@ func (c *Options) ValidateAndInitialize() error {
 
 	if len(c.Output) == 0 {
 		// calculate current dir and set it as default output path
-		dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+		dir, err := currentDir()
 		if err != nil {
 			return &flags.Error{
 				Type:    flags.ErrUnknown,
@@ -63,6 +73,41 @@ func (c *Options) ValidateAndInitialize() error {
 			}
 		}
 		c.Output = dir
+	}
+
+	if len(c.Settings) == 0 {
+		// calculate current dir and set it as default settings path
+		dir, err := currentDir()
+		if err != nil {
+			return &flags.Error{
+				Type:    flags.ErrUnknown,
+				Message: "Internal server error when setting default settings path",
+			}
+		}
+		c.Settings = filepath.Join(dir, defaultSettingsFile)
+	}
+
+	err := c.loadSettings()
+	if err != nil {
+		return fmt.Errorf("Error loading settings: %v", err)
+	}
+
+	return nil
+}
+
+func currentDir() (string, error) {
+	return filepath.Abs(filepath.Dir(os.Args[0]))
+}
+
+func (c *Options) loadSettings() error {
+	b, err := fileContentsAsByteArray(c.Settings)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(b, &Config)
+	if err != nil {
+		return fmt.Errorf("Error parsing the settngs file: %v", err)
 	}
 
 	return nil

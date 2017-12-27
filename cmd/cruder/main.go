@@ -68,15 +68,5 @@ func run() error {
 		return err
 	}
 
-	err = generateSkeletonCode(cruder.Config.File)
-
-	return err
-}
-
-func generateSkeletonCode(sourceFile string) error {
-	cruder.Log.Debug("Generating Skeleton Code...")
-
-	//TODO IMPLEMENT
-
-	return nil
+	return cruder.GenerateSkeletonCode()
 }

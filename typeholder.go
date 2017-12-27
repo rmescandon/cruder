@@ -40,6 +40,8 @@ func newTypeHolder(typeName string, typeFields []typeField) *TypeHolder {
 	}
 }
 
+// returns type name in camel case, except first letter, which is lower case:
+// "theType"
 func (holder *TypeHolder) typeIdentifier() string {
 	if len(holder.Name) > 0 {
 		return strings.ToLower(string(holder.Name[0])) + holder.Name[1:len(holder.Name)]
@@ -47,18 +49,25 @@ func (holder *TypeHolder) typeIdentifier() string {
 	return ""
 }
 
+// returns type name in lower case:
+// "thetype"
 func (holder *TypeHolder) typeInComments() string {
 	return strings.ToLower(holder.Name)
 }
 
+// returns enum of the fields including type indentifier and field name:
+// "theType.Field1, theType.Field2, theType.FieldN"
 func (holder *TypeHolder) typeFieldsEnum() string {
 	return holder.fieldsEnum(false)
 }
 
+// returns enum of type fields, including type identifiera and field name reference:
+// "&theType.Field1, &theType.Field2, &theType.FieldN"
 func (holder *TypeHolder) typeRefFieldsEnum() string {
 	return holder.fieldsEnum(true)
 }
 
+// depending on the bool param returns the same as typeRefFieldsEnum or typeFieldsEnum
 func (holder *TypeHolder) fieldsEnum(asRef bool) string {
 	ref := ""
 	if asRef {
@@ -82,6 +91,8 @@ func (holder *TypeHolder) fieldsEnum(asRef bool) string {
 	return enum
 }
 
+// returns type identifier plus dot plus parameter fields name, like:
+// "theType.Field1"
 func (holder *TypeHolder) typeIdentifierDotField(fieldName string) string {
 	return holder.typeIdentifier() + "." + fieldName
 }
@@ -98,6 +109,10 @@ func (holder *TypeHolder) typeDbIDField() string {
 	return result
 }
 
+// returns the type fields as they are used for SQL operations, like:
+// "Field1 varchar(200),
+// Field2 int,
+// FieldN varchar(200)"
 func (holder *TypeHolder) typeDbFieldsEnum() string {
 	var result string
 	for _, field := range holder.Fields {
@@ -137,9 +152,9 @@ func (holder *TypeHolder) typeDbFieldsEnum() string {
 func (holder *TypeHolder) getOutputFilePathFor(category int) (string, error) {
 	switch category {
 	case Datastore:
-		return filepath.Join(Config.Output, "datastore", holder.Name, ".go"), nil
+		return filepath.Join(Config.Output, "datastore", holder.typeInComments()+".go"), nil
 	case Handler:
-		return filepath.Join(Config.Output, "service", holder.Name, ".go"), nil
+		return filepath.Join(Config.Output, "service", holder.typeInComments()+".go"), nil
 	case Router:
 		return filepath.Join(Config.Output, "service", "router.go"), nil
 	default:
