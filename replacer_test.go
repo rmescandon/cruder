@@ -21,40 +21,38 @@ package cruder
 
 import (
 	"io/ioutil"
+	"path/filepath"
+	"strings"
 
 	check "gopkg.in/check.v1"
 )
 
-const settingsTestContent = `
-version: 1.2-3
+type ReplacerSuite struct{}
 
-templates: /local/path/templates
-`
+var _ = check.Suite(&ReplacerSuite{})
 
-type ConfigSuite struct{}
+func (s *ReplacerSuite) SetUpTest(c *check.C) {}
 
-var _ = check.Suite(&ConfigSuite{})
+func (s *ReplacerSuite) TestReplaceUsingDatastoreTemplate(c *check.C) {
+	typeFile, err := testTypeFile()
+	c.Assert(err, check.IsNil)
+	c.Assert(typeFile, check.NotNil)
 
-func (s *ConfigSuite) SetUpTest(c *check.C) {}
-
-func (s *ConfigSuite) TestLoadConfig(c *check.C) {
-
-	f, err := ioutil.TempFile("", "")
+	Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
-	_, err = f.WriteString(settingsTestContent)
+	typeHolders, err := typeHoldersFromFile(typeFile.Name())
+	c.Assert(err, check.IsNil)
+	c.Assert(typeHolders, check.HasLen, 1)
+
+	err = replace(filepath.Join("testdata", "templates", "datastore.template"), typeHolders)
 	c.Assert(err, check.IsNil)
 
-	err = f.Close()
+	outputFile, err := typeHolders[0].getOutputFilePathFor(Datastore)
 	c.Assert(err, check.IsNil)
 
-	Config.Settings = f.Name()
-	err = Config.loadSettings()
+	content, err := fileContentsAsString(outputFile)
 	c.Assert(err, check.IsNil)
-	c.Assert(Config.Settings, check.Equals, f.Name())
-	c.Assert(Config.Output, check.Equals, "")
-	c.Assert(Config.TypesFile, check.Equals, "")
-	c.Assert(len(Config.Verbose), check.Equals, 0)
-	c.Assert(Config.Version, check.Equals, "1.2-3")
-	c.Assert(Config.TemplatesPath, check.Equals, "/local/path/templates")
+	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
+	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
 }

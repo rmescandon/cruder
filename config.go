@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	yaml "gopkg.in/yaml.v1"
 
@@ -87,9 +88,20 @@ func (c *Options) ValidateAndInitialize() error {
 		c.Settings = filepath.Join(dir, defaultSettingsFile)
 	}
 
-	err := c.loadSettings()
+	//normalize settings file path
+	err := normalizePath(&c.Settings)
+	if err != nil {
+		return err
+	}
+
+	err = c.loadSettings()
 	if err != nil {
 		return fmt.Errorf("Error loading settings: %v", err)
+	}
+
+	err = c.normalizePaths()
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -108,6 +120,29 @@ func (c *Options) loadSettings() error {
 	err = yaml.Unmarshal(b, &Config)
 	if err != nil {
 		return fmt.Errorf("Error parsing the settngs file: %v", err)
+	}
+
+	return nil
+}
+
+func normalizePath(ptrStr *string) (err error) {
+	if strings.Contains(*ptrStr, "~") {
+		*ptrStr = strings.Replace(*ptrStr, "~", os.Getenv("HOME"), -1)
+	}
+
+	*ptrStr, err = filepath.Abs(*ptrStr)
+	return
+}
+
+func (c *Options) normalizePaths() error {
+	err := normalizePath(&c.TemplatesPath)
+	if err != nil {
+		return err
+	}
+
+	err = normalizePath(&c.TypesFile)
+	if err != nil {
+		return err
 	}
 
 	return nil

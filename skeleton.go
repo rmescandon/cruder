@@ -19,20 +19,30 @@
 
 package cruder
 
-import "path/filepath"
-
-const (
-	templatesPath = "templates"
+import (
+	"fmt"
+	"path/filepath"
 )
 
 // GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
 func GenerateSkeletonCode() error {
 	Log.Debug("Generating Skeleton Code...")
 
-	availableTemplates := []string{"datastore.template"}
+	Log.Debugf("searching for available templates at %v", Config.TemplatesPath)
+	availableTemplates, err := filepath.Glob(filepath.Join(Config.TemplatesPath, "*.template"))
+	if err != nil {
+		return fmt.Errorf("Error listing available templates: %v", err)
+	}
+
 	for _, template := range availableTemplates {
-		templateFullPath := filepath.Join(templatesPath, template)
-		err := replace(templateFullPath, Config.TypesFile)
+		Log.Debugf("Found template: %v", filepath.Base(template))
+
+		typeHolders, err := typeHoldersFromFile(Config.TypesFile)
+		if err != nil {
+			return fmt.Errorf("Error composing type holders from types file: %v", err)
+		}
+
+		err = replace(template, typeHolders)
 		if err != nil {
 			return err
 		}

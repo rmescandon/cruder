@@ -21,25 +21,10 @@ package cruder
 
 import (
 	"go/ast"
-	"io/ioutil"
 	"strings"
 	"testing"
 
 	check "gopkg.in/check.v1"
-)
-
-const (
-	testTypeFileContent = `
-	package mytype
-	
-	// MyType test type to generate skeletom code
-	type MyType struct {
-		ID          int
-		Name        string
-		Description string
-		SubTypes    []string
-	}	
-	`
 )
 
 // gopkg.in/check.v1 stuff
@@ -70,13 +55,9 @@ func (s *TypeGenSuite) TestParseContent(c *check.C) {
 }
 
 func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
-
-	f, err := ioutil.TempFile("", "")
+	f, err := testTypeFile()
 	c.Assert(err, check.IsNil)
-	defer f.Close()
-
-	_, err = f.WriteString(testTypeFileContent)
-	c.Assert(err, check.IsNil)
+	c.Assert(f, check.NotNil)
 
 	theMap, err := getTypesMaps(f.Name())
 	c.Assert(err, check.IsNil)

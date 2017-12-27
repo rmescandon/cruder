@@ -24,10 +24,10 @@ import (
 	"fmt"
 )
 
-const create#TheType#TableSQL = `
-	CREATE TABLE IF NOT EXISTS #theType# (
-		_#TheType.Db.ID#_
-        _#TheType.Db.Fields#_
+const create_#TheType#_TableSQL = `
+	CREATE TABLE IF NOT EXISTS _#thetype#_ (
+_#TheType.Db.ID#_
+_#TheType.Db.Fields#_
 	)
 `
 
@@ -103,36 +103,36 @@ func (db *DB) Delete_#TheType#_(id int) error {
 }
 
 func (db *DB) rowTo_#TheType#_(row *sql.Row) (_#TheType#_, error) {
-	#theType# := _#TheType#_{}
+	_#theType#_ := _#TheType#_{}
 	err := row.Scan(&_#theType.ID#_, _#theType.Fields.Ref#_)
 	if err != nil {
 		return _#TheType#_{}, err
 	}
 
-	return #theType#, nil
+	return _#theType#_, nil
 }
 
 func (db *DB) rowsTo_#TheType#_(rows *sql.Rows) (_#TheType#_, error) {
-	#theType# := _#TheType#_{}
+	_#theType#_ := _#TheType#_{}
 	err := rows.Scan(&_#theType.ID#_, _#theType.Fields.Ref#_)
 	if err != nil {
 		return _#TheType#_{}, err
 	}
 
-	return #theType#, nil
+	return _#theType#_, nil
 }
 
 func (db *DB) rowsTo_#TheType#_s(rows *sql.Rows) ([]_#TheType#_, error) {
-	#theType#List := []_#TheType#_{}
+	_#theType#_List := []_#TheType#_{}
 
 	for rows.Next() {
-		#theType#, err := db.rowsTo_#TheType#_(rows)
+		_#theType#_, err := db.rowsTo_#TheType#_(rows)
 		if err != nil {
 			return nil, err
 		}
-		#theType#List = append(#theType#List, #theType#)
+		_#theType#_List = append(_#theType#_List, #theType#)
 	}
 
-	return #theType#List, nil
+	return _#theType#_List, nil
 }
 

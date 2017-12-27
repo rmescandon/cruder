@@ -34,18 +34,29 @@ const (
 	Router
 )
 
-func replace(templateFile, typesFile string) error {
-	var templateContent string
+func typeHoldersFromFile(typesFile string) ([]*TypeHolder, error) {
+	var typeHolders []*TypeHolder
 	typesMap, err := getTypesMaps(typesFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for typeName := range typesMap {
 		Log.Debugf("Found type: %v", typeName)
 		typeHolder := newTypeHolder(typeName, typesMap[typeName])
+		typeHolders = append(typeHolders, typeHolder)
+	}
 
+	return typeHolders, nil
+}
+
+func replace(templateFile string, typeHolders []*TypeHolder) error {
+	var templateContent string
+
+	for _, typeHolder := range typeHolders {
 		// don't write if file exists
+		// FIXME this should not happen if output file is same as source one.
+		// IN such case, original file types should be added to output
 		outputPath, err := getOutputFilePath(templateFile, typeHolder)
 		_, err = os.Stat(outputPath)
 		if err == nil {
@@ -53,9 +64,12 @@ func replace(templateFile, typesFile string) error {
 			continue
 		}
 
+		// create needed dirs to outputPath
+		ensureDir(filepath.Dir(outputPath))
+
 		// read template content if first time
 		if len(templateContent) == 0 {
-			Log.Debugf("Loadig template: %v", templateFile)
+			Log.Debugf("Loadig template: %v", filepath.Base(templateFile))
 			templateContent, err = fileContentsAsString(templateFile)
 			if err != nil {
 				return fmt.Errorf("Error reading template file: %v", err)
@@ -112,4 +126,12 @@ func getOutputFilePath(templateFile string, typeHolder *TypeHolder) (string, err
 	default:
 		return "", errors.New("Unknown template file")
 	}
+}
+
+func ensureDir(dir string) error {
+	_, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		return os.MkdirAll(dir, 0755)
+	}
+	return nil
 }
