@@ -19,6 +19,14 @@
 
 package cruder
 
+import (
+	"os"
+	"path/filepath"
+
+	flags "github.com/jessevdk/go-flags"
+	logging "github.com/op/go-logging"
+)
+
 // Options type holding possible cli params
 type Options struct {
 	Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
@@ -28,3 +36,34 @@ type Options struct {
 
 // Config holds received configuration from command line
 var Config Options
+
+// ValidateAndInitialize check received params and initialize default ones
+func (c *Options) ValidateAndInitialize() error {
+
+	if len(c.File) == 0 {
+		return &flags.Error{
+			Type:    flags.ErrHelp,
+			Message: "Type file not provided",
+		}
+	}
+
+	if len(c.Verbose) > 0 {
+		initLogger(logging.DEBUG)
+	} else {
+		initLogger(logging.WARNING)
+	}
+
+	if len(c.Output) == 0 {
+		// calculate current dir and set it as default output path
+		dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+		if err != nil {
+			return &flags.Error{
+				Type:    flags.ErrUnknown,
+				Message: "Internal server error when setting default output path",
+			}
+		}
+		c.Output = dir
+	}
+
+	return nil
+}

@@ -29,7 +29,7 @@ import (
 var Log = logging.MustGetLogger("cruder")
 
 // InitLogger initializes logger for backend with the specified level
-func InitLogger(level logging.Level) {
+func initLogger(level logging.Level) {
 	backend := logging.NewLogBackend(os.Stderr, "", 0)
 
 	format := logging.MustStringFormatter(

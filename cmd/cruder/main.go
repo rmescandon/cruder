@@ -24,7 +24,6 @@ import (
 	"os"
 
 	"github.com/jessevdk/go-flags"
-	logging "github.com/op/go-logging"
 	"github.com/rmescandon/cruder"
 )
 
@@ -41,6 +40,7 @@ func addCommand(name string, shortHelp string, longHelp string, data interface{}
 func main() {
 	err := run()
 	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }
@@ -54,19 +54,18 @@ func run() error {
 				return nil
 			}
 		}
-		fmt.Println(err)
+		return err
 	}
 
-	//TODO MOVE THIS TO CRUDER PACKAGE
-	if len(cruder.Config.File) == 0 {
-		parser.WriteHelp(os.Stdout)
-		return nil
-	}
-
-	if len(cruder.Config.Verbose) > 0 {
-		cruder.InitLogger(logging.DEBUG)
-	} else {
-		cruder.InitLogger(logging.WARNING)
+	err = cruder.Config.ValidateAndInitialize()
+	if err != nil {
+		if e, ok := err.(*flags.Error); ok {
+			if e.Type == flags.ErrHelp {
+				parser.WriteHelp(os.Stdout)
+				return nil
+			}
+		}
+		return err
 	}
 
 	err = generateSkeletonCode(cruder.Config.File)
