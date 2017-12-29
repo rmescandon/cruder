@@ -1,0 +1,62 @@
+// -*- Mode: Go; indent-tabs-mode: t -*-
+
+/*
+ * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package service
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+)
+
+type emptyResponse struct{}
+
+type errorResponse struct {
+	Code    string `json:"error_code"`
+	Message string `json:"error_message"`
+}
+
+func replyWithError(statusCode int, errorBody errorResponse, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(statusCode)
+	if err := json.NewEncoder(w).Encode(errorBody); err != nil {
+		log.Printf("Error forming the error response: %v\n", err)
+	}
+}
+
+func reply200OK(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(emptyResponse{}); err != nil {
+		log.Printf("Error forming the empty response: %v\n", err)
+	}
+}
+
+func reply204NoContent(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func reply201Created(w http.ResponseWriter, location string) {
+	w.Header().Set("Location", location)
+	w.WriteHeader(http.StatusCreated)
+}
+
+func composeLocation(r *http.Request, id string) string {
+	return "http://" + r.Host + r.URL.Path + "/" + id
+}

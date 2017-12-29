@@ -76,12 +76,13 @@ func (db *DB) Find_#TheType#_(name string) (_#TheType#_, error) {
 }
 
 // Create_#TheType#_ Inserts a new register
-func (db *DB) Create_#TheType#_(_#theType#_ _#TheType#_) error {
-	_, err := db.Exec(create_#TheType#_SQL, _#theType.Fields#_)
+func (db *DB) Create_#TheType#_(_#theType#_ _#TheType#_) (_#theType.ID.Type#_, error) {
+	var id _#theType.ID.Type#_
+	err := db.QueryRow(create_#TheType#_SQL, _#theType.Fields#_).Scan(&id)
 	if err != nil {
-		return fmt.Errorf("Error creating #thetype# register: %v", err)
+		return fmt.Errorf("Error creating _#thetype#_ register: %v", err)
 	}
-	return nil
+	return id,nil
 }
 
 // Update_#TheType#_ updates a register

@@ -86,12 +86,13 @@ func (db *DB) FindMyType(name string) (MyType, error) {
 }
 
 // CreateMyType Inserts a new register
-func (db *DB) CreateMyType(myType MyType) error {
-	_, err := db.Exec(createMyTypeSQL, myType.Name, myType.Description, myType.SubTypes)
+func (db *DB) CreateMyType(myType MyType) (int, error) {
+	var id int
+	err := db.QueryRow(createMyTypeSQL, myType.Name, myType.Description, myType.SubTypes).Scan(&id)
 	if err != nil {
-		return fmt.Errorf("Error creating mytype register: %v", err)
+		return -1, fmt.Errorf("Error creating mytype register: %v", err)
 	}
-	return nil
+	return id, nil
 }
 
 // UpdateMyType updates a register

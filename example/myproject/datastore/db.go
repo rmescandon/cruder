@@ -25,9 +25,19 @@ import (
 
 // Datastore interface for different data storages
 type Datastore interface {
+	CreateMyTypeTable() error
+	ListMyTypes() ([]MyType, error)
+	GetMyType(id int) (MyType, error)
+	FindMyType(name string) (MyType, error)
+	CreateMyType(myType MyType) (int, error)
+	UpdateMyType(id int, myType MyType)
+	DeleteMyType(id int) error
 }
 
 // DB struct holding database implementation for datastore
 type DB struct {
 	*sql.DB
 }
+
+// Db pointer to database hander
+var Db *DB
