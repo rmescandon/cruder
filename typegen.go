@@ -37,26 +37,13 @@ type typeField struct {
 	Type string
 }
 
-// GetTypesMaps returns a map of types. Each key is the type name and the
-// value is a list of field name and type pairs
-func getTypesMaps(filepath string) (map[string][]typeField, error) {
-	emptyMap := make(map[string][]typeField)
+func fileToSyntaxTree(filepath string) ([]byte, *ast.File, error) {
 	f, err := os.Open(filepath)
 	if err != nil {
-		return emptyMap, err
+		return []byte{}, nil, err
 	}
-
-	buffer, metafile, err := parse(f)
-	if err != nil {
-		return emptyMap, err
-	}
-
-	structsMap, err := getStructs(metafile)
-	if err != nil {
-		return emptyMap, err
-	}
-
-	return decomposeStructs(buffer, structsMap)
+	defer f.Close()
+	return parse(f)
 }
 
 // Parse parses io reader to ast.File pointer
@@ -77,6 +64,19 @@ func parse(reader io.Reader) ([]byte, *ast.File, error) {
 	// TODO use parser.Trace Mode (last param) instead of 0 to see what is being parsed
 	astFile, err := parser.ParseFile(fs, "", buffer, 0)
 	return buffer, astFile, err
+}
+
+// composeTypesMaps returns a map of types. Each key is the type name and the
+// value is a list of field name and type pairs
+func composeTypesMaps(typesFileContent []byte, syntaxTree *ast.File) (map[string][]typeField, error) {
+	emptyMap := make(map[string][]typeField)
+
+	structsMap, err := getStructs(syntaxTree)
+	if err != nil {
+		return emptyMap, err
+	}
+
+	return decomposeStructs(typesFileContent, structsMap)
 }
 
 func getStructs(file *ast.File) (map[string]*ast.StructType, error) {

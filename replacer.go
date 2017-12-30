@@ -36,14 +36,19 @@ const (
 
 func typeHoldersFromFile(typesFile string) ([]*TypeHolder, error) {
 	var typeHolders []*TypeHolder
-	typesMap, err := getTypesMaps(typesFile)
+	typesFileContent, syntaxTree, err := fileToSyntaxTree(typesFile)
+	if err != nil {
+		return nil, err
+	}
+
+	typesMap, err := composeTypesMaps(typesFileContent, syntaxTree)
 	if err != nil {
 		return nil, err
 	}
 
 	for typeName := range typesMap {
 		Log.Debugf("Found type: %v", typeName)
-		typeHolder := newTypeHolder(typeName, typesMap[typeName])
+		typeHolder := newTypeHolder(typeName, typesMap[typeName], syntaxTree)
 		typeHolders = append(typeHolders, typeHolder)
 	}
 

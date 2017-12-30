@@ -21,6 +21,7 @@ package cruder
 
 import (
 	"errors"
+	"go/ast"
 	"path/filepath"
 	"strings"
 )
@@ -31,12 +32,14 @@ type TypeHolder struct {
 	IDFieldName string
 	IDFieldType string
 	Fields      []typeField
+	SyntaxTree  *ast.File
 }
 
-func newTypeHolder(typeName string, typeFields []typeField) *TypeHolder {
+func newTypeHolder(typeName string, typeFields []typeField, syntaxTree *ast.File) *TypeHolder {
 	return &TypeHolder{
-		Name:   typeName,
-		Fields: typeFields,
+		Name:       typeName,
+		Fields:     typeFields,
+		SyntaxTree: syntaxTree,
 	}
 }
 
