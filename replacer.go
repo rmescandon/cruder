@@ -20,117 +20,58 @@
 package cruder
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-// Categories for output generated files
-const (
-	Datastore = iota + 1
-	Handler
-	Router
-)
+// GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
+func GenerateSkeletonCode() error {
+	Log.Debug("Generating Skeleton Code...")
 
-func typeHoldersFromFile(typesFile string) ([]*TypeHolder, error) {
+	// TODO typeHolder creation also generates the output files
+	typeHolders, err := typeHoldersFromFile(Config.TypesFile)
+	if err != nil {
+		return fmt.Errorf("Error composing type holders from types file: %v", err)
+	}
+
+	for _, typeHolder := range typeHolders {
+		err = typeHolder.appendOutputs()
+		if err != nil {
+			Log.Warningf("Could not append output: %v", err)
+			continue
+		}
+	}
+
+	return nil
+}
+
+func typeHoldersFromFile(typesFilepath string) ([]*TypeHolder, error) {
 	var typeHolders []*TypeHolder
-	typesFileContent, syntaxTree, err := fileToSyntaxTree(typesFile)
+
+	source, err := newGoFile(typesFilepath)
 	if err != nil {
 		return nil, err
 	}
 
-	typesMap, err := composeTypesMaps(typesFileContent, syntaxTree)
+	typesMap, err := composeTypesMaps(source)
 	if err != nil {
 		return nil, err
 	}
 
 	for typeName := range typesMap {
 		Log.Debugf("Found type: %v", typeName)
-		typeHolder := newTypeHolder(typeName, typesMap[typeName], syntaxTree)
+		typeHolder := newTypeHolder(typeName, typesMap[typeName], source)
 		typeHolders = append(typeHolders, typeHolder)
 	}
 
 	return typeHolders, nil
 }
 
-func replace(templateFile string, typeHolders []*TypeHolder) error {
-	var templateContent string
-
-	for _, typeHolder := range typeHolders {
-		// don't write if file exists
-		// FIXME this should not happen if output file is same as source one.
-		// IN such case, original file types should be added to output
-		outputPath, err := getOutputFilePath(templateFile, typeHolder)
-		_, err = os.Stat(outputPath)
-		if err == nil {
-			Log.Warningf("File %v already exists. Skip writting", outputPath)
-			continue
-		}
-
-		// create needed dirs to outputPath
-		ensureDir(filepath.Dir(outputPath))
-
-		// read template content if first time
-		if len(templateContent) == 0 {
-			Log.Debugf("Loadig template: %v", filepath.Base(templateFile))
-			templateContent, err = fileContentsAsString(templateFile)
-			if err != nil {
-				return fmt.Errorf("Error reading template file: %v", err)
-			}
-		}
-
-		replacedStr, err := replaceOne(templateContent, typeHolder)
-		if err != nil {
-			return fmt.Errorf("Error replacing type %v over template %v", typeHolder.Name, templateFile)
-		}
-
-		f, err := os.Create(outputPath)
-		if err != nil {
-			return fmt.Errorf("Could not create %v: %v", outputPath, err)
-		}
-		defer f.Close()
-
-		_, err = f.WriteString(replacedStr)
-		if err != nil {
-			return fmt.Errorf("Error writing to output %v: %v", outputPath, err)
-		}
-
-		Log.Infof("Generated: %v", outputPath)
-	}
-
-	return nil
-}
-
-func replaceOne(originalContent string, typeHolder *TypeHolder) (string, error) {
-	replaced := originalContent
-
-	replaced = strings.Replace(replaced, "_#TheType#_", typeHolder.Name, -1)
-	replaced = strings.Replace(replaced, "_#theType#_", typeHolder.typeIdentifier(), -1)
-	replaced = strings.Replace(replaced, "_#thetype#_", typeHolder.typeInComments(), -1)
-	replaced = strings.Replace(replaced, "_#theType.ID#_", typeHolder.IDFieldName, -1)
-	replaced = strings.Replace(replaced, "_#theType.ID.Type#_", typeHolder.IDFieldType, -1)
-	replaced = strings.Replace(replaced, "_#theType.Fields#_", typeHolder.typeFieldsEnum(), -1)
-	replaced = strings.Replace(replaced, "_#theType.Fields.Ref#_", typeHolder.typeRefFieldsEnum(), -1)
-	replaced = strings.Replace(replaced, "_#TheType.Db.ID#_", typeHolder.typeDbIDField(), -1)
-	replaced = strings.Replace(replaced, "_#TheType.Db.Fields#_", typeHolder.typeDbFieldsEnum(), -1)
-
-	return replaced, nil
-}
-
-func getOutputFilePath(templateFile string, typeHolder *TypeHolder) (string, error) {
-	filename := filepath.Base(templateFile)
-	switch filename {
-	case "datastore.template":
-		return typeHolder.getOutputFilePathFor(Datastore)
-	case "handler.template":
-		return typeHolder.getOutputFilePathFor(Handler)
-	case "router.template":
-		return typeHolder.getOutputFilePathFor(Router)
-	default:
-		return "", errors.New("Unknown template file")
-	}
+func templateIdentifier(templateAbsPath string) string {
+	filename := filepath.Base(templateAbsPath)
+	var extension = filepath.Ext(filename)
+	return filename[0 : len(filename)-len(extension)]
 }
 
 func ensureDir(dir string) error {

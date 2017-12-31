@@ -131,7 +131,7 @@ func (db *DB) rowsTo_#TheType#_s(rows *sql.Rows) ([]_#TheType#_, error) {
 		if err != nil {
 			return nil, err
 		}
-		_#theType#_List = append(_#theType#_List, #theType#)
+		_#theType#_List = append(_#theType#_List, _#theType#_)
 	}
 
 	return _#theType#_List, nil

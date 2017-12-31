@@ -68,15 +68,15 @@ func parse(reader io.Reader) ([]byte, *ast.File, error) {
 
 // composeTypesMaps returns a map of types. Each key is the type name and the
 // value is a list of field name and type pairs
-func composeTypesMaps(typesFileContent []byte, syntaxTree *ast.File) (map[string][]typeField, error) {
+func composeTypesMaps(source *goFile) (map[string][]typeField, error) {
 	emptyMap := make(map[string][]typeField)
 
-	structsMap, err := getStructs(syntaxTree)
+	structsMap, err := getStructs(source.Ast)
 	if err != nil {
 		return emptyMap, err
 	}
 
-	return decomposeStructs(typesFileContent, structsMap)
+	return decomposeStructs(source.Content, structsMap)
 }
 
 func getStructs(file *ast.File) (map[string]*ast.StructType, error) {

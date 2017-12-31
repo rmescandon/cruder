@@ -21,26 +21,66 @@ package cruder
 
 import (
 	"errors"
-	"go/ast"
+	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 )
 
+// Categories for output generated files
+const (
+	Datastore = iota + 1
+	Handler
+	Router
+)
+
 // TypeHolder holds a type previously read from file
 type TypeHolder struct {
-	Name        string
-	IDFieldName string
-	IDFieldType string
-	Fields      []typeField
-	SyntaxTree  *ast.File
+	Name    string
+	Source  *goFile
+	IDField typeField
+	Fields  []typeField
+	Outputs []*Output
 }
 
-func newTypeHolder(typeName string, typeFields []typeField, syntaxTree *ast.File) *TypeHolder {
-	return &TypeHolder{
-		Name:       typeName,
-		Fields:     typeFields,
-		SyntaxTree: syntaxTree,
+// Output represents an output generated file
+type Output struct {
+	Name     string
+	File     *goFile
+	Type     int
+	Template string
+}
+
+// correlation between template identifier and output category
+var outputCategories = map[string]int{
+	"datastore": Datastore,
+	"handler":   Handler,
+	"router":    Router,
+}
+
+func newTypeHolder(typeName string, typeFields []typeField, source *goFile) *TypeHolder {
+	var idField typeField
+	if len(typeFields) > 0 {
+		idField = typeFields[0]
 	}
+
+	holder := &TypeHolder{
+		Name:    typeName,
+		Source:  source,
+		IDField: idField,
+		Fields:  typeFields,
+	}
+
+	// Creates one Output object per template and generates the output file
+	// XXX this is made from outside, once created the holder
+	/*
+		err := holder.appendOutputs()
+		if err != nil {
+			log.Fatalf("Error appending output: %v", err)
+		}
+	*/
+
+	return holder
 }
 
 // returns type name in camel case, except first letter, which is lower case:
@@ -80,7 +120,7 @@ func (holder *TypeHolder) fieldsEnum(asRef bool) string {
 	var enum string
 	for _, field := range holder.Fields {
 		// skip ID field
-		if field.Name == holder.IDFieldName {
+		if field.Name == holder.IDField.Name {
 			continue
 		}
 
@@ -94,6 +134,14 @@ func (holder *TypeHolder) fieldsEnum(asRef bool) string {
 	return enum
 }
 
+func (holder *TypeHolder) typeIDFieldName() string {
+	return holder.typeIdentifierDotField(holder.IDField.Name)
+}
+
+func (holder *TypeHolder) typeIDFieldType() string {
+	return holder.typeIdentifierDotField(holder.IDField.Type)
+}
+
 // returns type identifier plus dot plus parameter fields name, like:
 // "theType.Field1"
 func (holder *TypeHolder) typeIdentifierDotField(fieldName string) string {
@@ -101,11 +149,11 @@ func (holder *TypeHolder) typeIdentifierDotField(fieldName string) string {
 }
 
 func (holder *TypeHolder) typeDbIDField() string {
-	result := strings.ToLower(holder.IDFieldName) + " "
-	if holder.IDFieldType == "int" {
+	result := strings.ToLower(holder.IDField.Name) + " "
+	if holder.IDField.Type == "int" {
 		result = result + "serial "
 	} else {
-		result = result + holder.IDFieldType + " "
+		result = result + holder.IDField.Type + " "
 	}
 
 	result = result + "primary key not null,"
@@ -119,7 +167,7 @@ func (holder *TypeHolder) typeDbIDField() string {
 func (holder *TypeHolder) typeDbFieldsEnum() string {
 	var result string
 	for _, field := range holder.Fields {
-		if field.Name == holder.IDFieldName {
+		if field.Name == holder.IDField.Name {
 			continue
 		}
 
@@ -152,6 +200,59 @@ func (holder *TypeHolder) typeDbFieldsEnum() string {
 	return result
 }
 
+func (holder *TypeHolder) appendOutputs() error {
+	Log.Debugf("searching for available templates at %v", Config.TemplatesPath)
+	availableTemplates, err := filepath.Glob(filepath.Join(Config.TemplatesPath, "*.template"))
+	if err != nil {
+		return fmt.Errorf("Error listing available templates: %v", err)
+	}
+
+	for _, templateFilePath := range availableTemplates {
+		Log.Debugf("Found template: %v", filepath.Base(templateFilePath))
+
+		err := holder.appendOutput(templateFilePath)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (holder *TypeHolder) appendOutput(templateFilePath string) error {
+	templateID := templateIdentifier(templateFilePath)
+	category := outputCategories[templateID]
+	outputFilePath, err := holder.getOutputFilePathFor(category)
+	if err != nil {
+		return err
+	}
+
+	err = holder.generateOutputFile(templateFilePath, outputFilePath)
+	if err != nil {
+		return err
+	}
+
+	// read generated file content as byte array
+	content, ast, err := fileToSyntaxTree(outputFilePath)
+	if err != nil {
+		return err
+	}
+
+	output := &Output{
+		Name: templateID,
+		File: &goFile{
+			Path:    outputFilePath,
+			Content: content,
+			Ast:     ast,
+		},
+		Type:     category,
+		Template: templateFilePath,
+	}
+
+	holder.Outputs = append(holder.Outputs, output)
+	return nil
+}
+
 func (holder *TypeHolder) getOutputFilePathFor(category int) (string, error) {
 	switch category {
 	case Datastore:
@@ -163,4 +264,59 @@ func (holder *TypeHolder) getOutputFilePathFor(category int) (string, error) {
 	default:
 		return "", errors.New("Invalid output category")
 	}
+}
+
+func (holder *TypeHolder) generateOutputFile(templateFilePath, outputFilePath string) error {
+	// don't write if file exists
+	// FIXME this should not happen if output file is same as source one.
+	// IN such case, original file types should be added to output
+	_, err := os.Stat(outputFilePath)
+	if err == nil {
+		return fmt.Errorf("File %v already exists. Skip writting", outputFilePath)
+	}
+
+	// execute the replacement:
+	// create needed dirs to outputPath
+	ensureDir(filepath.Dir(outputFilePath))
+
+	Log.Debugf("Loadig template: %v", filepath.Base(templateFilePath))
+	templateContent, err := fileContentsAsString(templateFilePath)
+	if err != nil {
+		return fmt.Errorf("Error reading template file: %v", err)
+	}
+
+	replacedStr, err := holder.replaceIn(templateContent)
+	if err != nil {
+		return fmt.Errorf("Error replacing type %v over template %v", holder.Name, filepath.Base(templateFilePath))
+	}
+
+	f, err := os.Create(outputFilePath)
+	if err != nil {
+		return fmt.Errorf("Could not create %v: %v", outputFilePath, err)
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(replacedStr)
+	if err != nil {
+		return fmt.Errorf("Error writing to output %v: %v", outputFilePath, err)
+	}
+
+	Log.Infof("Generated: %v", outputFilePath)
+	return nil
+}
+
+func (holder *TypeHolder) replaceIn(templateContent string) (string, error) {
+	replaced := templateContent
+
+	replaced = strings.Replace(replaced, "_#TheType#_", holder.Name, -1)
+	replaced = strings.Replace(replaced, "_#theType#_", holder.typeIdentifier(), -1)
+	replaced = strings.Replace(replaced, "_#thetype#_", holder.typeInComments(), -1)
+	replaced = strings.Replace(replaced, "_#theType.ID#_", holder.typeIDFieldName(), -1)
+	replaced = strings.Replace(replaced, "_#theType.ID.Type#_", holder.typeIDFieldType(), -1)
+	replaced = strings.Replace(replaced, "_#theType.Fields#_", holder.typeFieldsEnum(), -1)
+	replaced = strings.Replace(replaced, "_#theType.Fields.Ref#_", holder.typeRefFieldsEnum(), -1)
+	replaced = strings.Replace(replaced, "_#TheType.Db.ID#_", holder.typeDbIDField(), -1)
+	replaced = strings.Replace(replaced, "_#TheType.Db.Fields#_", holder.typeDbFieldsEnum(), -1)
+
+	return replaced, nil
 }

@@ -64,7 +64,13 @@ func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
 	c.Assert(b, check.Not(check.HasLen), 0)
 	c.Assert(syntaxTree, check.NotNil)
 
-	theMap, err := composeTypesMaps(b, syntaxTree)
+	source := &goFile{
+		Path:    f.Name(),
+		Content: b,
+		Ast:     syntaxTree,
+	}
+
+	theMap, err := composeTypesMaps(source)
 	c.Assert(err, check.IsNil)
 
 	c.Assert(len(theMap), check.Equals, 1)

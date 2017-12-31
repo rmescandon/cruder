@@ -31,9 +31,11 @@ var _ = check.Suite(&TypeHolderSuite{})
 
 func (s *TypeHolderSuite) SetUpTest(c *check.C) {
 	s.typeHolder = TypeHolder{
-		Name:        "MyType",
-		IDFieldName: "ID",
-		IDFieldType: "int",
+		Name: "MyType",
+		IDField: typeField{
+			Name: "ID",
+			Type: "int",
+		},
 		Fields: []typeField{
 			typeField{Name: "ID", Type: "int"},
 			typeField{Name: "Field1", Type: "string"},

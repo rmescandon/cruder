@@ -21,7 +21,6 @@ package cruder
 
 import (
 	"io/ioutil"
-	"path/filepath"
 	"strings"
 
 	check "gopkg.in/check.v1"
@@ -41,14 +40,28 @@ func (s *ReplacerSuite) TestReplaceUsingDatastoreTemplate(c *check.C) {
 	Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
+	Config.TemplatesPath = "testdata/templates"
+
 	typeHolders, err := typeHoldersFromFile(typeFile.Name())
 	c.Assert(err, check.IsNil)
 	c.Assert(typeHolders, check.HasLen, 1)
-
-	err = replace(filepath.Join("testdata", "templates", "datastore.template"), typeHolders)
+	c.Assert(typeHolders[0].Name, check.Equals, "MyType")
+	c.Assert(typeHolders[0].Fields, check.HasLen, 4)
+	c.Assert(typeHolders[0].IDField.Name, check.Equals, "ID")
+	c.Assert(typeHolders[0].IDField.Type, check.Equals, "int")
+	c.Assert(typeHolders[0].Source, check.NotNil)
+	c.Assert(typeHolders[0].Source.Path, check.Equals, typeFile.Name())
+	b, ast, err := fileToSyntaxTree(typeFile.Name())
 	c.Assert(err, check.IsNil)
+	c.Assert(typeHolders[0].Source.Content, check.DeepEquals, b)
+	c.Assert(typeHolders[0].Source.Ast, check.NotNil)
+	c.Assert(typeHolders[0].Source.Ast, check.DeepEquals, ast)
+	c.Assert(typeHolders[0].Outputs, check.IsNil)
 
 	outputFile, err := typeHolders[0].getOutputFilePathFor(Datastore)
+	c.Assert(err, check.IsNil)
+
+	err = typeHolders[0].appendOutputs()
 	c.Assert(err, check.IsNil)
 
 	content, err := fileContentsAsString(outputFile)

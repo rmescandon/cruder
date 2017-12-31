@@ -21,8 +21,30 @@ package cruder
 
 import (
 	"bytes"
+	"go/ast"
 	"os"
 )
+
+// goFile represents a go source code disk resource. Each struct
+// member is a different way of having same info
+type goFile struct {
+	Path    string
+	Content []byte
+	Ast     *ast.File
+}
+
+func newGoFile(filepath string) (*goFile, error) {
+	content, ast, err := fileToSyntaxTree(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &goFile{
+		Path:    filepath,
+		Content: content,
+		Ast:     ast,
+	}, nil
+}
 
 func fileContentsAsString(filepath string) (string, error) {
 	b, err := fileBuffer(filepath)
