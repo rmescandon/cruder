@@ -29,8 +29,12 @@ import (
 func GenerateSkeletonCode() error {
 	Log.Debug("Generating Skeleton Code...")
 
-	// TODO typeHolder creation also generates the output files
-	typeHolders, err := typeHoldersFromFile(Config.TypesFile)
+	source, err := newGoFile(Config.TypesFile)
+	if err != nil {
+		return fmt.Errorf("Error reading go source file: %v", err)
+	}
+
+	typeHolders, err := composeTypeHolders(source)
 	if err != nil {
 		return fmt.Errorf("Error composing type holders from types file: %v", err)
 	}
@@ -44,28 +48,6 @@ func GenerateSkeletonCode() error {
 	}
 
 	return nil
-}
-
-func typeHoldersFromFile(typesFilepath string) ([]*TypeHolder, error) {
-	var typeHolders []*TypeHolder
-
-	source, err := newGoFile(typesFilepath)
-	if err != nil {
-		return nil, err
-	}
-
-	typesMap, err := composeTypesMaps(source)
-	if err != nil {
-		return nil, err
-	}
-
-	for typeName := range typesMap {
-		Log.Debugf("Found type: %v", typeName)
-		typeHolder := newTypeHolder(typeName, typesMap[typeName], source)
-		typeHolders = append(typeHolders, typeHolder)
-	}
-
-	return typeHolders, nil
 }
 
 func templateIdentifier(templateAbsPath string) string {

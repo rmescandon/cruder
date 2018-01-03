@@ -62,71 +62,60 @@ func parse(reader io.Reader) ([]byte, *ast.File, error) {
 
 	fs := token.NewFileSet()
 	// TODO use parser.Trace Mode (last param) instead of 0 to see what is being parsed
-	astFile, err := parser.ParseFile(fs, "", buffer, 0)
+	astFile, err := parser.ParseFile(fs, "", buffer, parser.Trace)
 	return buffer, astFile, err
 }
 
-// composeTypesMaps returns a map of types. Each key is the type name and the
-// value is a list of field name and type pairs
-func composeTypesMaps(source *goFile) (map[string][]typeField, error) {
-	emptyMap := make(map[string][]typeField)
+func composeTypeHolders(source *goFile) ([]*TypeHolder, error) {
+	var holders []*TypeHolder
+	decls := getTypeDecls(source.Ast)
+	for _, decl := range decls {
+		for _, spec := range decl.Specs {
+			fields, err := composeTypeFields(source.Content, spec)
+			if err != nil {
+				return holders, err
+			}
 
-	structsMap, err := getStructs(source.Ast)
-	if err != nil {
-		return emptyMap, err
+			idField := typeField{}
+			if len(fields) > 0 {
+				idField = fields[0]
+			}
+
+			holders = append(holders, &TypeHolder{
+				Name:    spec.(*ast.TypeSpec).Name.Name,
+				Source:  source,
+				IDField: idField,
+				Fields:  fields,
+				Decl:    decl,
+			})
+		}
 	}
-
-	return decomposeStructs(source.Content, structsMap)
+	return holders, nil
 }
 
-func getStructs(file *ast.File) (map[string]*ast.StructType, error) {
-	structs := make(map[string]*ast.StructType)
-
+func getTypeDecls(file *ast.File) []*ast.GenDecl {
+	var typeDecls []*ast.GenDecl
 	for _, decl := range file.Decls {
 		switch decl.(type) {
 		case *ast.GenDecl:
-			genDecl := decl.(*ast.GenDecl)
-			for _, spec := range genDecl.Specs {
-				switch spec.(type) {
-				case *ast.TypeSpec:
-					typeSpec := spec.(*ast.TypeSpec)
-					switch typeSpec.Type.(type) {
-					case *ast.StructType:
-						structName := typeSpec.Name.Name
-						structType := typeSpec.Type.(*ast.StructType)
-						structs[structName] = structType
-					}
-				}
+			if decl.(*ast.GenDecl).Tok == token.TYPE {
+				typeDecls = append(typeDecls, decl.(*ast.GenDecl))
 			}
 		}
 	}
-
-	return structs, nil
+	return typeDecls
 }
 
-func decomposeStructs(buffer []byte, structs map[string]*ast.StructType) (map[string][]typeField, error) {
-	structsMap := make(map[string][]typeField)
-	for structName := range structs {
-		structMembers, err := decomposeStruct(buffer, structs[structName])
-		if err != nil {
-			return structsMap, err
-		}
-		structsMap[structName] = structMembers
-	}
-	return structsMap, nil
-}
-
-func decomposeStruct(buffer []byte, structType *ast.StructType) ([]typeField, error) {
+func composeTypeFields(content []byte, spec ast.Spec) ([]typeField, error) {
 	var fields []typeField
-
-	for _, field := range structType.Fields.List {
+	for _, field := range spec.(*ast.TypeSpec).Type.(*ast.StructType).Fields.List {
 		if len(field.Names) != 1 {
 			return fields, fmt.Errorf("Unexpected length of %v for a field", len(field.Names))
 		}
 
 		fields = append(fields, typeField{
 			Name: field.Names[0].Name,
-			Type: string(buffer[field.Type.Pos()-1 : field.Type.End()-1]),
+			Type: string(content[field.Type.Pos()-1 : field.Type.End()-1]),
 		})
 	}
 	return fields, nil

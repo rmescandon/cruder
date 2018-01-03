@@ -22,6 +22,7 @@ package cruder
 import (
 	"errors"
 	"fmt"
+	"go/ast"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,6 +41,7 @@ type TypeHolder struct {
 	Source  *goFile
 	IDField typeField
 	Fields  []typeField
+	Decl    *ast.GenDecl
 	Outputs []*Output
 }
 
@@ -56,31 +58,6 @@ var outputCategories = map[string]int{
 	"datastore": Datastore,
 	"handler":   Handler,
 	"router":    Router,
-}
-
-func newTypeHolder(typeName string, typeFields []typeField, source *goFile) *TypeHolder {
-	var idField typeField
-	if len(typeFields) > 0 {
-		idField = typeFields[0]
-	}
-
-	holder := &TypeHolder{
-		Name:    typeName,
-		Source:  source,
-		IDField: idField,
-		Fields:  typeFields,
-	}
-
-	// Creates one Output object per template and generates the output file
-	// XXX this is made from outside, once created the holder
-	/*
-		err := holder.appendOutputs()
-		if err != nil {
-			log.Fatalf("Error appending output: %v", err)
-		}
-	*/
-
-	return holder
 }
 
 // returns type name in camel case, except first letter, which is lower case:

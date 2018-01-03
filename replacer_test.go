@@ -42,7 +42,11 @@ func (s *ReplacerSuite) TestReplaceUsingDatastoreTemplate(c *check.C) {
 
 	Config.TemplatesPath = "testdata/templates"
 
-	typeHolders, err := typeHoldersFromFile(typeFile.Name())
+	source, err := newGoFile(typeFile.Name())
+	c.Assert(err, check.IsNil)
+	c.Assert(source, check.NotNil)
+
+	typeHolders, err := composeTypeHolders(source)
 	c.Assert(err, check.IsNil)
 	c.Assert(typeHolders, check.HasLen, 1)
 	c.Assert(typeHolders[0].Name, check.Equals, "MyType")

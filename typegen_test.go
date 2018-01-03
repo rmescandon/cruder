@@ -70,27 +70,25 @@ func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
 		Ast:     syntaxTree,
 	}
 
-	theMap, err := composeTypesMaps(source)
+	typeHolders, err := composeTypeHolders(source)
 	c.Assert(err, check.IsNil)
+	c.Assert(typeHolders, check.HasLen, 1)
+	c.Assert(typeHolders[0].Name, check.Equals, "MyType")
 
-	c.Assert(len(theMap), check.Equals, 1)
-	for structName := range theMap {
-		c.Assert(structName, check.Equals, "MyType")
-
-		theFields := theMap[structName]
-		for _, field := range theFields {
-			switch field.Name {
-			case "ID":
-				c.Assert(field.Type, check.Equals, "int")
-			case "Name":
-				c.Assert(field.Type, check.Equals, "string")
-			case "Description":
-				c.Assert(field.Type, check.Equals, "string")
-			case "SubTypes":
-				c.Assert(field.Type, check.Equals, "[]string")
-			default:
-				c.Fail()
-			}
+	theFields := typeHolders[0].Fields
+	c.Assert(len(theFields), check.Equals, 4)
+	for _, field := range theFields {
+		switch field.Name {
+		case "ID":
+			c.Assert(field.Type, check.Equals, "int")
+		case "Name":
+			c.Assert(field.Type, check.Equals, "string")
+		case "Description":
+			c.Assert(field.Type, check.Equals, "string")
+		case "SubTypes":
+			c.Assert(field.Type, check.Equals, "[]string")
+		default:
+			c.Fail()
 		}
 	}
 }
