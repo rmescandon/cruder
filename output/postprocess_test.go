@@ -17,7 +17,7 @@
  *
  */
 
-package cruder
+package output
 
 import (
 	"io/ioutil"

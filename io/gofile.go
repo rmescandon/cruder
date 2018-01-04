@@ -17,35 +17,35 @@
  *
  */
 
-package cruder
+package io
 
 import (
-	"io/ioutil"
-	"os"
+	"go/ast"
 )
 
-const (
-	testTypeFileContent = `
-	package mytype
-	
-	// MyType test type to generate skeletom code
-	type MyType struct {
-		ID          int
-		Name        string
-		Description string
-		SubTypes    []string
-	}	
-	`
-)
+// GoFile represents a go source code disk resource. Each struct
+// member is a different way of having same info
+type GoFile struct {
+	Path    string
+	Content []byte
+	Ast     *ast.File
+}
 
-func testTypeFile() (*os.File, error) {
-
-	f, err := ioutil.TempFile("", "")
+// NewGoFile returns a brand new GoFile instance
+func NewGoFile(filepath string) (*GoFile, error) {
+	content, err := FileContentAsByteArray(filepath)
 	if err != nil {
-		return f, err
+		return nil, err
 	}
-	defer f.Close()
 
-	_, err = f.WriteString(testTypeFileContent)
-	return f, err
+	ast, err := ByteContentAsAST(content)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GoFile{
+		Path:    filepath,
+		Content: content,
+		Ast:     ast,
+	}, nil
 }

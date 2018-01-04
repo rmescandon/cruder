@@ -17,56 +17,19 @@
  *
  */
 
-package cruder
+package src
 
 // This file contains the model construction by parsing source files.
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
 	"go/ast"
-	"go/parser"
 	"go/token"
-	"io"
-	"os"
+
+	"github.com/rmescandon/cruder/io"
 )
 
-type typeField struct {
-	Name string
-	Type string
-}
-
-func fileToSyntaxTree(filepath string) ([]byte, *ast.File, error) {
-	f, err := os.Open(filepath)
-	if err != nil {
-		return []byte{}, nil, err
-	}
-	defer f.Close()
-	return parse(f)
-}
-
-// Parse parses io reader to ast.File pointer
-func parse(reader io.Reader) ([]byte, *ast.File, error) {
-	if reader == nil {
-		return nil, nil, errors.New("Reader is null")
-	}
-
-	var buf bytes.Buffer
-	_, err := io.Copy(&buf, reader)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	buffer := buf.Bytes()
-
-	fs := token.NewFileSet()
-	// TODO use parser.Trace Mode (last param) instead of 0 to see what is being parsed
-	astFile, err := parser.ParseFile(fs, "", buffer, parser.Trace)
-	return buffer, astFile, err
-}
-
-func composeTypeHolders(source *goFile) ([]*TypeHolder, error) {
+func ComposeTypeHolders(source *io.GoFile) ([]*TypeHolder, error) {
 	var holders []*TypeHolder
 	decls := getTypeDecls(source.Ast)
 	for _, decl := range decls {
@@ -76,7 +39,7 @@ func composeTypeHolders(source *goFile) ([]*TypeHolder, error) {
 				return holders, err
 			}
 
-			idField := typeField{}
+			idField := TypeField{}
 			if len(fields) > 0 {
 				idField = fields[0]
 			}
@@ -106,14 +69,14 @@ func getTypeDecls(file *ast.File) []*ast.GenDecl {
 	return typeDecls
 }
 
-func composeTypeFields(content []byte, spec ast.Spec) ([]typeField, error) {
-	var fields []typeField
+func composeTypeFields(content []byte, spec ast.Spec) ([]TypeField, error) {
+	var fields []TypeField
 	for _, field := range spec.(*ast.TypeSpec).Type.(*ast.StructType).Fields.List {
 		if len(field.Names) != 1 {
 			return fields, fmt.Errorf("Unexpected length of %v for a field", len(field.Names))
 		}
 
-		fields = append(fields, typeField{
+		fields = append(fields, TypeField{
 			Name: field.Names[0].Name,
 			Type: string(content[field.Type.Pos()-1 : field.Type.End()-1]),
 		})

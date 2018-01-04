@@ -1,7 +1,7 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 
 /*
- * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ * Copyright (C) 2018 Roberto Mier Escandon <rmescandon@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -17,37 +17,37 @@
  *
  */
 
-package cruder
+package output
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/src"
 )
 
-// GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
-func GenerateSkeletonCode() error {
-	Log.Debug("Generating Skeleton Code...")
+// Maker generates a Go output file
+type Maker interface {
+	Run() error
+	OutputFilepath() string
+}
 
-	source, err := newGoFile(Config.TypesFile)
-	if err != nil {
-		return fmt.Errorf("Error reading go source file: %v", err)
+// NewMaker returns a maker for a certain type and template
+func NewMaker(holder *src.TypeHolder, outputFolder, templatePath string) (Maker, error) {
+	templateID := templateIdentifier(templatePath)
+	switch templateID {
+	case "datastore":
+		return &Datastore{
+			Type: holder,
+			File: &io.GoFile{
+				Path: filepath.Join(outputFolder, "datastore", holder.InComments()+".go"),
+			},
+			Template: templatePath,
+		}, nil
 	}
 
-	typeHolders, err := composeTypeHolders(source)
-	if err != nil {
-		return fmt.Errorf("Error composing type holders from types file: %v", err)
-	}
-
-	for _, typeHolder := range typeHolders {
-		err = typeHolder.appendOutputs()
-		if err != nil {
-			Log.Warningf("Could not append output: %v", err)
-			continue
-		}
-	}
-
-	return nil
+	return nil, nil
 }
 
 func templateIdentifier(templateAbsPath string) string {

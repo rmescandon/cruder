@@ -17,60 +17,42 @@
  *
  */
 
-package cruder
+package src
 
 import (
-	"go/ast"
-	"strings"
-	"testing"
-
 	check "gopkg.in/check.v1"
+
+	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/testing"
 )
 
 // gopkg.in/check.v1 stuff
-func Test(t *testing.T) { check.TestingT(t) }
-
 type TypeGenSuite struct{}
 
 var _ = check.Suite(&TypeGenSuite{})
 
 func (s *TypeGenSuite) SetUpTest(c *check.C) {}
 
-func (s *TypeGenSuite) TestParseContent(c *check.C) {
-	r := strings.NewReader(testTypeFileContent)
-	_, file, err := parse(r)
-
-	c.Assert(err, check.IsNil)
-	c.Assert(len(file.Decls), check.Equals, 1)
-
-	genDecl := file.Decls[0].(*ast.GenDecl)
-	c.Assert(len(genDecl.Specs), check.Equals, 1)
-
-	typeDecl := genDecl.Specs[0].(*ast.TypeSpec)
-	ident := typeDecl.Name
-	c.Assert(ident.Name, check.Equals, "MyType")
-
-	structType := typeDecl.Type.(*ast.StructType)
-	c.Assert(len(structType.Fields.List), check.Equals, 4)
-}
-
 func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
-	f, err := testTypeFile()
+	f, err := testing.TestTypeFile()
 	c.Assert(err, check.IsNil)
 	c.Assert(f, check.NotNil)
 
-	b, syntaxTree, err := fileToSyntaxTree(f.Name())
+	b, err := io.FileContentAsByteArray(f.Name())
 	c.Assert(err, check.IsNil)
 	c.Assert(b, check.Not(check.HasLen), 0)
-	c.Assert(syntaxTree, check.NotNil)
 
-	source := &goFile{
+	ast, err := io.ByteContentAsAST(b)
+	c.Assert(ast, check.NotNil)
+	c.Assert(err, check.IsNil)
+
+	source := &io.GoFile{
 		Path:    f.Name(),
 		Content: b,
-		Ast:     syntaxTree,
+		Ast:     ast,
 	}
 
-	typeHolders, err := composeTypeHolders(source)
+	typeHolders, err := ComposeTypeHolders(source)
 	c.Assert(err, check.IsNil)
 	c.Assert(typeHolders, check.HasLen, 1)
 	c.Assert(typeHolders[0].Name, check.Equals, "MyType")

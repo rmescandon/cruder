@@ -24,10 +24,11 @@ import (
 	"os"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/rmescandon/cruder"
+	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/output"
 )
 
-var parser = flags.NewParser(&cruder.Config, flags.HelpFlag)
+var parser = flags.NewParser(&config.Config, flags.HelpFlag)
 
 func addCommand(name string, shortHelp string, longHelp string, data interface{}) (*flags.Command, error) {
 	cmd, err := parser.AddCommand(name, shortHelp, longHelp, data)
@@ -57,7 +58,7 @@ func run() error {
 		return err
 	}
 
-	err = cruder.Config.ValidateAndInitialize()
+	err = config.Config.ValidateAndInitialize()
 	if err != nil {
 		if e, ok := err.(*flags.Error); ok {
 			if e.Type == flags.ErrHelp {
@@ -68,5 +69,5 @@ func run() error {
 		return err
 	}
 
-	return cruder.GenerateSkeletonCode()
+	return output.GenerateSkeletonCode()
 }

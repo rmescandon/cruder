@@ -17,11 +17,14 @@
  *
  */
 
-package cruder
+package output
 
 import (
 	"os/exec"
 	"path/filepath"
+
+	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/logging"
 )
 
 // Defined cli commands
@@ -32,17 +35,17 @@ const (
 )
 
 func checkResults() error {
-	err := gofmt(filepath.Join(Config.Output, "..."))
+	err := gofmt(filepath.Join(config.Config.Output, "..."))
 	if err != nil {
 		return err
 	}
 
-	err = golint(filepath.Join(Config.Output, "..."))
+	err = golint(filepath.Join(config.Config.Output, "..."))
 	if err != nil {
 		return err
 	}
 
-	err = golint(Config.Output)
+	err = golint(config.Config.Output)
 	if err != nil {
 		return err
 	}
@@ -84,6 +87,6 @@ func execCmd(cmd int, target string) error {
 		}
 	}
 
-	Log.Infof("%v", string(bs))
+	logging.Infof("%v", string(bs))
 	return nil
 }

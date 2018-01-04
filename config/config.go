@@ -17,7 +17,7 @@
  *
  */
 
-package cruder
+package config
 
 import (
 	"fmt"
@@ -28,7 +28,10 @@ import (
 	yaml "gopkg.in/yaml.v1"
 
 	flags "github.com/jessevdk/go-flags"
-	logging "github.com/op/go-logging"
+	gologging "github.com/op/go-logging"
+
+	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/logging"
 )
 
 const (
@@ -59,9 +62,9 @@ func (c *Options) ValidateAndInitialize() error {
 	}
 
 	if len(c.Verbose) > 0 {
-		initLogger(logging.DEBUG)
+		logging.InitLogger(gologging.DEBUG)
 	} else {
-		initLogger(logging.WARNING)
+		logging.InitLogger(gologging.WARNING)
 	}
 
 	if len(c.Output) == 0 {
@@ -112,7 +115,7 @@ func currentDir() (string, error) {
 }
 
 func (c *Options) loadSettings() error {
-	b, err := fileContentsAsByteArray(c.Settings)
+	b, err := io.FileContentAsByteArray(c.Settings)
 	if err != nil {
 		return err
 	}

@@ -17,7 +17,7 @@
  *
  */
 
-package cruder
+package config
 
 import (
 	"io/ioutil"

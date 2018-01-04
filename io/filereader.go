@@ -1,7 +1,7 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 
 /*
- * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ * Copyright (C) 2018 Roberto Mier Escandon <rmescandon@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -17,36 +17,24 @@
  *
  */
 
-package cruder
+package io
 
 import (
 	"bytes"
 	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 )
 
-// goFile represents a go source code disk resource. Each struct
-// member is a different way of having same info
-type goFile struct {
-	Path    string
-	Content []byte
-	Ast     *ast.File
+// ByteContentAsAST composes syntax tree from a byte array content
+func ByteContentAsAST(content []byte) (*ast.File, error) {
+	// TODO use parser.Trace Mode (last param) instead of 0 to see what is being parsed
+	return parser.ParseFile(token.NewFileSet(), "", content, 0)
 }
 
-func newGoFile(filepath string) (*goFile, error) {
-	content, ast, err := fileToSyntaxTree(filepath)
-	if err != nil {
-		return nil, err
-	}
-
-	return &goFile{
-		Path:    filepath,
-		Content: content,
-		Ast:     ast,
-	}, nil
-}
-
-func fileContentsAsString(filepath string) (string, error) {
+// FileContentAsString reads file content and stores it in a string
+func FileContentAsString(filepath string) (string, error) {
 	b, err := fileBuffer(filepath)
 	if err != nil {
 		return "", err
@@ -54,7 +42,8 @@ func fileContentsAsString(filepath string) (string, error) {
 	return b.String(), nil
 }
 
-func fileContentsAsByteArray(filepath string) ([]byte, error) {
+// FileContentAsByteArray reads file content and stores it in a byte array
+func FileContentAsByteArray(filepath string) ([]byte, error) {
 	b, err := fileBuffer(filepath)
 	if err != nil {
 		return nil, err
