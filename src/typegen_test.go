@@ -38,11 +38,11 @@ func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(f, check.NotNil)
 
-	b, err := io.FileContentAsByteArray(f.Name())
+	b, err := io.FileToByteArray(f.Name())
 	c.Assert(err, check.IsNil)
 	c.Assert(b, check.Not(check.HasLen), 0)
 
-	ast, err := io.ByteContentAsAST(b)
+	ast, err := io.ByteArrayToAST(b)
 	c.Assert(ast, check.NotNil)
 	c.Assert(err, check.IsNil)
 

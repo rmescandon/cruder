@@ -41,9 +41,9 @@ const (
 // Options type holding possible cli params
 type Options struct {
 	Verbose       []bool `short:"v" long:"verbose" description:"Verbose output"`
-	TypesFile     string `short:"t" long:"types" description:"file with struct types to consider for generating the skeletom code"`
-	Output        string `short:"o" long:"output" description:"folder where building output structure of generated files"`
-	Settings      string `short:"c" long:"config" description:"settings file path"`
+	TypesFile     string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code"`
+	Output        string `short:"o" long:"output" description:"Folder where building output structure of generated files"`
+	Settings      string `short:"c" long:"config" description:"Settings file path"`
 	Version       string `yaml:"version"`
 	TemplatesPath string `yaml:"templates"`
 }
@@ -115,7 +115,7 @@ func currentDir() (string, error) {
 }
 
 func (c *Options) loadSettings() error {
-	b, err := io.FileContentAsByteArray(c.Settings)
+	b, err := io.FileToByteArray(c.Settings)
 	if err != nil {
 		return err
 	}

@@ -33,12 +33,12 @@ type GoFile struct {
 
 // NewGoFile returns a brand new GoFile instance
 func NewGoFile(filepath string) (*GoFile, error) {
-	content, err := FileContentAsByteArray(filepath)
+	content, err := FileToByteArray(filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	ast, err := ByteContentAsAST(content)
+	ast, err := ByteArrayToAST(content)
 	if err != nil {
 		return nil, err
 	}

@@ -21,6 +21,7 @@ package output
 
 import (
 	"fmt"
+	"go/ast"
 	"os"
 	"path/filepath"
 
@@ -43,20 +44,27 @@ func (ds *Datastore) OutputFilepath() string {
 
 // Run runs to generate the result
 func (ds *Datastore) Run() error {
-	// don't write if file exists
-	// FIXME this should not happen if output file is same as source one.
-	// IN such case, original file types should be added to output
+
+	addOriginalType := false
+
+	// check if output file exists
 	_, err := os.Stat(ds.File.Path)
 	if err == nil {
-		return fmt.Errorf("File %v already exists. Skip writting", ds.File.Path)
+		// in case if does exist, it should match the types file. Otherwise it's an error
+		if ds.File.Path != ds.Type.Source.Path {
+			return fmt.Errorf("File %v already exists. Skip writting", ds.File.Path)
+		}
+
+		// if output file is the same as types one, add the type to the generated output
+		addOriginalType = true
+	} else {
+		// create needed dirs to outputPath
+		ensureDir(filepath.Dir(ds.File.Path))
 	}
 
-	// execute the replacement:
-	// create needed dirs to outputPath
-	ensureDir(filepath.Dir(ds.File.Path))
-
+	// execute the replacement
 	logging.Debugf("Loadig template: %v", filepath.Base(ds.Template))
-	templateContent, err := io.FileContentAsString(ds.Template)
+	templateContent, err := io.FileToString(ds.Template)
 	if err != nil {
 		return fmt.Errorf("Error reading template file: %v", err)
 	}
@@ -78,5 +86,40 @@ func (ds *Datastore) Run() error {
 	}
 
 	logging.Infof("Generated: %v", ds.File.Path)
+
+	// TODO IMPLEMENT if  addOriginalType....
+	if addOriginalType {
+		// - reload result file to AST
+		// - prepend GenType AST to it
+		// - write out AST to output, overwriting
+		outputBytes, err := io.FileToByteArray(ds.File.Path)
+		if err != nil {
+			return err
+		}
+		outputAst, err := io.ByteArrayToAST(outputBytes)
+		if err != nil {
+			return err
+		}
+
+		// insert GenType AST just before first function
+		foundFirstFunc := false
+		for i, decl := range outputAst.Decls {
+			switch decl.(type) {
+			case *ast.FuncDecl:
+				outputAst.Decls = append(outputAst.Decls[:i], append([]ast.Decl{ds.Type.Decl}, outputAst.Decls[i:]...)...)
+				foundFirstFunc = true
+			}
+
+			if foundFirstFunc {
+				break
+			}
+		}
+
+		err = io.ASTToFile(outputAst, ds.File.Path)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

@@ -83,11 +83,11 @@ func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
 	c.Assert(typeHolders[0].Source, check.NotNil)
 	c.Assert(typeHolders[0].Source.Path, check.Equals, typeFile.Name())
 
-	b, err := io.FileContentAsByteArray(typeFile.Name())
+	b, err := io.FileToByteArray(typeFile.Name())
 	c.Assert(err, check.IsNil)
 	c.Assert(b, check.Not(check.HasLen), 0)
 
-	ast, err := io.ByteContentAsAST(b)
+	ast, err := io.ByteArrayToAST(b)
 	c.Assert(ast, check.NotNil)
 	c.Assert(err, check.IsNil)
 
@@ -104,7 +104,7 @@ func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
 		err = maker.Run()
 		c.Assert(err, check.IsNil)
 
-		content, err := io.FileContentAsString(maker.OutputFilepath())
+		content, err := io.FileToString(maker.OutputFilepath())
 		c.Assert(err, check.IsNil)
 		c.Assert(strings.Contains(content, "_#"), check.Equals, false)
 		c.Assert(strings.Contains(content, "#_"), check.Equals, false)
