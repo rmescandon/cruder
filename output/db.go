@@ -17,37 +17,8 @@
  *
  */
 
-package testing
+package output
 
-import (
-	"io/ioutil"
-	"os"
-)
-
-// TestTypeFileContent testing type
-const (
-	TestTypeFileContent = `
-	package mytype
-	
-	// MyType test type to generate skeletom code
-	type MyType struct {
-		ID          int
-		Name        string
-		Description string
-		SubTypes    []string
-	}	
-	`
-)
-
-// TestTypeFile returns a temporary file with a test type into it
-func TestTypeFile() (*os.File, error) {
-
-	f, err := ioutil.TempFile("", "")
-	if err != nil {
-		return f, err
-	}
-	defer f.Close()
-
-	_, err = f.WriteString(TestTypeFileContent)
-	return f, err
+// Db maker to include types in datastore interface
+type Db struct {
 }

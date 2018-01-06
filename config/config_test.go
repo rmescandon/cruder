@@ -22,6 +22,8 @@ package config
 import (
 	"io/ioutil"
 
+	tst "testing"
+
 	check "gopkg.in/check.v1"
 )
 
@@ -34,6 +36,9 @@ templates: /local/path/templates
 type ConfigSuite struct{}
 
 var _ = check.Suite(&ConfigSuite{})
+
+// Test rewrites testing in a suite
+func Test(t *tst.T) { check.TestingT(t) }
 
 func (s *ConfigSuite) SetUpTest(c *check.C) {}
 

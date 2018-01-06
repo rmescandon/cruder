@@ -34,14 +34,19 @@ type Maker interface {
 }
 
 // NewMaker returns a maker for a certain type and template
-func NewMaker(holder *src.TypeHolder, outputFolder, templatePath string) (Maker, error) {
+func NewMaker(holders []*src.TypeHolder, outputFolder, templatePath string) (Maker, error) {
+	var outputPath string
 	templateID := templateIdentifier(templatePath)
 	switch templateID {
 	case "datastore":
+		if len(holders) > 0 {
+			outputPath = createOutputPath(outputFolder, "datastore", holders[0].InComments())
+		}
+
 		return &Datastore{
-			Type: holder,
+			TypeHolders: holders,
 			File: &io.GoFile{
-				Path: filepath.Join(outputFolder, "datastore", holder.InComments()+".go"),
+				Path: outputPath,
 			},
 			Template: templatePath,
 		}, nil
@@ -54,6 +59,17 @@ func templateIdentifier(templateAbsPath string) string {
 	filename := filepath.Base(templateAbsPath)
 	var extension = filepath.Ext(filename)
 	return filename[0 : len(filename)-len(extension)]
+}
+
+func createOutputPath(outputFolder, templateID, typeIdentifierInLower string) string {
+	switch templateID {
+	case "db":
+		fallthrough
+	case "datastore":
+		return filepath.Join(outputFolder, "datastore", typeIdentifierInLower+".go")
+	}
+
+	return ""
 }
 
 func ensureDir(dir string) error {

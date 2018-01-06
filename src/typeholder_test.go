@@ -20,6 +20,8 @@
 package src
 
 import (
+	tst "testing"
+
 	check "gopkg.in/check.v1"
 )
 
@@ -28,6 +30,9 @@ type TypeHolderSuite struct {
 }
 
 var _ = check.Suite(&TypeHolderSuite{})
+
+// Test rewrites testing in a suite
+func Test(t *tst.T) { check.TestingT(t) }
 
 func (s *TypeHolderSuite) SetUpTest(c *check.C) {
 	s.typeHolder = TypeHolder{

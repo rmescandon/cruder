@@ -21,7 +21,9 @@ package output
 
 import (
 	"io/ioutil"
+	"os"
 	"strings"
+	tst "testing"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
@@ -31,28 +33,38 @@ import (
 	check "gopkg.in/check.v1"
 )
 
-type ReplacerSuite struct{}
+type ReplacerSuite struct {
+	typeFile    *os.File
+	typeHolders []*src.TypeHolder
+}
 
 var _ = check.Suite(&ReplacerSuite{})
 
-func (s *ReplacerSuite) SetUpTest(c *check.C) {}
+// Test rewrites testing in a suite
+func Test(t *tst.T) { check.TestingT(t) }
 
-func (s *ReplacerSuite) TestMakersForType(c *check.C) {
-	typeFile, err := testing.TestTypeFile()
+func (s *ReplacerSuite) SetUpTest(c *check.C) {
+	var err error
+	s.typeFile, err = testing.TestTypeFile()
 	c.Assert(err, check.IsNil)
-	c.Assert(typeFile, check.NotNil)
+	c.Assert(s.typeFile, check.NotNil)
 
 	config.Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
-	source, err := io.NewGoFile(typeFile.Name())
+	config.Config.TemplatesPath = "../testdata/templates"
+
+	source, err := io.NewGoFile(s.typeFile.Name())
 	c.Assert(err, check.IsNil)
 	c.Assert(source, check.NotNil)
 
-	typeHolders, err := src.ComposeTypeHolders(source)
+	s.typeHolders, err = src.ComposeTypeHolders(source)
 	c.Assert(err, check.IsNil)
 
-	makers, err := makersForType(typeHolders[0])
+}
+
+func (s *ReplacerSuite) TestGetMakers(c *check.C) {
+	makers, err := makers(s.typeHolders)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
 	c.Assert(makers, check.HasLen, 1)
@@ -60,30 +72,15 @@ func (s *ReplacerSuite) TestMakersForType(c *check.C) {
 
 // TODO this test should disappear when having specific test for every stage
 func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
-	typeFile, err := testing.TestTypeFile()
-	c.Assert(err, check.IsNil)
-	c.Assert(typeFile, check.NotNil)
+	c.Assert(s.typeHolders, check.HasLen, 1)
+	c.Assert(s.typeHolders[0].Name, check.Equals, "MyType")
+	c.Assert(s.typeHolders[0].Fields, check.HasLen, 4)
+	c.Assert(s.typeHolders[0].IDField.Name, check.Equals, "ID")
+	c.Assert(s.typeHolders[0].IDField.Type, check.Equals, "int")
+	c.Assert(s.typeHolders[0].Source, check.NotNil)
+	c.Assert(s.typeHolders[0].Source.Path, check.Equals, s.typeFile.Name())
 
-	config.Config.Output, err = ioutil.TempDir("", "cruder_")
-	c.Assert(err, check.IsNil)
-
-	config.Config.TemplatesPath = "testdata/templates"
-
-	source, err := io.NewGoFile(typeFile.Name())
-	c.Assert(err, check.IsNil)
-	c.Assert(source, check.NotNil)
-
-	typeHolders, err := src.ComposeTypeHolders(source)
-	c.Assert(err, check.IsNil)
-	c.Assert(typeHolders, check.HasLen, 1)
-	c.Assert(typeHolders[0].Name, check.Equals, "MyType")
-	c.Assert(typeHolders[0].Fields, check.HasLen, 4)
-	c.Assert(typeHolders[0].IDField.Name, check.Equals, "ID")
-	c.Assert(typeHolders[0].IDField.Type, check.Equals, "int")
-	c.Assert(typeHolders[0].Source, check.NotNil)
-	c.Assert(typeHolders[0].Source.Path, check.Equals, typeFile.Name())
-
-	b, err := io.FileToByteArray(typeFile.Name())
+	b, err := io.FileToByteArray(s.typeFile.Name())
 	c.Assert(err, check.IsNil)
 	c.Assert(b, check.Not(check.HasLen), 0)
 
@@ -91,11 +88,11 @@ func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
 	c.Assert(ast, check.NotNil)
 	c.Assert(err, check.IsNil)
 
-	c.Assert(typeHolders[0].Source.Content, check.DeepEquals, b)
-	c.Assert(typeHolders[0].Source.Ast, check.NotNil)
-	c.Assert(typeHolders[0].Source.Ast, check.DeepEquals, ast)
+	c.Assert(s.typeHolders[0].Source.Content, check.DeepEquals, b)
+	c.Assert(s.typeHolders[0].Source.Ast, check.NotNil)
+	c.Assert(s.typeHolders[0].Source.Ast, check.DeepEquals, ast)
 
-	makers, err := makersForType(typeHolders[0])
+	makers, err := makers(s.typeHolders)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
 	c.Assert(makers, check.HasLen, 1)
