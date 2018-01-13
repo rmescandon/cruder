@@ -55,7 +55,6 @@ func (ds *Datastore) Run() error {
 
 // runOne runs to generate the result
 func (ds *Datastore) runOne(index int) error {
-
 	addOriginalType := false
 
 	// check if output file exists

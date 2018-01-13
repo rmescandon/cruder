@@ -32,7 +32,7 @@ import (
 // ByteArrayToAST composes syntax tree from a byte array content
 func ByteArrayToAST(content []byte) (*ast.File, error) {
 	// TODO use parser.Trace Mode (last param) instead of 0 to see what is being parsed
-	return parser.ParseFile(token.NewFileSet(), "", content, 0)
+	return parser.ParseFile(token.NewFileSet(), "", content, parser.Trace)
 }
 
 // FileToString reads file content and stores it in a string

@@ -39,17 +39,18 @@ func ComposeTypeHolders(source *io.GoFile) ([]*TypeHolder, error) {
 				return holders, err
 			}
 
-			idField := TypeField{}
-			if len(fields) > 0 {
-				idField = fields[0]
+			// validate that there are at least two fields,
+			// first will be taken as the ID and second as the search field
+			name := spec.(*ast.TypeSpec).Name.Name
+			if len(fields) < 2 {
+				return holders, fmt.Errorf("Found less than 2 fields for type %v", name)
 			}
 
 			holders = append(holders, &TypeHolder{
-				Name:    spec.(*ast.TypeSpec).Name.Name,
-				Source:  source,
-				IDField: idField,
-				Fields:  fields,
-				Decl:    decl,
+				Name:   name,
+				Source: source,
+				Fields: fields,
+				Decl:   decl,
 			})
 		}
 	}

@@ -24,116 +24,115 @@ import (
 	"fmt"
 )
 
-const create_#TheType#_TableSQL = `
-	CREATE TABLE IF NOT EXISTS _#thetype#_ (
-_#TheType.Db.ID#_
-_#TheType.Db.Fields#_
+const create_#TYPE#_TableSQL = `
+	CREATE TABLE IF NOT EXISTS _#TYPE.LOWERCASE#_ (
+		_#ID.FIELD.DDL#_
+		_#FIELDS.DDL#_
 	)
 `
 
-const list_#TheType#_sSQL = "select id, name, description, subtypes from _#thetype#_ order by id"
-const get_#TheType#_SQL = "select id, name, description, subtypes from _#thetype#_ where id=$1"
-const find_#TheType#_SQL = "select id, name, description, subtypes, from _#thetype#_ where name like '%$1%'"
-const create_#TheType#_SQL = "insert into _#thetype#_ (name, description, subtypes) values ($1,$2,$3) RETURNING id"
-const update_#TheType#_SQL = "update _#thetype#_ set name=$1, description=$2, subtypes=$3 where id=$4"
-const delete_#TheType#_SQL = "delete from _#thetype#_ where id=$1"
+const list_#TYPE#_sSQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ order by _#ID.FIELD.NAME#_"
+const get_#TYPE#_SQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML# from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME#_=$1"
+const find_#TYPE#_SQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML# from _#TYPE.LOWERCASE#_ where _#FIND.FIELD.NAME#_ like '%$1%'"
+const create_#TYPE#_SQL = "insert into _#TYPE.LOWERCASE#_ (_#FIELDS.DML#) values (_#VALUES.DML.PARAMS#_) returning _#ID.FIELD.NAME#_"
+const update_#TYPE#_SQL = "update _#TYPE.LOWERCASE#_ set _#FIELDS.DML.PARAMS#_ where _#ID.FIELD.DML.PARAM#_"
+const delete_#TYPE#_SQL = "delete from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME#_=$1"
 
-// Create_#TheType#_Table creates the database table
-func (db *DB) Create_#TheType#_Table() error {
-	_, err := db.Exec(create_#TheType#_TableSQL)
+// Create_#TYPE#_Table creates the database table
+func (db *DB) Create_#TYPE#_Table() error {
+	_, err := db.Exec(create_#TYPE#_TableSQL)
 	return err
 }
 
-// List_#TheType#_s returns all the registers of the table
-func (db *DB) List_#TheType#_s() ([]_#TheType#_, error) {
-	rows, err := db.Query(list_#TheType#_sSQL)
+// List_#TYPE#_s returns all the registers of the table
+func (db *DB) List_#TYPE#_s() ([]_#TYPE#_, error) {
+	rows, err := db.Query(list_#TYPE#_sSQL)
 	if err != nil {
-		return []_#TheType#_{}, fmt.Errorf("Error retrieving database users: %v", err)
+		return []_#TYPE#_{}, fmt.Errorf("Error retrieving database users: %v", err)
 	}
 	defer rows.Close()
 
-	return db.rowsTo_#TheType#_s(rows)
+	return db.rowsTo_#TYPE#_s(rows)
 }
 
-// Get_#TheType#_ returns a specific register
-func (db *DB) Get_#TheType#_(id int) (_#TheType#_, error) {
-	row := db.QueryRow(get_#TheType#_SQL, id)
-	_#theType#_, err := db.rowTo_#TheType#_(row)
+// Get_#TYPE#_ returns a specific register
+func (db *DB) Get_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_) (_#TYPE#_, error) {
+	row := db.QueryRow(get_#TYPE#_SQL, _#ID.FIELD.NAME#_)
+	_#TYPE.IDENTIFIER#_, err := db.rowTo_#TYPE#_(row)
 	if err != nil {
-		return _#TheType#_{}, fmt.Errorf("Error retrieving _#thetype#_ register: %v", err)
+		return _#TYPE#_{}, fmt.Errorf("Error retrieving _#TYPE.LOWERCASE#_ register: %v", err)
 	}
-	return _#theType#_, err
+	return _#TYPE.IDENTIFIER#_, err
 }
 
-// Find_#TheType#_ searches for a specific register
-func (db *DB) Find_#TheType#_(name string) (_#TheType#_, error) {
-	row := db.QueryRow(find_#TheType#_SQL, name)
-	_#theType#_, err := db.rowTo_#TheType#_(row)
+// Find_#TYPE#_ searches for a specific register
+func (db *DB) Find_#TYPE#_(query string) (_#TYPE#_, error) {
+	row := db.QueryRow(find_#TYPE#_SQL, query)
+	_#TYPE.IDENTIFIER#_, err := db.rowTo_#TYPE#_(row)
 	if err != nil {
-		return _#TheType#_{}, fmt.Errorf("Error searching _#thetype#_ registers: %v", err)
+		return _#TYPE#_{}, fmt.Errorf("Error searching _#TYPE.LOWERCASE#_ registers: %v", err)
 	}
-	return _#theType#_, err
+	return _#TYPE.IDENTIFIER#_, err
 }
 
-// Create_#TheType#_ Inserts a new register
-func (db *DB) Create_#TheType#_(_#theType#_ _#TheType#_) (_#theType.ID.Type#_, error) {
-	var id _#theType.ID.Type#_
-	err := db.QueryRow(create_#TheType#_SQL, _#theType.Fields#_).Scan(&id)
+// Create_#TYPE#_ Inserts a new register
+func (db *DB) Create_#TYPE#_(_#TYPE.IDENTIFIER#_ _#TYPE#_) (_#ID.FIELD.TYPE#_, error) {
+	var _#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_
+	err := db.QueryRow(create_#TYPE#_SQL, _#FIELDS.ENUM#_).Scan(&_#ID.FIELD.NAME#_)
 	if err != nil {
-		return fmt.Errorf("Error creating _#thetype#_ register: %v", err)
+		return fmt.Errorf("Error creating _#TYPE.LOWERCASE#_ register: %v", err)
 	}
-	return id,nil
+	return _#ID.FIELD.NAME#_, nil
 }
 
-// Update_#TheType#_ updates a register
-func (db *DB) Update_#TheType#_(id int, _#theType#_ _#TheType#_) error {
-	_, err := db.Exec(update_#TheType#_SQL, _#theType.Fields#_, id)
+// Update_#TYPE#_ updates a register
+func (db *DB) Update_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_, _#TYPE.IDENTIFIER#_ _#TYPE#_) error {
+	_, err := db.Exec(update_#TYPE#_SQL, _#FIELDS.ENUM#_, _#ID.FIELD.NAME#_)
 	if err != nil {
-		return fmt.Errorf("Error updating _#thetype#_ register: %v", err)
-	}
-	return nil
-}
-
-// Delete_#TheType#_ deletes a register
-func (db *DB) Delete_#TheType#_(id int) error {
-	_, err := db.Exec(delete_#TheType#_SQL, id)
-	if err != nil {
-		return fmt.Errorf("Error deleting _#thetype#_ register: %v", err)
+		return fmt.Errorf("Error updating _#TYPE.LOWERCASE#_ register: %v", err)
 	}
 	return nil
 }
 
-func (db *DB) rowTo_#TheType#_(row *sql.Row) (_#TheType#_, error) {
-	_#theType#_ := _#TheType#_{}
-	err := row.Scan(&_#theType.ID#_, _#theType.Fields.Ref#_)
+// Delete_#TYPE#_ deletes a register
+func (db *DB) Delete_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_) error {
+	_, err := db.Exec(delete_#TYPE#_SQL, _#ID.FIELD.NAME#_)
 	if err != nil {
-		return _#TheType#_{}, err
+		return fmt.Errorf("Error deleting _#TYPE.LOWERCASE#_ register: %v", err)
 	}
-
-	return _#theType#_, nil
+	return nil
 }
 
-func (db *DB) rowsTo_#TheType#_(rows *sql.Rows) (_#TheType#_, error) {
-	_#theType#_ := _#TheType#_{}
-	err := rows.Scan(&_#theType.ID#_, _#theType.Fields.Ref#_)
+func (db *DB) rowTo_#TYPE#_(row *sql.Row) (_#TYPE#_, error) {
+	_#TYPE.IDENTIFIER#_ := _#TYPE#_{}
+	err := row.Scan(&_#ID.FIELD.NAME#_, _#FIELDS.ENUM.REF#_)
 	if err != nil {
-		return _#TheType#_{}, err
+		return _#TYPE#_{}, err
 	}
 
-	return _#theType#_, nil
+	return _#TYPE.IDENTIFIER#_, nil
 }
 
-func (db *DB) rowsTo_#TheType#_s(rows *sql.Rows) ([]_#TheType#_, error) {
-	_#theType#_List := []_#TheType#_{}
+func (db *DB) rowsTo_#TYPE#_(rows *sql.Rows) (_#TYPE#_, error) {
+	_#TYPE.IDENTIFIER#_ := _#TYPE#_{}
+	err := rows.Scan(&_#ID.FIELD.NAME#_, _#FIELDS.ENUM.REF#_)
+	if err != nil {
+		return _#TYPE#_{}, err
+	}
+
+	return _#TYPE.IDENTIFIER#_, nil
+}
+
+func (db *DB) rowsTo_#TYPE#_s(rows *sql.Rows) ([]_#TYPE#_, error) {
+	_#TYPE.IDENTIFIER#_List := []_#TYPE#_{}
 
 	for rows.Next() {
-		_#theType#_, err := db.rowsTo_#TheType#_(rows)
+		_#TYPE.IDENTIFIER#_, err := db.rowsTo_#TYPE#_(rows)
 		if err != nil {
 			return nil, err
 		}
-		_#theType#_List = append(_#theType#_List, _#theType#_)
+		_#TYPE.IDENTIFIER#_List = append(_#TYPE.IDENTIFIER#_List, _#TYPE.IDENTIFIER#_)
 	}
 
-	return _#theType#_List, nil
+	return _#TYPE.IDENTIFIER#_List, nil
 }
-

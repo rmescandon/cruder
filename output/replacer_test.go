@@ -60,7 +60,6 @@ func (s *ReplacerSuite) SetUpTest(c *check.C) {
 
 	s.typeHolders, err = src.ComposeTypeHolders(source)
 	c.Assert(err, check.IsNil)
-
 }
 
 func (s *ReplacerSuite) TestGetMakers(c *check.C) {

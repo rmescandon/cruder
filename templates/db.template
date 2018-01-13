@@ -1,0 +1,43 @@
+// -*- Mode: Go; indent-tabs-mode: t -*-
+
+/*
+ * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package datastore
+
+import (
+	"database/sql"
+)
+
+// Datastore interface for different data storages
+type Datastore interface {
+	Create_#TYPE#_Table() error
+	List_#TYPE#_s() ([]_#TYPE#_, error)
+	Get_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_) (_#TYPE#_, error)
+	Find_#TYPE#_(query string) (_#TYPE#_, error)
+	Create_#TYPE#_(_#TYPE.IDENTIFIER#_ _#TYPE#_) (int, error)
+	Update_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_, _#TYPE.IDENTIFIER#_ _#TYPE#_)
+	Delete_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_) error
+}
+
+// DB struct holding database implementation for datastore
+type DB struct {
+	*sql.DB
+}
+
+// Db pointer to database hander
+var Db *DB
