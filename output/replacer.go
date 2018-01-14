@@ -49,7 +49,7 @@ func GenerateSkeletonCode() error {
 	}
 
 	for _, maker := range makers {
-		err := maker.Run()
+		err := maker.Make()
 		if err != nil {
 			logging.Warningf("Could not run maker: %v", err)
 			continue

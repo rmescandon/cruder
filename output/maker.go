@@ -22,6 +22,7 @@ package output
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/src"
@@ -29,8 +30,9 @@ import (
 
 // Maker generates a Go output file
 type Maker interface {
-	Run() error
+	Make() error
 	OutputFilepath() string
+	MergeExistingOutput() error
 }
 
 // NewMaker returns a maker for a certain type and template
@@ -40,7 +42,7 @@ func NewMaker(holders []*src.TypeHolder, outputFolder, templatePath string) (Mak
 	switch templateID {
 	case "datastore":
 		if len(holders) > 0 {
-			outputPath = createOutputPath(outputFolder, "datastore", holders[0].InComments())
+			outputPath = createOutputPath(outputFolder, "datastore", strings.ToLower(holders[0].Name))
 		}
 
 		return &Datastore{

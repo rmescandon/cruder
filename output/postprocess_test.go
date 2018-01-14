@@ -22,6 +22,7 @@ package output
 import (
 	"io/ioutil"
 	"os"
+	"testing"
 
 	check "gopkg.in/check.v1"
 )
@@ -52,6 +53,9 @@ func aFunction() {
 type PostprocessSuite struct{}
 
 var _ = check.Suite(&PostprocessSuite{})
+
+// Test rewrites testing in a suite
+func PostprocessTest(t *testing.T) { check.TestingT(t) }
 
 func (s *PostprocessSuite) SetUpTest(c *check.C) {}
 

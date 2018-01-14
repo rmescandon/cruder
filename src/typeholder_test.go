@@ -20,6 +20,7 @@
 package src
 
 import (
+	"strings"
 	tst "testing"
 
 	check "gopkg.in/check.v1"
@@ -37,10 +38,6 @@ func Test(t *tst.T) { check.TestingT(t) }
 func (s *TypeHolderSuite) SetUpTest(c *check.C) {
 	s.typeHolder = TypeHolder{
 		Name: "MyType",
-		IDField: TypeField{
-			Name: "ID",
-			Type: "int",
-		},
 		Fields: []TypeField{
 			TypeField{Name: "ID", Type: "int"},
 			TypeField{Name: "Field1", Type: "string"},
@@ -55,21 +52,37 @@ func (s *TypeHolderSuite) TestTypeIdentifier(c *check.C) {
 }
 
 func (s *TypeHolderSuite) TestTypeInComments(c *check.C) {
-	c.Assert(s.typeHolder.InComments(), check.Equals, "mytype")
+	c.Assert(strings.ToLower(s.typeHolder.Name), check.Equals, "mytype")
 }
 
-func (s *TypeHolderSuite) TestTypeFieldsEnum(c *check.C) {
+func (s *TypeHolderSuite) TestFieldsEnum(c *check.C) {
 	c.Assert(s.typeHolder.FieldsEnum(), check.Equals, "myType.Field1, myType.Field2, myType.Field3")
 }
 
-func (s *TypeHolderSuite) TestTypeRefFieldsEnum(c *check.C) {
-	c.Assert(s.typeHolder.RefFieldsEnum(), check.Equals, "&myType.Field1, &myType.Field2, &myType.Field3")
+func (s *TypeHolderSuite) TestFieldsEnumRef(c *check.C) {
+	c.Assert(s.typeHolder.FieldsEnumRef(), check.Equals, "&myType.Field1, &myType.Field2, &myType.Field3")
 }
 
-func (s *TypeHolderSuite) TestTypeDBIDField(c *check.C) {
-	c.Assert(s.typeHolder.DbIDField(), check.Equals, "id serial primary key not null,")
+func (s *TypeHolderSuite) TestIDFieldInDDL(c *check.C) {
+	c.Assert(s.typeHolder.IDFieldInDDL(), check.Equals, "id serial primary key not null,")
 }
 
-func (s *TypeHolderSuite) TestTypeDbFieldsEnum(c *check.C) {
-	c.Assert(s.typeHolder.DbFieldsEnum(), check.Equals, "field1 varchar(200),\nfield2 decimal,\nfield3 integer")
+func (s *TypeHolderSuite) TestFieldsInDDL(c *check.C) {
+	c.Assert(s.typeHolder.FieldsInDDL(), check.Equals, "field1 varchar(200),\nfield2 decimal,\nfield3 integer")
+}
+
+func (s *TypeHolderSuite) TestFieldsInDML(c *check.C) {
+	c.Assert(s.typeHolder.FieldsInDML(), check.Equals, "Field1, Field2, Field3")
+}
+
+func (s *TypeHolderSuite) TestValuesInDMLParams(c *check.C) {
+	c.Assert(s.typeHolder.ValuesInDMLParams(), check.Equals, "$1, $2, $3")
+}
+
+func (s *TypeHolderSuite) TestIDFieldAsDMLParam(c *check.C) {
+	c.Assert(s.typeHolder.IDFieldAsDMLParam(), check.Equals, "ID=$4")
+}
+
+func (s *TypeHolderSuite) TestFieldsAsDMLParams(c *check.C) {
+	c.Assert(s.typeHolder.FieldsAsDMLParams(), check.Equals, "Field1=$1, Field2=$2, Field3=$3")
 }

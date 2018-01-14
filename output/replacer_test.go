@@ -41,7 +41,7 @@ type ReplacerSuite struct {
 var _ = check.Suite(&ReplacerSuite{})
 
 // Test rewrites testing in a suite
-func Test(t *tst.T) { check.TestingT(t) }
+func ReplacerTest(t *tst.T) { check.TestingT(t) }
 
 func (s *ReplacerSuite) SetUpTest(c *check.C) {
 	var err error
@@ -74,8 +74,8 @@ func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
 	c.Assert(s.typeHolders, check.HasLen, 1)
 	c.Assert(s.typeHolders[0].Name, check.Equals, "MyType")
 	c.Assert(s.typeHolders[0].Fields, check.HasLen, 4)
-	c.Assert(s.typeHolders[0].IDField.Name, check.Equals, "ID")
-	c.Assert(s.typeHolders[0].IDField.Type, check.Equals, "int")
+	c.Assert(s.typeHolders[0].IDFieldName(), check.Equals, "ID")
+	c.Assert(s.typeHolders[0].IDFieldType(), check.Equals, "int")
 	c.Assert(s.typeHolders[0].Source, check.NotNil)
 	c.Assert(s.typeHolders[0].Source.Path, check.Equals, s.typeFile.Name())
 
@@ -97,7 +97,7 @@ func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
 	c.Assert(makers, check.HasLen, 1)
 
 	for _, maker := range makers {
-		err = maker.Run()
+		err = maker.Make()
 		c.Assert(err, check.IsNil)
 
 		content, err := io.FileToString(maker.OutputFilepath())

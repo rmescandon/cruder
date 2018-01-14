@@ -42,10 +42,10 @@ func (ds *Datastore) OutputFilepath() string {
 	return ds.File.Path
 }
 
-// Run runs to generate the result
-func (ds *Datastore) Run() error {
+// Make generates the results
+func (ds *Datastore) Make() error {
 	for i := range ds.TypeHolders {
-		err := ds.runOne(i)
+		err := ds.makeOne(i)
 		if err != nil {
 			return err
 		}
@@ -53,8 +53,8 @@ func (ds *Datastore) Run() error {
 	return nil
 }
 
-// runOne runs to generate the result
-func (ds *Datastore) runOne(index int) error {
+// makeOne runs to generate a single output result
+func (ds *Datastore) makeOne(index int) error {
 	addOriginalType := false
 
 	// check if output file exists
@@ -131,5 +131,10 @@ func (ds *Datastore) runOne(index int) error {
 		}
 	}
 
+	return nil
+}
+
+func (ds *Datastore) MergeExistingOutput() error {
+	// Nothing to do here for this maker
 	return nil
 }

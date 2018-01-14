@@ -20,11 +20,12 @@
 package output
 
 import (
-	"go/ast"
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/logging"
 	"github.com/rmescandon/cruder/src"
 )
 
@@ -40,68 +41,92 @@ func (db *Db) OutputFilepath() string {
 	return db.File.Path
 }
 
-// Run runs to generate the type methods in Datastore interface for this type
-func (db *Db) Run() error {
-	fileToLoad := db.Template
-
-	// check if output file exists
-	_, err := os.Stat(db.File.Path)
-	if err == nil {
-		// if output file exists, load it
-		fileToLoad = db.File.Path
-	} else {
-		// create needed dirs to outputPath
-		ensureDir(filepath.Dir(db.File.Path))
+// Make generates the results
+func (db *Db) Make() error {
+	for i := range db.TypeHolders {
+		err := db.makeOne(i)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
+}
 
-	db.File.Content, err = io.FileToByteArray(fileToLoad)
+// MergeExistingOutput resolves the conflict when already exists an output file
+func (db *Db) MergeExistingOutput() error {
+	//TODO IMPLEMENT
+	return nil
+}
+
+// makeOne runs to generate a single output result
+func (db *Db) makeOne(index int) error {
+	// execute the replacement
+	logging.Debugf("Loadig template: %v", filepath.Base(db.Template))
+	templateContent, err := io.FileToString(db.Template)
 	if err != nil {
-		return err
-	}
-	db.File.Ast, err = io.ByteArrayToAST(db.File.Content)
-	if err != nil {
-		return err
+		return fmt.Errorf("Error reading template file: %v", err)
 	}
 
-	//FIXME PoC to see if functions for type are added
-	for _, x := range db.File.Ast.Decls {
-		if x, ok := x.(*ast.GenDecl); ok {
-			if x.Tok != token.TYPE {
-				continue
-			}
-			for _, x := range x.Specs {
-				if x, ok := x.(*ast.TypeSpec); ok {
-					iname := x.Name
-					if x, ok := x.Type.(*ast.InterfaceType); ok {
-						if iname == "Datastore" {
-							// Insert new functions here
-							// See
-							// https://stackoverflow.com/questions/33836358/parsing-go-src-trying-to-convert-ast-gendecl-to-types-interface
-							astFunc := GenerateASTFunction()
-							
+	replacedStr, err := db.TypeHolders[index].ReplaceInTemplate(templateContent)
+	if err != nil {
+		return fmt.Errorf("Error replacing type %v over template %v", db.TypeHolders[index].Name, filepath.Base(db.Template))
+	}
+
+	f, err := os.Create(db.File.Path)
+	if err != nil {
+		return fmt.Errorf("Could not create %v: %v", db.File.Path, err)
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(replacedStr)
+	if err != nil {
+		return fmt.Errorf("Error writing to output %v: %v", db.File.Path, err)
+	}
+
+	logging.Infof("Generated: %v", db.File.Path)
+
+	/*
+		//FIXME PoC to see if functions for type are added
+		for _, x := range db.File.Ast.Decls {
+			if x, ok := x.(*ast.GenDecl); ok {
+				if x.Tok != token.TYPE {
+					continue
+				}
+				for _, x := range x.Specs {
+					if x, ok := x.(*ast.TypeSpec); ok {
+						iname := x.Name
+						if x, ok := x.Type.(*ast.InterfaceType); ok {
+							if iname == "Datastore" {
+								// Insert new functions here
+								// See
+								// https://stackoverflow.com/questions/33836358/parsing-go-src-trying-to-convert-ast-gendecl-to-types-interface
+								astFunc := GenerateASTFunction()
+
+							}
 						}
 					}
 				}
 			}
-		}
-	  }
+		  }
 
-	foundFirstFunc := false
-	for i, decl := range db.File.Ast.Decls {
-		switch decl.(type) {
-		case *ast.GenDecl:
-			if ast.FuncDecl.Name == 
-			outputAst.Decls = append(outputAst.Decls[:i], append([]ast.Decl{ds.TypeHolders[index].Decl}, outputAst.Decls[i:]...)...)
-			foundFirstFunc = true
-		}
+		foundFirstFunc := false
+		for i, decl := range db.File.Ast.Decls {
+			switch decl.(type) {
+			case *ast.GenDecl:
+				if ast.FuncDecl.Name ==
+				outputAst.Decls = append(outputAst.Decls[:i], append([]ast.Decl{ds.TypeHolders[index].Decl}, outputAst.Decls[i:]...)...)
+				foundFirstFunc = true
+			}
 
-		if foundFirstFunc {
-			break
+			if foundFirstFunc {
+				break
+			}
 		}
-	}
-
+	*/
+	return nil
 }
 
+/*
 // A test for DeleteMyType(id int) error
 func GenerateASTFunction() *ast.FuncDecl {
 	f := &ast.FuncDecl{
@@ -126,3 +151,4 @@ func GenerateASTFunction() *ast.FuncDecl {
 		},
 	}
 }
+*/
