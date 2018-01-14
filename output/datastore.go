@@ -133,8 +133,3 @@ func (ds *Datastore) makeOne(index int) error {
 
 	return nil
 }
-
-func (ds *Datastore) MergeExistingOutput() error {
-	// Nothing to do here for this maker
-	return nil
-}

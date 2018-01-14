@@ -23,7 +23,7 @@ import (
 	check "gopkg.in/check.v1"
 
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/testing"
+	"github.com/rmescandon/cruder/testdata"
 )
 
 // gopkg.in/check.v1 stuff
@@ -34,7 +34,7 @@ var _ = check.Suite(&TypeGenSuite{})
 func (s *TypeGenSuite) SetUpTest(c *check.C) {}
 
 func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
-	f, err := testing.TestTypeFile()
+	f, err := testdata.TestTypeFile()
 	c.Assert(err, check.IsNil)
 	c.Assert(f, check.NotNil)
 

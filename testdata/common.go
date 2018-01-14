@@ -17,7 +17,7 @@
  *
  */
 
-package testing
+package testdata
 
 import (
 	"io/ioutil"

@@ -20,7 +20,11 @@
 package output
 
 import (
-	"testing"
+	"io/ioutil"
+
+	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/src"
+	"github.com/rmescandon/cruder/testdata"
 
 	check "gopkg.in/check.v1"
 )
@@ -29,8 +33,27 @@ type DbSuite struct{}
 
 var _ = check.Suite(&DbSuite{})
 
-// Test rewrites testing in a suite
-func DbTest(t *testing.T) { check.TestingT(t) }
-
 func (s *DbSuite) TestDbLoading(c *check.C) {
+	typeFile, err := testdata.TestTypeFile()
+	c.Assert(err, check.IsNil)
+	c.Assert(typeFile, check.NotNil)
+
+	source, err := io.NewGoFile(typeFile.Name())
+	c.Assert(err, check.IsNil)
+
+	typeHolders, err := src.ComposeTypeHolders(source)
+	c.Assert(err, check.IsNil)
+	c.Assert(typeHolders, check.HasLen, 1)
+
+	outputFile, err := ioutil.TempFile("", "cruder_")
+	c.Assert(err, check.IsNil)
+
+	db := &Db{TypeHolders: typeHolders,
+		File: &io.GoFile{
+			Path: outputFile.Name(),
+		},
+		Template: "../testdata/templates/db.template",
+	}
+
+	c.Assert(db.Make(), check.IsNil)
 }

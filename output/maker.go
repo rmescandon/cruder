@@ -32,7 +32,6 @@ import (
 type Maker interface {
 	Make() error
 	OutputFilepath() string
-	MergeExistingOutput() error
 }
 
 // NewMaker returns a maker for a certain type and template
@@ -46,6 +45,18 @@ func NewMaker(holders []*src.TypeHolder, outputFolder, templatePath string) (Mak
 		}
 
 		return &Datastore{
+			TypeHolders: holders,
+			File: &io.GoFile{
+				Path: outputPath,
+			},
+			Template: templatePath,
+		}, nil
+	case "db":
+		if len(holders) > 0 {
+			outputPath = createOutputPath(outputFolder, "db", strings.ToLower(holders[0].Name))
+		}
+
+		return &Db{
 			TypeHolders: holders,
 			File: &io.GoFile{
 				Path: outputPath,
@@ -66,7 +77,7 @@ func templateIdentifier(templateAbsPath string) string {
 func createOutputPath(outputFolder, templateID, typeIdentifierInLower string) string {
 	switch templateID {
 	case "db":
-		fallthrough
+		return filepath.Join(outputFolder, "datastore/db.go")
 	case "datastore":
 		return filepath.Join(outputFolder, "datastore", typeIdentifierInLower+".go")
 	}

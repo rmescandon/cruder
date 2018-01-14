@@ -58,7 +58,7 @@ func ComposeTypeHolders(source *io.GoFile) ([]*TypeHolder, error) {
 }
 
 func getTypeDecls(file *ast.File) []*ast.GenDecl {
-	var typeDecls []*ast.GenDecl
+	typeDecls := []*ast.GenDecl{}
 	for _, decl := range file.Decls {
 		switch decl.(type) {
 		case *ast.GenDecl:
@@ -68,6 +68,71 @@ func getTypeDecls(file *ast.File) []*ast.GenDecl {
 		}
 	}
 	return typeDecls
+}
+
+func getInterfaces(file *ast.File) []*ast.GenDecl {
+	interfaces := []*ast.GenDecl{}
+	typeDecls := getTypeDecls(file)
+	for _, decl := range typeDecls {
+		for _, spec := range decl.Specs {
+			switch spec.(*ast.TypeSpec).Type.(type) {
+			case *ast.InterfaceType:
+				interfaces = append(interfaces, decl)
+			}
+		}
+	}
+	return interfaces
+}
+
+// GetInterface returns certain interface identified by name
+func GetInterface(file *ast.File, name string) *ast.InterfaceType {
+	interfaces := getInterfaces(file)
+	for _, decl := range interfaces {
+		for _, spec := range decl.Specs {
+			if spec.(*ast.TypeSpec).Name.Name == name {
+				return spec.(*ast.TypeSpec).Type.(*ast.InterfaceType)
+			}
+		}
+	}
+	return nil
+}
+
+// GetInterfaceMethods returns the list of methods in a declared interface
+func GetInterfaceMethods(iface *ast.InterfaceType) []*ast.Field {
+	if iface.Methods == nil {
+		return nil
+	}
+	return iface.Methods.List
+}
+
+// HasMethod returns true if found method into iface
+func HasMethod(iface *ast.InterfaceType, methodName string) bool {
+	if iface.Methods == nil {
+		return false
+	}
+
+	for _, field := range iface.Methods.List {
+		if len(field.Names) == 0 {
+			continue
+		}
+
+		if field.Names[0].Name == methodName {
+			return true
+		}
+	}
+
+	return false
+}
+
+// AddMethod modyfies iface by adding method
+func AddMethod(iface *ast.InterfaceType, method *ast.Field) {
+	if iface.Methods == nil {
+		iface.Methods = &ast.FieldList{List: []*ast.Field{method}}
+	} else if iface.Methods.List == nil {
+		iface.Methods.List = []*ast.Field{method}
+	} else {
+		iface.Methods.List = append(iface.Methods.List, method)
+	}
 }
 
 func composeTypeFields(content []byte, spec ast.Spec) ([]TypeField, error) {

@@ -55,6 +55,14 @@ func (s *TypeHolderSuite) TestTypeInComments(c *check.C) {
 	c.Assert(strings.ToLower(s.typeHolder.Name), check.Equals, "mytype")
 }
 
+func (s *TypeHolderSuite) TestIDFieldName(c *check.C) {
+	c.Assert(s.typeHolder.IDFieldName(), check.Equals, "ID")
+}
+
+func (s *TypeHolderSuite) TestIDFieldType(c *check.C) {
+	c.Assert(s.typeHolder.IDFieldType(), check.Equals, "int")
+}
+
 func (s *TypeHolderSuite) TestFieldsEnum(c *check.C) {
 	c.Assert(s.typeHolder.FieldsEnum(), check.Equals, "myType.Field1, myType.Field2, myType.Field3")
 }

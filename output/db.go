@@ -52,9 +52,38 @@ func (db *Db) Make() error {
 	return nil
 }
 
-// MergeExistingOutput resolves the conflict when already exists an output file
-func (db *Db) MergeExistingOutput() error {
-	//TODO IMPLEMENT
+// mergeExistingOutput resolves the conflict when already exists an output file
+func (db *Db) mergeExistingOutput(replacedStr string) error {
+	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
+	if err != nil {
+		return err
+	}
+
+	// load current output
+	content, err := io.FileToByteArray(db.File.Path)
+	if err != nil {
+		return err
+	}
+
+	currentAst, err := io.ByteArrayToAST(content)
+	if err != nil {
+		return err
+	}
+
+	generatedIface := src.GetInterface(generatedAst, "Datastore")
+	currentIface := src.GetInterface(currentAst, "Datastore")
+
+	// search for generatedIface methods into currentIface and add them if not found
+	for _, method := range src.GetInterfaceMethods(generatedIface) {
+		if !src.HasMethod(currentIface, method.Names[0].Name) {
+			src.AddMethod(currentIface, method)
+		}
+	}
+
+	// write out the resultant modified Datastore interface to output
+	// TODO VERIFY that using pointers is enough to alter generatedAst before writting out
+	io.ASTToFile(generatedAst, db.File.Path)
+
 	return nil
 }
 
@@ -72,18 +101,19 @@ func (db *Db) makeOne(index int) error {
 		return fmt.Errorf("Error replacing type %v over template %v", db.TypeHolders[index].Name, filepath.Base(db.Template))
 	}
 
-	f, err := os.Create(db.File.Path)
-	if err != nil {
-		return fmt.Errorf("Could not create %v: %v", db.File.Path, err)
-	}
-	defer f.Close()
+	// check if output file exists
+	_, err = os.Stat(db.File.Path)
+	if err == nil {
+		db.mergeExistingOutput(replacedStr)
+	} else {
+		// write out generated ast
+		// create needed dirs to outputPath
+		ensureDir(filepath.Dir(db.File.Path))
 
-	_, err = f.WriteString(replacedStr)
-	if err != nil {
-		return fmt.Errorf("Error writing to output %v: %v", db.File.Path, err)
-	}
+		io.StringToFile(replacedStr, db.File.Path)
 
-	logging.Infof("Generated: %v", db.File.Path)
+		logging.Infof("Generated: %v", db.File.Path)
+	}
 
 	/*
 		//FIXME PoC to see if functions for type are added

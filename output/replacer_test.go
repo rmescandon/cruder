@@ -23,12 +23,12 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	tst "testing"
+	"testing"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/src"
-	"github.com/rmescandon/cruder/testing"
+	"github.com/rmescandon/cruder/testdata"
 
 	check "gopkg.in/check.v1"
 )
@@ -41,11 +41,11 @@ type ReplacerSuite struct {
 var _ = check.Suite(&ReplacerSuite{})
 
 // Test rewrites testing in a suite
-func ReplacerTest(t *tst.T) { check.TestingT(t) }
+func Test(t *testing.T) { check.TestingT(t) }
 
 func (s *ReplacerSuite) SetUpTest(c *check.C) {
 	var err error
-	s.typeFile, err = testing.TestTypeFile()
+	s.typeFile, err = testdata.TestTypeFile()
 	c.Assert(err, check.IsNil)
 	c.Assert(s.typeFile, check.NotNil)
 
@@ -66,7 +66,7 @@ func (s *ReplacerSuite) TestGetMakers(c *check.C) {
 	makers, err := makers(s.typeHolders)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
-	c.Assert(makers, check.HasLen, 1)
+	c.Assert(makers, check.HasLen, 2)
 }
 
 // TODO this test should disappear when having specific test for every stage
@@ -94,7 +94,7 @@ func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
 	makers, err := makers(s.typeHolders)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
-	c.Assert(makers, check.HasLen, 1)
+	c.Assert(makers, check.HasLen, 2)
 
 	for _, maker := range makers {
 		err = maker.Make()
