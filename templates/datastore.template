@@ -32,9 +32,9 @@ const create_#TYPE#_TableSQL = `
 `
 
 const list_#TYPE#_sSQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ order by _#ID.FIELD.NAME#_"
-const get_#TYPE#_SQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML# from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME#_=$1"
-const find_#TYPE#_SQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML# from _#TYPE.LOWERCASE#_ where _#FIND.FIELD.NAME#_ like '%$1%'"
-const create_#TYPE#_SQL = "insert into _#TYPE.LOWERCASE#_ (_#FIELDS.DML#) values (_#VALUES.DML.PARAMS#_) returning _#ID.FIELD.NAME#_"
+const get_#TYPE#_SQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME#_=$1"
+const find_#TYPE#_SQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ where _#FIND.FIELD.NAME#_ like '%$1%'"
+const create_#TYPE#_SQL = "insert into _#TYPE.LOWERCASE#_ (_#FIELDS.DML#_) values (_#VALUES.DML.PARAMS#_) returning _#ID.FIELD.NAME#_"
 const update_#TYPE#_SQL = "update _#TYPE.LOWERCASE#_ set _#FIELDS.DML.PARAMS#_ where _#ID.FIELD.DML.PARAM#_"
 const delete_#TYPE#_SQL = "delete from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME#_=$1"
 

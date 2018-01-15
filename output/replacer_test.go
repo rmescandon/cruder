@@ -101,6 +101,7 @@ func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
 		c.Assert(err, check.IsNil)
 
 		content, err := io.FileToString(maker.OutputFilepath())
+
 		c.Assert(err, check.IsNil)
 		c.Assert(strings.Contains(content, "_#"), check.Equals, false)
 		c.Assert(strings.Contains(content, "#_"), check.Equals, false)

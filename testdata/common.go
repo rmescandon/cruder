@@ -37,6 +37,18 @@ const (
 		SubTypes    []string
 	}	
 	`
+
+	TestOtherTypeFileContent = `
+	package myothertype
+	
+	// MyOtherType test type to generate skeletom code
+	type MyOtherType struct {
+		AnID         int
+		AName        string
+		ADescription string
+		TheSubTypes  []string
+	}	
+	`
 )
 
 // TestTypeFile returns a temporary file with a test type into it
@@ -49,5 +61,17 @@ func TestTypeFile() (*os.File, error) {
 	defer f.Close()
 
 	_, err = f.WriteString(TestTypeFileContent)
+	return f, err
+}
+
+// TestOtherTypeFile returns a temporary file with another different test type into it
+func TestOtherTypeFile() (*os.File, error) {
+	f, err := ioutil.TempFile("", "")
+	if err != nil {
+		return f, err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(TestOtherTypeFileContent)
 	return f, err
 }

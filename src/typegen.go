@@ -29,6 +29,7 @@ import (
 	"github.com/rmescandon/cruder/io"
 )
 
+// ComposeTypeHolders composes the type holders for the types in source file
 func ComposeTypeHolders(source *io.GoFile) ([]*TypeHolder, error) {
 	var holders []*TypeHolder
 	decls := getTypeDecls(source.Ast)

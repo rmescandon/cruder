@@ -52,41 +52,6 @@ func (db *Db) Make() error {
 	return nil
 }
 
-// mergeExistingOutput resolves the conflict when already exists an output file
-func (db *Db) mergeExistingOutput(replacedStr string) error {
-	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
-	if err != nil {
-		return err
-	}
-
-	// load current output
-	content, err := io.FileToByteArray(db.File.Path)
-	if err != nil {
-		return err
-	}
-
-	currentAst, err := io.ByteArrayToAST(content)
-	if err != nil {
-		return err
-	}
-
-	generatedIface := src.GetInterface(generatedAst, "Datastore")
-	currentIface := src.GetInterface(currentAst, "Datastore")
-
-	// search for generatedIface methods into currentIface and add them if not found
-	for _, method := range src.GetInterfaceMethods(generatedIface) {
-		if !src.HasMethod(currentIface, method.Names[0].Name) {
-			src.AddMethod(currentIface, method)
-		}
-	}
-
-	// write out the resultant modified Datastore interface to output
-	// TODO VERIFY that using pointers is enough to alter generatedAst before writting out
-	io.ASTToFile(generatedAst, db.File.Path)
-
-	return nil
-}
-
 // makeOne runs to generate a single output result
 func (db *Db) makeOne(index int) error {
 	// execute the replacement
@@ -115,70 +80,42 @@ func (db *Db) makeOne(index int) error {
 		logging.Infof("Generated: %v", db.File.Path)
 	}
 
-	/*
-		//FIXME PoC to see if functions for type are added
-		for _, x := range db.File.Ast.Decls {
-			if x, ok := x.(*ast.GenDecl); ok {
-				if x.Tok != token.TYPE {
-					continue
-				}
-				for _, x := range x.Specs {
-					if x, ok := x.(*ast.TypeSpec); ok {
-						iname := x.Name
-						if x, ok := x.Type.(*ast.InterfaceType); ok {
-							if iname == "Datastore" {
-								// Insert new functions here
-								// See
-								// https://stackoverflow.com/questions/33836358/parsing-go-src-trying-to-convert-ast-gendecl-to-types-interface
-								astFunc := GenerateASTFunction()
-
-							}
-						}
-					}
-				}
-			}
-		  }
-
-		foundFirstFunc := false
-		for i, decl := range db.File.Ast.Decls {
-			switch decl.(type) {
-			case *ast.GenDecl:
-				if ast.FuncDecl.Name ==
-				outputAst.Decls = append(outputAst.Decls[:i], append([]ast.Decl{ds.TypeHolders[index].Decl}, outputAst.Decls[i:]...)...)
-				foundFirstFunc = true
-			}
-
-			if foundFirstFunc {
-				break
-			}
-		}
-	*/
 	return nil
 }
 
-/*
-// A test for DeleteMyType(id int) error
-func GenerateASTFunction() *ast.FuncDecl {
-	f := &ast.FuncDecl{
-		Name: ast.NewIdent("DeleteMyType"),
-		Type: &ast.FuncType{
-			Params: &ast.FieldList{
-				List: []*ast.Field{
-					&ast.Field{
-						Names: []*ast.Ident{ast.NewIdent("id")},
-						Type:  ast.NewIdent("int"),
-					},
-				},
-			},
-			Results: &ast.FieldList{
-				List: []*ast.Field{
-					&ast.Field{
-						Names: []*ast.Ident{ast.NewIdent("error")},
-						Type:  ast.NewIdent("error"),
-					},
-				},
-			},
-		},
+// mergeExistingOutput resolves the conflict when already exists an output file
+func (db *Db) mergeExistingOutput(replacedStr string) error {
+	logging.Infof("Merging new type into: %v", db.File.Path)
+	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
+	if err != nil {
+		return err
 	}
+
+	// load current output
+	content, err := io.FileToByteArray(db.File.Path)
+	if err != nil {
+		return err
+	}
+
+	currentAst, err := io.ByteArrayToAST(content)
+	if err != nil {
+		return err
+	}
+
+	generatedIface := src.GetInterface(generatedAst, "Datastore")
+	currentIface := src.GetInterface(currentAst, "Datastore")
+
+	// search for generatedIface methods into currentIface and add them if not found
+	for _, method := range src.GetInterfaceMethods(generatedIface) {
+		if !src.HasMethod(currentIface, method.Names[0].Name) {
+			src.AddMethod(currentIface, method)
+		}
+	}
+
+	// write out the resultant modified Datastore interface to output
+	// TODO VERIFY that using pointers is enough to alter generatedAst before writting out
+	io.ASTToFile(currentAst, db.File.Path)
+	logging.Infof("Merged into: %v successfully", db.File.Path)
+
+	return nil
 }
-*/

@@ -21,7 +21,10 @@ package output
 
 import (
 	"io/ioutil"
+	"path/filepath"
+	"strings"
 
+	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/src"
 	"github.com/rmescandon/cruder/testdata"
@@ -33,7 +36,9 @@ type DbSuite struct{}
 
 var _ = check.Suite(&DbSuite{})
 
-func (s *DbSuite) TestDbLoading(c *check.C) {
+func (s *DbSuite) TestDb(c *check.C) {
+	//--------------------------------------------------------------------------
+	// 1.- Create an output file for MyType, not having a previous existing file
 	typeFile, err := testdata.TestTypeFile()
 	c.Assert(err, check.IsNil)
 	c.Assert(typeFile, check.NotNil)
@@ -45,15 +50,61 @@ func (s *DbSuite) TestDbLoading(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(typeHolders, check.HasLen, 1)
 
-	outputFile, err := ioutil.TempFile("", "cruder_")
+	config.Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
 	db := &Db{TypeHolders: typeHolders,
 		File: &io.GoFile{
-			Path: outputFile.Name(),
+			Path: filepath.Join(config.Config.Output, "dbtestoutput.go"),
 		},
 		Template: "../testdata/templates/db.template",
 	}
 
 	c.Assert(db.Make(), check.IsNil)
+
+	content, err := io.FileToString(db.File.Path)
+	c.Assert(err, check.IsNil)
+	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
+	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
+
+	// -----------------------------------------------------------------------
+	// 2.- Reset typeHolders and load now OtherType. Create the output and see
+	// if both MyType and OtherType are included in Datastore interface
+	otherTypeFile, err := testdata.TestOtherTypeFile()
+	c.Assert(err, check.IsNil)
+	c.Assert(otherTypeFile, check.NotNil)
+
+	source, err = io.NewGoFile(otherTypeFile.Name())
+	c.Assert(err, check.IsNil)
+
+	typeHolders, err = src.ComposeTypeHolders(source)
+	c.Assert(err, check.IsNil)
+	c.Assert(typeHolders, check.HasLen, 1)
+
+	db.TypeHolders = typeHolders
+
+	c.Assert(db.Make(), check.IsNil)
+
+	content, err = io.FileToString(db.File.Path)
+
+	// Verify here if both types are included in output
+	c.Assert(strings.Contains(content, "CreateMyTypeTable() error"), check.Equals, true)
+	c.Assert(strings.Contains(content, "ListMyTypes() ([]MyType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "GetMyType(ID int) (MyType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "FindMyType(query string) (MyType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "CreateMyType(myType MyType) (int, error)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "UpdateMyType(ID int, myType MyType)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "DeleteMyType(ID int) error"), check.Equals, true)
+
+	c.Assert(strings.Contains(content, "CreateMyOtherTypeTable() error"), check.Equals, true)
+	c.Assert(strings.Contains(content, "ListMyOtherTypes() ([]MyOtherType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "GetMyOtherType(AnID int) (MyOtherType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "FindMyOtherType(query string) (MyOtherType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "CreateMyOtherType(myOtherType MyOtherType) (int, error)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "UpdateMyOtherType(AnID int, myOtherType MyOtherType)"), check.Equals, true)
+	c.Assert(strings.Contains(content, "DeleteMyOtherType(AnID int) error"), check.Equals, true)
+
+	c.Assert(err, check.IsNil)
+	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
+	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
 }

@@ -218,7 +218,7 @@ func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, err
 	replaced = strings.Replace(replaced, "_#ID.FIELD.DDL#_", holder.IDFieldInDDL(), -1)
 	replaced = strings.Replace(replaced, "_#FIELDS.DDL#_", holder.FieldsInDDL(), -1)
 	replaced = strings.Replace(replaced, "_#FIELDS.DML#_", holder.FieldsInDML(), -1)
-	replaced = strings.Replace(replaced, "_#VALUES.DML.PARAM#_", holder.ValuesInDMLParams(), -1)
+	replaced = strings.Replace(replaced, "_#VALUES.DML.PARAMS#_", holder.ValuesInDMLParams(), -1)
 	replaced = strings.Replace(replaced, "_#ID.FIELD.DML.PARAM#_", holder.IDFieldAsDMLParam(), -1)
 	replaced = strings.Replace(replaced, "_#FIELDS.DML.PARAMS#_", holder.FieldsAsDMLParams(), -1)
 
