@@ -27,13 +27,13 @@ import (
 )
 
 // gopkg.in/check.v1 stuff
-type TypeGenSuite struct{}
+type AstSuite struct{}
 
-var _ = check.Suite(&TypeGenSuite{})
+var _ = check.Suite(&AstSuite{})
 
-func (s *TypeGenSuite) SetUpTest(c *check.C) {}
+func (s *AstSuite) SetUpTest(c *check.C) {}
 
-func (s *TypeGenSuite) TestFileWithSimpeType(c *check.C) {
+func (s *AstSuite) TestFileWithSimpeType(c *check.C) {
 	f, err := testdata.TestTypeFile()
 	c.Assert(err, check.IsNil)
 	c.Assert(f, check.NotNil)

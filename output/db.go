@@ -36,7 +36,7 @@ type Db struct {
 
 // OutputFilepath returns the path to generated file
 func (db *Db) OutputFilepath() string {
-	return db.File.Path
+	return db.Output.Path
 }
 
 // Make generates the results
@@ -54,17 +54,17 @@ func (db *Db) Make() error {
 	}
 
 	// check if output file exists
-	_, err = os.Stat(db.File.Path)
+	_, err = os.Stat(db.Output.Path)
 	if err == nil {
 		db.mergeExistingOutput(replacedStr)
 	} else {
 		// write out generated ast
 		// create needed dirs to outputPath
-		ensureDir(filepath.Dir(db.File.Path))
+		ensureDir(filepath.Dir(db.Output.Path))
 
-		io.StringToFile(replacedStr, db.File.Path)
+		io.StringToFile(replacedStr, db.Output.Path)
 
-		logging.Infof("Generated: %v", db.File.Path)
+		logging.Infof("Generated: %v", db.Output.Path)
 	}
 
 	return nil
@@ -72,14 +72,14 @@ func (db *Db) Make() error {
 
 // mergeExistingOutput resolves the conflict when already exists an output file
 func (db *Db) mergeExistingOutput(replacedStr string) error {
-	logging.Infof("Merging new type into: %v", db.File.Path)
+	logging.Infof("Merging new type into: %v", db.Output.Path)
 	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
 	if err != nil {
 		return err
 	}
 
 	// load current output
-	content, err := io.FileToByteArray(db.File.Path)
+	content, err := io.FileToByteArray(db.Output.Path)
 	if err != nil {
 		return err
 	}
@@ -101,8 +101,8 @@ func (db *Db) mergeExistingOutput(replacedStr string) error {
 
 	// write out the resultant modified Datastore interface to output
 	// TODO VERIFY that using pointers is enough to alter generatedAst before writting out
-	io.ASTToFile(currentAst, db.File.Path)
-	logging.Infof("Merged into: %v successfully", db.File.Path)
+	io.ASTToFile(currentAst, db.Output.Path)
+	logging.Infof("Merged into: %v successfully", db.Output.Path)
 
 	return nil
 }

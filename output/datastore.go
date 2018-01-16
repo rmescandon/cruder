@@ -36,7 +36,7 @@ type Datastore struct {
 
 // OutputFilepath returns the path to generated file
 func (ds *Datastore) OutputFilepath() string {
-	return ds.File.Path
+	return ds.Output.Path
 }
 
 // Make generates the results
@@ -44,18 +44,18 @@ func (ds *Datastore) Make() error {
 	addOriginalType := false
 
 	// check if output file exists
-	_, err := os.Stat(ds.File.Path)
+	_, err := os.Stat(ds.Output.Path)
 	if err == nil {
 		// in case if does exist, it should match the types file. Otherwise it's an error
-		if ds.File.Path != ds.TypeHolder.Source.Path {
-			return fmt.Errorf("File %v already exists. Skip writting", ds.File.Path)
+		if ds.Output.Path != ds.TypeHolder.Source.Path {
+			return fmt.Errorf("File %v already exists. Skip writting", ds.Output.Path)
 		}
 
 		// if output file is the same as types one, add the type to the generated output
 		addOriginalType = true
 	} else {
 		// create needed dirs to outputPath
-		ensureDir(filepath.Dir(ds.File.Path))
+		ensureDir(filepath.Dir(ds.Output.Path))
 	}
 
 	// execute the replacement
@@ -70,25 +70,25 @@ func (ds *Datastore) Make() error {
 		return fmt.Errorf("Error replacing type %v over template %v", ds.TypeHolder.Name, filepath.Base(ds.Template))
 	}
 
-	f, err := os.Create(ds.File.Path)
+	f, err := os.Create(ds.Output.Path)
 	if err != nil {
-		return fmt.Errorf("Could not create %v: %v", ds.File.Path, err)
+		return fmt.Errorf("Could not create %v: %v", ds.Output.Path, err)
 	}
 	defer f.Close()
 
 	_, err = f.WriteString(replacedStr)
 	if err != nil {
-		return fmt.Errorf("Error writing to output %v: %v", ds.File.Path, err)
+		return fmt.Errorf("Error writing to output %v: %v", ds.Output.Path, err)
 	}
 
-	logging.Infof("Generated: %v", ds.File.Path)
+	logging.Infof("Generated: %v", ds.Output.Path)
 
 	// TODO IMPLEMENT if  addOriginalType....
 	if addOriginalType {
 		// - reload result file to AST
 		// - prepend GenType AST to it
 		// - write out AST to output, overwriting
-		outputBytes, err := io.FileToByteArray(ds.File.Path)
+		outputBytes, err := io.FileToByteArray(ds.Output.Path)
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func (ds *Datastore) Make() error {
 			}
 		}
 
-		err = io.ASTToFile(outputAst, ds.File.Path)
+		err = io.ASTToFile(outputAst, ds.Output.Path)
 		if err != nil {
 			return err
 		}

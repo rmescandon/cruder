@@ -33,18 +33,18 @@ import (
 	check "gopkg.in/check.v1"
 )
 
-type ReplacerSuite struct {
+type EngineSuite struct {
 	typeFile    *os.File
 	typeHolders []*src.TypeHolder
 	templates   []string
 }
 
-var _ = check.Suite(&ReplacerSuite{})
+var _ = check.Suite(&EngineSuite{})
 
 // Test rewrites testing in a suite
 func Test(t *testing.T) { check.TestingT(t) }
 
-func (s *ReplacerSuite) SetUpTest(c *check.C) {
+func (s *EngineSuite) SetUpTest(c *check.C) {
 	var err error
 	s.typeFile, err = testdata.TestTypeFile()
 	c.Assert(err, check.IsNil)
@@ -67,7 +67,7 @@ func (s *ReplacerSuite) SetUpTest(c *check.C) {
 	c.Assert(s.templates, check.HasLen, 2)
 }
 
-func (s *ReplacerSuite) TestGetMakers(c *check.C) {
+func (s *EngineSuite) TestGetMakers(c *check.C) {
 
 	makers, err := makers(s.typeHolders, s.templates)
 	c.Assert(err, check.IsNil)
@@ -76,7 +76,7 @@ func (s *ReplacerSuite) TestGetMakers(c *check.C) {
 }
 
 // TODO this test should disappear when having specific test for every stage
-func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
+func (s *EngineSuite) TestReplaceInAllTemplates(c *check.C) {
 	c.Assert(s.typeHolders, check.HasLen, 1)
 	c.Assert(s.typeHolders[0].Name, check.Equals, "MyType")
 	c.Assert(s.typeHolders[0].Fields, check.HasLen, 4)

@@ -56,7 +56,7 @@ func (s *DbSuite) TestDb(c *check.C) {
 	db := &Db{
 		BasicMaker{
 			TypeHolder: typeHolders[0],
-			File: &io.GoFile{
+			Output: &io.GoFile{
 				Path: filepath.Join(config.Config.Output, "dbtestoutput.go"),
 			},
 			Template: "../testdata/templates/db.template",
@@ -65,7 +65,7 @@ func (s *DbSuite) TestDb(c *check.C) {
 
 	c.Assert(db.Make(), check.IsNil)
 
-	content, err := io.FileToString(db.File.Path)
+	content, err := io.FileToString(db.Output.Path)
 	c.Assert(err, check.IsNil)
 	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
 	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
@@ -88,7 +88,7 @@ func (s *DbSuite) TestDb(c *check.C) {
 
 	c.Assert(db.Make(), check.IsNil)
 
-	content, err = io.FileToString(db.File.Path)
+	content, err = io.FileToString(db.Output.Path)
 
 	// Verify here if both types are included in output
 	c.Assert(strings.Contains(content, "CreateMyTypeTable() error"), check.Equals, true)

@@ -38,7 +38,7 @@ type Maker interface {
 // BasicMaker represents common members for a a maker
 type BasicMaker struct {
 	TypeHolder *src.TypeHolder
-	File       *io.GoFile
+	Output     *io.GoFile
 	Template   string
 }
 
@@ -54,7 +54,7 @@ func NewMaker(typeHolder *src.TypeHolder, templatePath string) (Maker, error) {
 		return &Datastore{
 			BasicMaker{
 				TypeHolder: typeHolder,
-				File: &io.GoFile{
+				Output: &io.GoFile{
 					Path: outputPath,
 				},
 				Template: templatePath,
@@ -64,7 +64,7 @@ func NewMaker(typeHolder *src.TypeHolder, templatePath string) (Maker, error) {
 		return &Db{
 			BasicMaker{
 				TypeHolder: typeHolder,
-				File: &io.GoFile{
+				Output: &io.GoFile{
 					Path: outputPath,
 				},
 				Template: templatePath,
