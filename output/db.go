@@ -31,9 +31,7 @@ import (
 
 // Db maker to include types in datastore interface
 type Db struct {
-	TypeHolder *src.TypeHolder
-	File       *io.GoFile
-	Template   string
+	BasicMaker
 }
 
 // OutputFilepath returns the path to generated file

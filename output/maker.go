@@ -35,30 +35,40 @@ type Maker interface {
 	OutputFilepath() string
 }
 
+// BasicMaker represents common members for a a maker
+type BasicMaker struct {
+	TypeHolder *src.TypeHolder
+	File       *io.GoFile
+	Template   string
+}
+
 // NewMaker returns a maker for a certain type and template
 func NewMaker(typeHolder *src.TypeHolder, templatePath string) (Maker, error) {
 	var outputPath string
+
 	templateID := templateIdentifier(templatePath)
+	outputPath = createOutputPath(config.Config.Output, templateID, strings.ToLower(typeHolder.Name))
+
 	switch templateID {
 	case "datastore":
-		outputPath = createOutputPath(config.Config.Output, "datastore", strings.ToLower(typeHolder.Name))
-
 		return &Datastore{
-			TypeHolder: typeHolder,
-			File: &io.GoFile{
-				Path: outputPath,
+			BasicMaker{
+				TypeHolder: typeHolder,
+				File: &io.GoFile{
+					Path: outputPath,
+				},
+				Template: templatePath,
 			},
-			Template: templatePath,
 		}, nil
 	case "db":
-		outputPath = createOutputPath(config.Config.Output, "db", strings.ToLower(typeHolder.Name))
-
 		return &Db{
-			TypeHolder: typeHolder,
-			File: &io.GoFile{
-				Path: outputPath,
+			BasicMaker{
+				TypeHolder: typeHolder,
+				File: &io.GoFile{
+					Path: outputPath,
+				},
+				Template: templatePath,
 			},
-			Template: templatePath,
 		}, nil
 	}
 

@@ -27,14 +27,11 @@ import (
 
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
-	"github.com/rmescandon/cruder/src"
 )
 
 // Datastore generates datastore/<type>.go output go file
 type Datastore struct {
-	TypeHolder *src.TypeHolder
-	File       *io.GoFile
-	Template   string
+	BasicMaker
 }
 
 // OutputFilepath returns the path to generated file

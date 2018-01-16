@@ -36,6 +36,7 @@ import (
 type ReplacerSuite struct {
 	typeFile    *os.File
 	typeHolders []*src.TypeHolder
+	templates   []string
 }
 
 var _ = check.Suite(&ReplacerSuite{})
@@ -60,10 +61,15 @@ func (s *ReplacerSuite) SetUpTest(c *check.C) {
 
 	s.typeHolders, err = src.ComposeTypeHolders(source)
 	c.Assert(err, check.IsNil)
+
+	s.templates, err = availableTemplates()
+	c.Assert(err, check.IsNil)
+	c.Assert(s.templates, check.HasLen, 2)
 }
 
 func (s *ReplacerSuite) TestGetMakers(c *check.C) {
-	makers, err := makers(s.typeHolders)
+
+	makers, err := makers(s.typeHolders, s.templates)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
 	c.Assert(makers, check.HasLen, 2)
@@ -91,7 +97,7 @@ func (s *ReplacerSuite) TestReplaceInAllTemplates(c *check.C) {
 	c.Assert(s.typeHolders[0].Source.Ast, check.NotNil)
 	c.Assert(s.typeHolders[0].Source.Ast, check.DeepEquals, ast)
 
-	makers, err := makers(s.typeHolders)
+	makers, err := makers(s.typeHolders, s.templates)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
 	c.Assert(makers, check.HasLen, 2)

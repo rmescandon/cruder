@@ -53,11 +53,14 @@ func (s *DbSuite) TestDb(c *check.C) {
 	config.Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
-	db := &Db{TypeHolders: typeHolders,
-		File: &io.GoFile{
-			Path: filepath.Join(config.Config.Output, "dbtestoutput.go"),
+	db := &Db{
+		BasicMaker{
+			TypeHolder: typeHolders[0],
+			File: &io.GoFile{
+				Path: filepath.Join(config.Config.Output, "dbtestoutput.go"),
+			},
+			Template: "../testdata/templates/db.template",
 		},
-		Template: "../testdata/templates/db.template",
 	}
 
 	c.Assert(db.Make(), check.IsNil)
@@ -81,7 +84,7 @@ func (s *DbSuite) TestDb(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(typeHolders, check.HasLen, 1)
 
-	db.TypeHolders = typeHolders
+	db.TypeHolder = typeHolders[0]
 
 	c.Assert(db.Make(), check.IsNil)
 
