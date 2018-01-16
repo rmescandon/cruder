@@ -43,7 +43,12 @@ func GenerateSkeletonCode() error {
 		return fmt.Errorf("Error composing type holders from types file: %v", err)
 	}
 
-	makers, err := makers(typeHolders)
+	templates, err := availableTemplates()
+	if err != nil {
+		return fmt.Errorf("Error listing available templates: %v", err)
+	}
+
+	makers, err := makers(typeHolders, templates)
 	if err != nil {
 		return err
 	}
@@ -59,23 +64,23 @@ func GenerateSkeletonCode() error {
 	return nil
 }
 
-func makers(typeHolders []*src.TypeHolder) ([]Maker, error) {
-	var makers []Maker
+func availableTemplates() ([]string, error) {
 	logging.Debugf("searching for available templates at %v", config.Config.TemplatesPath)
-	availableTemplates, err := filepath.Glob(filepath.Join(config.Config.TemplatesPath, "*.template"))
-	if err != nil {
-		return makers, fmt.Errorf("Error listing available templates: %v", err)
-	}
+	return filepath.Glob(filepath.Join(config.Config.TemplatesPath, "*.template"))
+}
 
-	for _, templateFilePath := range availableTemplates {
-		logging.Debugf("Found template: %v", filepath.Base(templateFilePath))
-
-		maker, err := NewMaker(typeHolders, config.Config.Output, templateFilePath)
-		if err != nil {
-			return nil, err
+func makers(typeHolders []*src.TypeHolder, availableTemplates []string) ([]Maker, error) {
+	var makers []Maker
+	for _, template := range availableTemplates {
+		logging.Debugf("Found template: %v", filepath.Base(template))
+		for _, t := range typeHolders {
+			maker, err := NewMaker(t, template)
+			if err != nil {
+				return []Maker{}, err
+			}
+			makers = append(makers, maker)
 		}
-		makers = append(makers, maker)
-	}
 
+	}
 	return makers, nil
 }

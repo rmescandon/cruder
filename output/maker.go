@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/src"
 )
@@ -35,29 +36,25 @@ type Maker interface {
 }
 
 // NewMaker returns a maker for a certain type and template
-func NewMaker(holders []*src.TypeHolder, outputFolder, templatePath string) (Maker, error) {
+func NewMaker(typeHolder *src.TypeHolder, templatePath string) (Maker, error) {
 	var outputPath string
 	templateID := templateIdentifier(templatePath)
 	switch templateID {
 	case "datastore":
-		if len(holders) > 0 {
-			outputPath = createOutputPath(outputFolder, "datastore", strings.ToLower(holders[0].Name))
-		}
+		outputPath = createOutputPath(config.Config.Output, "datastore", strings.ToLower(typeHolder.Name))
 
 		return &Datastore{
-			TypeHolders: holders,
+			TypeHolder: typeHolder,
 			File: &io.GoFile{
 				Path: outputPath,
 			},
 			Template: templatePath,
 		}, nil
 	case "db":
-		if len(holders) > 0 {
-			outputPath = createOutputPath(outputFolder, "db", strings.ToLower(holders[0].Name))
-		}
+		outputPath = createOutputPath(config.Config.Output, "db", strings.ToLower(typeHolder.Name))
 
 		return &Db{
-			TypeHolders: holders,
+			TypeHolder: typeHolder,
 			File: &io.GoFile{
 				Path: outputPath,
 			},

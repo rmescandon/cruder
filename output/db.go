@@ -31,9 +31,9 @@ import (
 
 // Db maker to include types in datastore interface
 type Db struct {
-	TypeHolders []*src.TypeHolder
-	File        *io.GoFile
-	Template    string
+	TypeHolder *src.TypeHolder
+	File       *io.GoFile
+	Template   string
 }
 
 // OutputFilepath returns the path to generated file
@@ -43,17 +43,6 @@ func (db *Db) OutputFilepath() string {
 
 // Make generates the results
 func (db *Db) Make() error {
-	for i := range db.TypeHolders {
-		err := db.makeOne(i)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// makeOne runs to generate a single output result
-func (db *Db) makeOne(index int) error {
 	// execute the replacement
 	logging.Debugf("Loadig template: %v", filepath.Base(db.Template))
 	templateContent, err := io.FileToString(db.Template)
@@ -61,9 +50,9 @@ func (db *Db) makeOne(index int) error {
 		return fmt.Errorf("Error reading template file: %v", err)
 	}
 
-	replacedStr, err := db.TypeHolders[index].ReplaceInTemplate(templateContent)
+	replacedStr, err := db.TypeHolder.ReplaceInTemplate(templateContent)
 	if err != nil {
-		return fmt.Errorf("Error replacing type %v over template %v", db.TypeHolders[index].Name, filepath.Base(db.Template))
+		return fmt.Errorf("Error replacing type %v over template %v", db.TypeHolder.Name, filepath.Base(db.Template))
 	}
 
 	// check if output file exists

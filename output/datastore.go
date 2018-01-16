@@ -32,9 +32,9 @@ import (
 
 // Datastore generates datastore/<type>.go output go file
 type Datastore struct {
-	TypeHolders []*src.TypeHolder
-	File        *io.GoFile
-	Template    string
+	TypeHolder *src.TypeHolder
+	File       *io.GoFile
+	Template   string
 }
 
 // OutputFilepath returns the path to generated file
@@ -44,24 +44,13 @@ func (ds *Datastore) OutputFilepath() string {
 
 // Make generates the results
 func (ds *Datastore) Make() error {
-	for i := range ds.TypeHolders {
-		err := ds.makeOne(i)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// makeOne runs to generate a single output result
-func (ds *Datastore) makeOne(index int) error {
 	addOriginalType := false
 
 	// check if output file exists
 	_, err := os.Stat(ds.File.Path)
 	if err == nil {
 		// in case if does exist, it should match the types file. Otherwise it's an error
-		if ds.File.Path != ds.TypeHolders[index].Source.Path {
+		if ds.File.Path != ds.TypeHolder.Source.Path {
 			return fmt.Errorf("File %v already exists. Skip writting", ds.File.Path)
 		}
 
@@ -79,9 +68,9 @@ func (ds *Datastore) makeOne(index int) error {
 		return fmt.Errorf("Error reading template file: %v", err)
 	}
 
-	replacedStr, err := ds.TypeHolders[index].ReplaceInTemplate(templateContent)
+	replacedStr, err := ds.TypeHolder.ReplaceInTemplate(templateContent)
 	if err != nil {
-		return fmt.Errorf("Error replacing type %v over template %v", ds.TypeHolders[index].Name, filepath.Base(ds.Template))
+		return fmt.Errorf("Error replacing type %v over template %v", ds.TypeHolder.Name, filepath.Base(ds.Template))
 	}
 
 	f, err := os.Create(ds.File.Path)
@@ -116,7 +105,7 @@ func (ds *Datastore) makeOne(index int) error {
 		for i, decl := range outputAst.Decls {
 			switch decl.(type) {
 			case *ast.FuncDecl:
-				outputAst.Decls = append(outputAst.Decls[:i], append([]ast.Decl{ds.TypeHolders[index].Decl}, outputAst.Decls[i:]...)...)
+				outputAst.Decls = append(outputAst.Decls[:i], append([]ast.Decl{ds.TypeHolder.Decl}, outputAst.Decls[i:]...)...)
 				foundFirstFunc = true
 			}
 
