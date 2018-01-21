@@ -63,3 +63,19 @@ func (s *ConfigSuite) TestLoadConfig(c *check.C) {
 	c.Assert(Config.Version, check.Equals, "1.2-3")
 	c.Assert(Config.TemplatesPath, check.Equals, "/local/path/templates")
 }
+
+func (s *ConfigSuite) TestProjectURL(c *check.C) {
+	c.Assert(Config.setDefaultValuesWhenNeeded(), check.IsNil)
+
+	template := "_#PROJECT#_"
+
+	result, err := Config.ReplaceInTemplate(template)
+	c.Assert(err, check.IsNil)
+	c.Assert(result, check.Equals, defaultProjectURL)
+
+	Config.ProjectURL = "launchpad.com/myuser/myproject"
+
+	result, err = Config.ReplaceInTemplate(template)
+	c.Assert(err, check.IsNil)
+	c.Assert(result, check.Equals, "launchpad.com/myuser/myproject")
+}

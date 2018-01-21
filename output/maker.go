@@ -70,6 +70,16 @@ func NewMaker(typeHolder *src.TypeHolder, templatePath string) (Maker, error) {
 				Template: templatePath,
 			},
 		}, nil
+	case "handler":
+		return &Handler{
+			BasicMaker{
+				TypeHolder: typeHolder,
+				Output: &io.GoFile{
+					Path: outputPath,
+				},
+				Template: templatePath,
+			},
+		}, nil
 	}
 
 	return nil, nil

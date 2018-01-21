@@ -36,6 +36,7 @@ import (
 
 const (
 	defaultSettingsFile = "settings.yaml"
+	defaultProjectURL   = "github.com/myuser/myproject"
 )
 
 // Options type holding possible cli params
@@ -70,32 +71,13 @@ func (c *Options) ValidateAndInitialize() error {
 		logging.InitLogger(gologging.WARNING)
 	}
 
-	if len(c.Output) == 0 {
-		// calculate current dir and set it as default output path
-		dir, err := currentDir()
-		if err != nil {
-			return &flags.Error{
-				Type:    flags.ErrUnknown,
-				Message: "Internal server error when setting default output path",
-			}
-		}
-		c.Output = dir
-	}
-
-	if len(c.Settings) == 0 {
-		// calculate current dir and set it as default settings path
-		dir, err := currentDir()
-		if err != nil {
-			return &flags.Error{
-				Type:    flags.ErrUnknown,
-				Message: "Internal server error when setting default settings path",
-			}
-		}
-		c.Settings = filepath.Join(dir, defaultSettingsFile)
+	err := c.setDefaultValuesWhenNeeded()
+	if err != nil {
+		return err
 	}
 
 	//normalize settings file path
-	err := normalizePath(&c.Settings)
+	err = normalizePath(&c.Settings)
 	if err != nil {
 		return err
 	}
@@ -120,6 +102,38 @@ func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
 	replaced = strings.Replace(replaced, "_#PROJECT#_", c.ProjectURL, -1)
 
 	return replaced, nil
+}
+
+func (c *Options) setDefaultValuesWhenNeeded() error {
+	if len(c.Output) == 0 {
+		// calculate current dir and set it as default output path
+		dir, err := currentDir()
+		if err != nil {
+			return &flags.Error{
+				Type:    flags.ErrUnknown,
+				Message: "Internal server error when setting default output path",
+			}
+		}
+		c.Output = dir
+	}
+
+	if len(c.Settings) == 0 {
+		// calculate current dir and set it as default settings path
+		dir, err := currentDir()
+		if err != nil {
+			return &flags.Error{
+				Type:    flags.ErrUnknown,
+				Message: "Internal server error when setting default settings path",
+			}
+		}
+		c.Settings = filepath.Join(dir, defaultSettingsFile)
+	}
+
+	if len(c.ProjectURL) == 0 {
+		c.ProjectURL = defaultProjectURL
+	}
+
+	return nil
 }
 
 func currentDir() (string, error) {

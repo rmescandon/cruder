@@ -21,14 +21,17 @@ package output
 
 import "fmt"
 
+// ErrOutputExists error struct for an existing output file
 type ErrOutputExists struct {
 	Path string
 }
 
+// Error returns the error string
 func (e ErrOutputExists) Error() string {
 	return fmt.Sprintf("File %v already exists. Skip writting", e.Path)
 }
 
+// NewErrOutputExists returns a new ErrOutputExists struct
 func NewErrOutputExists(output string) ErrOutputExists {
 	return ErrOutputExists{Path: output}
 }

@@ -35,7 +35,11 @@ type HandlerSuite struct{}
 
 var _ = check.Suite(&HandlerSuite{})
 
+func (s *HandlerSuite) SetUpSuite(c *check.C) {}
+func (s *HandlerSuite) SetUpTest(c *check.C)  {}
+
 func (s *HandlerSuite) TestMakeHandler(c *check.C) {
+	config.Config.ProjectURL = "github.com/auser/aproject"
 	//--------------------------------------------------------------------------
 	// 1.- Create an output file for MyType, not having a previous existing file
 	typeFile, err := testdata.TestTypeFile()

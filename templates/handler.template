@@ -28,7 +28,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	_#PROJECT#_/datastore
+	"_#PROJECT#_/datastore"
 )
 
 type _#TYPE.IDENTIFIER#_sResponse struct {
