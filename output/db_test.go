@@ -36,7 +36,7 @@ type DbSuite struct{}
 
 var _ = check.Suite(&DbSuite{})
 
-func (s *DbSuite) TestDb(c *check.C) {
+func (s *DbSuite) TestMakeDb(c *check.C) {
 	//--------------------------------------------------------------------------
 	// 1.- Create an output file for MyType, not having a previous existing file
 	typeFile, err := testdata.TestTypeFile()

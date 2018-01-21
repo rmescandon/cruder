@@ -40,10 +40,13 @@ const (
 
 // Options type holding possible cli params
 type Options struct {
-	Verbose       []bool `short:"v" long:"verbose" description:"Verbose output"`
-	TypesFile     string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code"`
-	Output        string `short:"o" long:"output" description:"Folder where building output structure of generated files"`
-	Settings      string `short:"c" long:"config" description:"Settings file path"`
+	Verbose    []bool `short:"v" long:"verbose" description:"Verbose output"`
+	TypesFile  string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code" required:"yes"`
+	Output     string `short:"o" long:"output" description:"Folder where building output structure of generated files"`
+	ProjectURL string `short:"u" long:"url" description:"Url of this project. If not specified 'github.com/myproject' is used"`
+	Settings   string `short:"c" long:"config" description:"Settings file path"`
+
+	// Options loaded from settings file
 	Version       string `yaml:"version"`
 	TemplatesPath string `yaml:"templates"`
 }
@@ -108,6 +111,15 @@ func (c *Options) ValidateAndInitialize() error {
 	}
 
 	return nil
+}
+
+// ReplaceInTemplate replaces config values in template
+func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
+	replaced := templateContent
+
+	replaced = strings.Replace(replaced, "_#PROJECT#_", c.ProjectURL, -1)
+
+	return replaced, nil
 }
 
 func currentDir() (string, error) {

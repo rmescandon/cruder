@@ -48,7 +48,7 @@ func (ds *Datastore) Make() error {
 	if err == nil {
 		// in case if does exist, it should match the types file. Otherwise it's an error
 		if ds.Output.Path != ds.TypeHolder.Source.Path {
-			return fmt.Errorf("File %v already exists. Skip writting", ds.Output.Path)
+			return NewErrOutputExists(ds.Output.Path)
 		}
 
 		// if output file is the same as types one, add the type to the generated output

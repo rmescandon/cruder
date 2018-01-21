@@ -64,7 +64,7 @@ func (s *EngineSuite) SetUpTest(c *check.C) {
 
 	s.templates, err = availableTemplates()
 	c.Assert(err, check.IsNil)
-	c.Assert(s.templates, check.HasLen, 2)
+	c.Assert(s.templates, check.HasLen, 3)
 }
 
 func (s *EngineSuite) TestGetMakers(c *check.C) {
@@ -72,7 +72,7 @@ func (s *EngineSuite) TestGetMakers(c *check.C) {
 	makers, err := makers(s.typeHolders, s.templates)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
-	c.Assert(makers, check.HasLen, 2)
+	c.Assert(makers, check.HasLen, 3)
 }
 
 // TODO this test should disappear when having specific test for every stage
@@ -100,7 +100,7 @@ func (s *EngineSuite) TestReplaceInAllTemplates(c *check.C) {
 	makers, err := makers(s.typeHolders, s.templates)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
-	c.Assert(makers, check.HasLen, 2)
+	c.Assert(makers, check.HasLen, 3)
 
 	for _, maker := range makers {
 		err = maker.Make()

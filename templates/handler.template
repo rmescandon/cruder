@@ -1,0 +1,241 @@
+// -*- Mode: Go; indent-tabs-mode: t -*-
+
+/*
+ * Copyright (C) 2018 Roberto Mier Escandon <rmescandon@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package service
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
+	_#PROJECT#_/datastore
+)
+
+type _#TYPE.IDENTIFIER#_sResponse struct {
+	_#TYPE#_s []datastore._#TYPE#_ `json:"_#TYPE.LOWERCASE#_s"`
+}
+
+// List_#TYPE#_s handles listing _#TYPE.LOWERCASE#_s API operation
+func List_#TYPE#_s(w http.ResponseWriter, r *http.Request) {
+	_#TYPE.IDENTIFIER#_s, err := datastore.Db.List_#TYPE#_s()
+	if err != nil {
+		log.Printf("Service error: %v", err)
+		replyWithError(
+			http.StatusInternalServerError,
+			errorResponse{
+				Code:    "list-_#TYPE.LOWERCASE#_s-failed",
+				Message: "Could not list available _#TYPE.LOWERCASE#_s due to a server error",
+			},
+			w,
+		)
+		return
+	}
+
+	response := _#TYPE.IDENTIFIER#_sResponse{_#TYPE#_s: _#TYPE.IDENTIFIER#_s}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Service error: %v", err)
+		replyWithError(
+			http.StatusInternalServerError,
+			errorResponse{
+				Code:    "list-_#TYPE.LOWERCASE#_s-failed",
+				Message: "A server error has happened when encoding the response",
+			},
+			w,
+		)
+		return
+	}
+}
+
+// Get_#TYPE#_ handles reading _#TYPE.LOWERCASE#_ API operation
+func Get_#TYPE#_(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	//FIXME see how to make this conversion when generated the file. Probably with a switch
+	_#ID.FIELD.NAME#_, err := _#ID.FIELD.TYPE.PARSE#_
+	if err != nil {
+		replyWithError(
+			http.StatusNotFound,
+			errorResponse{
+				Code:    "invalid-_#TYPE.LOWERCASE#_-id",
+				Message: "_#TYPE#_ was not found",
+			},
+			w,
+		)
+		return
+	}
+
+	_#TYPE.IDENTIFIER#_, err := datastore.Db.Get_#TYPE#_(_#ID.FIELD.NAME#_)
+	if err != nil {
+		log.Printf("Service error: %v", err)
+		replyWithError(
+			http.StatusInternalServerError,
+			errorResponse{
+				Code:    "get-_#TYPE.LOWERCASE#_-failed",
+				Message: "Could not get _#TYPE.LOWERCASE#_ info due to a server error",
+			},
+			w,
+		)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(_#TYPE.IDENTIFIER#_); err != nil {
+		log.Printf("Service error: %v", err)
+		replyWithError(
+			http.StatusInternalServerError,
+			errorResponse{
+				Code:    "get-_#TYPE.LOWERCASE#_-failed",
+				Message: "A server error has happened when encoding the response",
+			},
+			w,
+		)
+		return
+	}
+}
+
+// Create_#TYPE#_ handles creating _#TYPE.LOWERCASE#_ API operation
+func Create_#TYPE#_(w http.ResponseWriter, r *http.Request) {
+	// Decode the body
+	_#TYPE.IDENTIFIER#_ := datastore._#TYPE#_{}
+	err := json.NewDecoder(r.Body).Decode(&_#TYPE.IDENTIFIER#_)
+	switch {
+	// Check we have some data
+	case err == io.EOF:
+		replyWithError(
+			http.StatusBadRequest,
+			errorResponse{
+				Code:    "empty-body-content",
+				Message: "No _#TYPE.LOWERCASE#_ content supplied in body content",
+			},
+			w,
+		)
+		return
+	// Check for parsing errors
+	case err != nil:
+		log.Printf("Request bad format: %v", err)
+		replyWithError(
+			http.StatusBadRequest,
+			errorResponse{
+				Code:    "invalid-body-content",
+				Message: "Body content format is not valid",
+			},
+			w,
+		)
+		return
+	}
+
+	_#ID.FIELD.NAME#_, err := datastore.Db.Create_#TYPE#_(_#TYPE.IDENTIFIER#_)
+	if err != nil {
+		log.Printf("Service error creating mytpe: %v", err)
+		replyWithError(
+			http.StatusInternalServerError,
+			errorResponse{
+				Code:    "create-_#TYPE.LOWERCASE#_-failed",
+				Message: fmt.Sprintf("_#TYPE#_ creation failed due to a service error: %v", err),
+			},
+			w,
+		)
+		return
+	}
+
+	//FIXME see how to make this conversion when generated the file. Probably with a switch
+	reply201Created(w, composeLocation(r, strconv.Itoa(_#ID.FIELD.NAME#_)))
+}
+
+// Update_#TYPE#_ handles updating _#TYPE.LOWERCASE#_ API operation
+func Update_#TYPE#_(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	//FIXME see how to make this conversion when generated the file. Probably with a switch
+	_#ID.FIELD.NAME#_, err := _#ID.FIELD.TYPE.PARSE#_
+	if err != nil {
+		replyWithError(
+			http.StatusNotFound,
+			errorResponse{
+				Code:    "invalid-_#TYPE.LOWERCASE#_-id",
+				Message: "_#TYPE#_ was not found",
+			},
+			w,
+		)
+		return
+	}
+
+	_#TYPE.IDENTIFIER#_ := datastore._#TYPE#_{}
+	err = json.NewDecoder(r.Body).Decode(&_#TYPE.IDENTIFIER#_)
+	if err != nil {
+		replyWithError(
+			http.StatusBadRequest,
+			errorResponse{
+				Code:    "bad-body-content",
+				Message: "Bad _#TYPE.LOWERCASE#_ supplied in body content",
+			},
+			w,
+		)
+		return
+	}
+
+	err = datastore.Db.Update_#TYPE#_(_#ID.FIELD.NAME#_, _#TYPE.IDENTIFIER#_)
+	if err != nil {
+		log.Printf("Service error: %v", err)
+		replyWithError(
+			http.StatusInternalServerError,
+			errorResponse{
+				Code:    "update-_#TYPE.LOWERCASE#_-failed",
+				Message: "Could not update requested _#TYPE.LOWERCASE#_",
+			},
+			w,
+		)
+		return
+	}
+}
+
+// Delete_#TYPE#_ handles deleting _#TYPE.LOWERCASE#_ API operation
+func Delete_#TYPE#_(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	//FIXME see how to make this conversion when generated the file. Probably with a switch
+	_#ID.FIELD.NAME#_, err := _#ID.FIELD.TYPE.PARSE#_
+	if err != nil {
+		replyWithError(
+			http.StatusNotFound,
+			errorResponse{
+				Code:    "invalid-_#TYPE.LOWERCASE#_-id",
+				Message: "_#TYPE#_ was not found",
+			},
+			w,
+		)
+		return
+	}
+
+	err = datastore.Db.Delete_#TYPE#_(_#ID.FIELD.NAME#_)
+	if err != nil {
+		log.Printf("Service error: %v", err)
+		replyWithError(
+			http.StatusInternalServerError,
+			errorResponse{
+				Code:    "delete-_#TYPE.LOWERCASE#_-failed",
+				Message: "Could not delete requested _#TYPE.LOWERCASE#_",
+			},
+			w,
+		)
+		return
+	}
+
+	reply204NoContent(w)
+}

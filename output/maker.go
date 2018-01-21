@@ -87,6 +87,8 @@ func createOutputPath(outputFolder, templateID, typeIdentifierInLower string) st
 		return filepath.Join(outputFolder, "datastore/db.go")
 	case "datastore":
 		return filepath.Join(outputFolder, "datastore", typeIdentifierInLower+".go")
+	case "handler":
+		return filepath.Join(outputFolder, "service", typeIdentifierInLower+".go")
 	}
 
 	return ""

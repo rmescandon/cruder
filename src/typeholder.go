@@ -203,6 +203,20 @@ func (holder *TypeHolder) FieldsAsDMLParams() string {
 	return strings.Join(tokens, ", ")
 }
 
+// IDFieldTypeParse returns the type parsing instruction for ID field
+func (holder *TypeHolder) IDFieldTypeParse() string {
+	switch holder.IDFieldType() {
+	case "int":
+		return "strconv.Atoi(vars[\"id\"])"
+	case "decimal":
+		return "strconv.ParseFloat(vars[\"id\"])"
+	case "bool":
+		return "strconv.ParseBool(vars[\"id\"])"
+	default:
+		return "vars[\"id\"]"
+	}
+}
+
 // ReplaceInTemplate replaces template marks with holder data
 func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, error) {
 	replaced := templateContent
@@ -221,6 +235,7 @@ func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, err
 	replaced = strings.Replace(replaced, "_#VALUES.DML.PARAMS#_", holder.ValuesInDMLParams(), -1)
 	replaced = strings.Replace(replaced, "_#ID.FIELD.DML.PARAM#_", holder.IDFieldAsDMLParam(), -1)
 	replaced = strings.Replace(replaced, "_#FIELDS.DML.PARAMS#_", holder.FieldsAsDMLParams(), -1)
+	replaced = strings.Replace(replaced, "_#ID.FIELD.TYPE.PARSE#_", holder.IDFieldTypeParse(), -1)
 
 	return replaced, nil
 }
