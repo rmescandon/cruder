@@ -26,8 +26,8 @@ import (
 	"testing"
 
 	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/decl"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/src"
 	"github.com/rmescandon/cruder/testdata"
 
 	check "gopkg.in/check.v1"
@@ -35,7 +35,7 @@ import (
 
 type EngineSuite struct {
 	typeFile    *os.File
-	typeHolders []*src.TypeHolder
+	typeHolders []*decl.TypeHolder
 	templates   []string
 }
 
@@ -59,7 +59,7 @@ func (s *EngineSuite) SetUpTest(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(source, check.NotNil)
 
-	s.typeHolders, err = src.ComposeTypeHolders(source)
+	s.typeHolders, err = decl.ComposeTypeHolders(source)
 	c.Assert(err, check.IsNil)
 
 	s.templates, err = availableTemplates()

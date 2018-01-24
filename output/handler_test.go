@@ -25,8 +25,8 @@ import (
 	"strings"
 
 	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/decl"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/src"
 	"github.com/rmescandon/cruder/testdata"
 	check "gopkg.in/check.v1"
 )
@@ -49,7 +49,7 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 	source, err := io.NewGoFile(typeFile.Name())
 	c.Assert(err, check.IsNil)
 
-	typeHolders, err := src.ComposeTypeHolders(source)
+	typeHolders, err := decl.ComposeTypeHolders(source)
 	c.Assert(err, check.IsNil)
 	c.Assert(typeHolders, check.HasLen, 1)
 
@@ -83,7 +83,7 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 	source, err = io.NewGoFile(otherTypeFile.Name())
 	c.Assert(err, check.IsNil)
 
-	typeHolders, err = src.ComposeTypeHolders(source)
+	typeHolders, err = decl.ComposeTypeHolders(source)
 	c.Assert(err, check.IsNil)
 	c.Assert(typeHolders, check.HasLen, 1)
 

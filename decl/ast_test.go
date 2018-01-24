@@ -17,7 +17,7 @@
  *
  */
 
-package src
+package decl
 
 import (
 	check "gopkg.in/check.v1"

@@ -24,9 +24,9 @@ import (
 	"path/filepath"
 
 	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/decl"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
-	"github.com/rmescandon/cruder/src"
 )
 
 // GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
@@ -38,7 +38,7 @@ func GenerateSkeletonCode() error {
 		return fmt.Errorf("Error reading go source file: %v", err)
 	}
 
-	typeHolders, err := src.ComposeTypeHolders(source)
+	typeHolders, err := decl.ComposeTypeHolders(source)
 	if err != nil {
 		return fmt.Errorf("Error composing type holders from types file: %v", err)
 	}
@@ -69,7 +69,7 @@ func availableTemplates() ([]string, error) {
 	return filepath.Glob(filepath.Join(config.Config.TemplatesPath, "*.template"))
 }
 
-func makers(typeHolders []*src.TypeHolder, availableTemplates []string) ([]Maker, error) {
+func makers(typeHolders []*decl.TypeHolder, availableTemplates []string) ([]Maker, error) {
 	var makers []Maker
 	for _, template := range availableTemplates {
 		logging.Debugf("Found template: %v", filepath.Base(template))

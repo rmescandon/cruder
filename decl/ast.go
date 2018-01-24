@@ -17,7 +17,7 @@
  *
  */
 
-package src
+package decl
 
 // This file contains the model construction by parsing source files.
 

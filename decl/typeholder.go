@@ -17,7 +17,7 @@
  *
  */
 
-package src
+package decl
 
 import (
 	"fmt"
