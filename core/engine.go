@@ -17,7 +17,7 @@
  *
  */
 
-package output
+package core
 
 import (
 	"fmt"
@@ -26,6 +26,7 @@ import (
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 )
 
@@ -48,7 +49,7 @@ func GenerateSkeletonCode() error {
 		return fmt.Errorf("Error listing available templates: %v", err)
 	}
 
-	makers, err := makers(typeHolders, templates)
+	makers, err := buildMakers(typeHolders, templates)
 	if err != nil {
 		return err
 	}
@@ -69,18 +70,18 @@ func availableTemplates() ([]string, error) {
 	return filepath.Glob(filepath.Join(config.Config.TemplatesPath, "*.template"))
 }
 
-func makers(typeHolders []*parser.TypeHolder, availableTemplates []string) ([]Maker, error) {
-	var makers []Maker
-	for _, template := range availableTemplates {
-		logging.Debugf("Found template: %v", filepath.Base(template))
-		for _, t := range typeHolders {
-			maker, err := NewMaker(t, template)
+func buildMakers(holders []*parser.TypeHolder, templates []string) ([]makers.Maker, error) {
+	var mks []makers.Maker
+	for _, t := range templates {
+		logging.Debugf("Found template: %v", filepath.Base(t))
+		for _, h := range holders {
+			m, err := makers.New(h, t)
 			if err != nil {
-				return []Maker{}, err
+				return []makers.Maker{}, err
 			}
-			makers = append(makers, maker)
+			mks = append(mks, m)
 		}
 
 	}
-	return makers, nil
+	return mks, nil
 }

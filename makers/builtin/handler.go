@@ -17,7 +17,7 @@
  *
  */
 
-package output
+package builtin
 
 import (
 	"fmt"
@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 
 	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/errors"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
 )
@@ -44,7 +45,7 @@ func (h *Handler) Make() error {
 	// check if output file exists
 	_, err := os.Stat(h.Output.Path)
 	if err == nil {
-		return NewErrOutputExists(h.Output.Path)
+		return errors.NewErrOutputExists(h.Output.Path)
 	}
 
 	ensureDir(filepath.Dir(h.Output.Path))

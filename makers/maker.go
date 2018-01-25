@@ -17,15 +17,16 @@
  *
  */
 
-package output
+package makers
 
 import (
-	"os"
+	"errors"
 	"path/filepath"
 	"strings"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers/builtin"
 	"github.com/rmescandon/cruder/parser"
 )
 
@@ -35,54 +36,29 @@ type Maker interface {
 	OutputFilepath() string
 }
 
-// BasicMaker represents common members for a a maker
-type BasicMaker struct {
-	TypeHolder *parser.TypeHolder
-	Output     *io.GoFile
-	Template   string
-}
-
-// NewMaker returns a maker for a certain type and template
-func NewMaker(typeHolder *parser.TypeHolder, templatePath string) (Maker, error) {
-	var outputPath string
-
+// New returns a maker for a certain type and template
+func New(typeHolder *parser.TypeHolder, templatePath string) (Maker, error) {
 	templateID := templateIdentifier(templatePath)
-	outputPath = createOutputPath(config.Config.Output, templateID, strings.ToLower(typeHolder.Name))
+	outputPath := createOutputPath(config.Config.Output, templateID, strings.ToLower(typeHolder.Name))
+
+	bm := &builtin.BasicMaker{
+		TypeHolder: typeHolder,
+		Output: &io.GoFile{
+			Path: outputPath,
+		},
+		Template: templatePath,
+	}
 
 	switch templateID {
 	case "datastore":
-		return &Datastore{
-			BasicMaker{
-				TypeHolder: typeHolder,
-				Output: &io.GoFile{
-					Path: outputPath,
-				},
-				Template: templatePath,
-			},
-		}, nil
+		return &builtin.Datastore{BasicMaker: *bm}, nil
 	case "db":
-		return &Db{
-			BasicMaker{
-				TypeHolder: typeHolder,
-				Output: &io.GoFile{
-					Path: outputPath,
-				},
-				Template: templatePath,
-			},
-		}, nil
+		return &builtin.Db{BasicMaker: *bm}, nil
 	case "handler":
-		return &Handler{
-			BasicMaker{
-				TypeHolder: typeHolder,
-				Output: &io.GoFile{
-					Path: outputPath,
-				},
-				Template: templatePath,
-			},
-		}, nil
+		return &builtin.Handler{BasicMaker: *bm}, nil
 	}
 
-	return nil, nil
+	return nil, errors.New("Maker not found")
 }
 
 func templateIdentifier(templateAbsPath string) string {
@@ -102,12 +78,4 @@ func createOutputPath(outputFolder, templateID, typeIdentifierInLower string) st
 	}
 
 	return ""
-}
-
-func ensureDir(dir string) error {
-	_, err := os.Stat(dir)
-	if os.IsNotExist(err) {
-		return os.MkdirAll(dir, 0755)
-	}
-	return nil
 }

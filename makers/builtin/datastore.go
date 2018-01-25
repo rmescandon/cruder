@@ -17,7 +17,7 @@
  *
  */
 
-package output
+package builtin
 
 import (
 	"fmt"
@@ -25,6 +25,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/rmescandon/cruder/errors"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
 )
@@ -48,7 +49,7 @@ func (ds *Datastore) Make() error {
 	if err == nil {
 		// in case if does exist, it should match the types file. Otherwise it's an error
 		if ds.Output.Path != ds.TypeHolder.Source.Path {
-			return NewErrOutputExists(ds.Output.Path)
+			return errors.NewErrOutputExists(ds.Output.Path)
 		}
 
 		// if output file is the same as types one, add the type to the generated output

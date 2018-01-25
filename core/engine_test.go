@@ -17,7 +17,7 @@
  *
  */
 
-package output
+package core
 
 import (
 	"io/ioutil"
@@ -69,7 +69,7 @@ func (s *EngineSuite) SetUpTest(c *check.C) {
 
 func (s *EngineSuite) TestGetMakers(c *check.C) {
 
-	makers, err := makers(s.typeHolders, s.templates)
+	makers, err := buildMakers(s.typeHolders, s.templates)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
 	c.Assert(makers, check.HasLen, 3)
@@ -97,7 +97,7 @@ func (s *EngineSuite) TestReplaceInAllTemplates(c *check.C) {
 	c.Assert(s.typeHolders[0].Source.Ast, check.NotNil)
 	c.Assert(s.typeHolders[0].Source.Ast, check.DeepEquals, ast)
 
-	makers, err := makers(s.typeHolders, s.templates)
+	makers, err := buildMakers(s.typeHolders, s.templates)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
 	c.Assert(makers, check.HasLen, 3)

@@ -1,7 +1,7 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 
 /*
- * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ * Copyright (C) 2018 Roberto Mier Escandon <rmescandon@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -17,15 +17,21 @@
  *
  */
 
-package output
+package errors
 
-import check "gopkg.in/check.v1"
+import "fmt"
 
-type ErrorSuite struct{}
+// ErrOutputExists error struct for an existing output file
+type ErrOutputExists struct {
+	Path string
+}
 
-var _ = check.Suite(&ErrorSuite{})
+// Error returns the error string
+func (e ErrOutputExists) Error() string {
+	return fmt.Sprintf("File %v already exists. Skip writting", e.Path)
+}
 
-func (s *ErrorSuite) TestErrOutputExistsMessage(c *check.C) {
-	err := NewErrOutputExists("/any/random/path")
-	c.Assert(err.Error(), check.Equals, "File /any/random/path already exists. Skip writting")
+// NewErrOutputExists returns a new ErrOutputExists struct
+func NewErrOutputExists(output string) ErrOutputExists {
+	return ErrOutputExists{Path: output}
 }

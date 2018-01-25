@@ -17,7 +17,7 @@
  *
  */
 
-package output
+package builtin
 
 import (
 	"fmt"
