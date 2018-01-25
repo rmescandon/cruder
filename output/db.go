@@ -24,9 +24,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/rmescandon/cruder/decl"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/parser"
 )
 
 // Db maker to include types in datastore interface
@@ -89,13 +89,13 @@ func (db *Db) mergeExistingOutput(replacedStr string) error {
 		return err
 	}
 
-	generatedIface := decl.GetInterface(generatedAst, "Datastore")
-	currentIface := decl.GetInterface(currentAst, "Datastore")
+	generatedIface := parser.GetInterface(generatedAst, "Datastore")
+	currentIface := parser.GetInterface(currentAst, "Datastore")
 
 	// search for generatedIface methods into currentIface and add them if not found
-	for _, method := range decl.GetInterfaceMethods(generatedIface) {
-		if !decl.HasMethod(currentIface, method.Names[0].Name) {
-			decl.AddMethod(currentIface, method)
+	for _, method := range parser.GetInterfaceMethods(generatedIface) {
+		if !parser.HasMethod(currentIface, method.Names[0].Name) {
+			parser.AddMethod(currentIface, method)
 		}
 	}
 

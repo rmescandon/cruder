@@ -17,7 +17,7 @@
  *
  */
 
-package decl
+package parser
 
 // This file contains the model construction by parsing source files.
 

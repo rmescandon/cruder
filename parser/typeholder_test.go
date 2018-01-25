@@ -17,7 +17,7 @@
  *
  */
 
-package decl
+package parser
 
 import (
 	"strings"

@@ -25,8 +25,8 @@ import (
 	"strings"
 
 	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/decl"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/parser"
 )
 
 // Maker generates a Go output file
@@ -37,13 +37,13 @@ type Maker interface {
 
 // BasicMaker represents common members for a a maker
 type BasicMaker struct {
-	TypeHolder *decl.TypeHolder
+	TypeHolder *parser.TypeHolder
 	Output     *io.GoFile
 	Template   string
 }
 
 // NewMaker returns a maker for a certain type and template
-func NewMaker(typeHolder *decl.TypeHolder, templatePath string) (Maker, error) {
+func NewMaker(typeHolder *parser.TypeHolder, templatePath string) (Maker, error) {
 	var outputPath string
 
 	templateID := templateIdentifier(templatePath)
