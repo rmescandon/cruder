@@ -21,12 +21,12 @@ package makers
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/makers/builtin"
 	"github.com/rmescandon/cruder/parser"
 )
 
@@ -36,12 +36,19 @@ type Maker interface {
 	OutputFilepath() string
 }
 
+// BasicMaker represents common members for any maker
+type BasicMaker struct {
+	TypeHolder *parser.TypeHolder
+	Output     *io.GoFile
+	Template   string
+}
+
 // New returns a maker for a certain type and template
 func New(typeHolder *parser.TypeHolder, templatePath string) (Maker, error) {
 	templateID := templateIdentifier(templatePath)
 	outputPath := createOutputPath(config.Config.Output, templateID, strings.ToLower(typeHolder.Name))
 
-	bm := &builtin.BasicMaker{
+	bm := &BasicMaker{
 		TypeHolder: typeHolder,
 		Output: &io.GoFile{
 			Path: outputPath,
@@ -51,11 +58,11 @@ func New(typeHolder *parser.TypeHolder, templatePath string) (Maker, error) {
 
 	switch templateID {
 	case "datastore":
-		return &builtin.Datastore{BasicMaker: *bm}, nil
+		return &Datastore{*bm}, nil
 	case "db":
-		return &builtin.Db{BasicMaker: *bm}, nil
+		return &Db{*bm}, nil
 	case "handler":
-		return &builtin.Handler{BasicMaker: *bm}, nil
+		return &Handler{*bm}, nil
 	}
 
 	return nil, errors.New("Maker not found")
@@ -78,4 +85,12 @@ func createOutputPath(outputFolder, templateID, typeIdentifierInLower string) st
 	}
 
 	return ""
+}
+
+func ensureDir(dir string) error {
+	_, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		return os.MkdirAll(dir, 0755)
+	}
+	return nil
 }
