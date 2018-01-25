@@ -49,7 +49,7 @@ func GenerateSkeletonCode() error {
 		return fmt.Errorf("Error listing available templates: %v", err)
 	}
 
-	makers, err := buildMakers(typeHolders, templates)
+	makers, err := getMakers(typeHolders, templates)
 	if err != nil {
 		return err
 	}
@@ -70,12 +70,15 @@ func availableTemplates() ([]string, error) {
 	return filepath.Glob(filepath.Join(config.Config.TemplatesPath, "*.template"))
 }
 
-func buildMakers(holders []*parser.TypeHolder, templates []string) ([]makers.Maker, error) {
+func getMakers(holders []*parser.TypeHolder, templates []string) ([]makers.Maker, error) {
 	var mks []makers.Maker
 	for _, t := range templates {
 		logging.Debugf("Found template: %v", filepath.Base(t))
 		for _, h := range holders {
-			m, err := makers.New(h, t)
+			//FIXME: this won't work as every maker asociated with a type is reused for the next type
+			// Execute Run for every maker got until next one or
+			// Create dynamic objects by reflection into makers.Get
+			m, err := makers.Get(h, t)
 			if err != nil {
 				return []makers.Maker{}, err
 			}

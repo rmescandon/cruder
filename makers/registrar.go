@@ -17,15 +17,33 @@
  *
  */
 
-package errors
+package makers
 
-import check "gopkg.in/check.v1"
+import (
+	"fmt"
 
-type ErrorSuite struct{}
+	"github.com/rmescandon/cruder/parser"
+)
 
-var _ = check.Suite(&ErrorSuite{})
+// BuiltinMaker adds a method to set the type holder to Maker interface.
+// It is used internally to register builtin makers
+type BuiltinMaker interface {
+	Maker
+	ID() string
+	SetTypeHolder(*parser.TypeHolder)
+	SetTemplate(string)
+}
 
-func (s *ErrorSuite) TestErrOutputExistsMessage(c *check.C) {
-	err := NewErrOutputExists("/any/random/path")
-	c.Assert(err.Error(), check.Equals, "File /any/random/path already exists. Skip writting")
+var builtinMakers map[string]BuiltinMaker
+
+// Register registers a builtin maker
+func Register(m BuiltinMaker) error {
+	if builtinMakers[m.ID()] != nil {
+		return fmt.Errorf("cannot register duplicated maker %q", m.ID())
+	}
+	if builtinMakers == nil {
+		builtinMakers = make(map[string]BuiltinMaker)
+	}
+	builtinMakers[m.ID()] = m
+	return nil
 }

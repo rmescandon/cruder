@@ -20,77 +20,52 @@
 package makers
 
 import (
-	"errors"
-	"os"
+	"fmt"
 	"path/filepath"
-	"strings"
 
-	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // Maker generates a Go output file
 type Maker interface {
 	Make() error
-	OutputFilepath() string
 }
 
 // BasicMaker represents common members for any maker
 type BasicMaker struct {
 	TypeHolder *parser.TypeHolder
-	Output     *io.GoFile
 	Template   string
 }
 
-// New returns a maker for a certain type and template
-func New(typeHolder *parser.TypeHolder, templatePath string) (Maker, error) {
-	templateID := templateIdentifier(templatePath)
-	outputPath := createOutputPath(config.Config.Output, templateID, strings.ToLower(typeHolder.Name))
+// SetTypeHolder sets the type holder for this maker
+func (bm *BasicMaker) SetTypeHolder(holder *parser.TypeHolder) {
+	bm.TypeHolder = holder
+}
 
-	bm := &BasicMaker{
-		TypeHolder: typeHolder,
-		Output: &io.GoFile{
-			Path: outputPath,
-		},
-		Template: templatePath,
+// SetTemplate sets template path for this maker
+func (bm *BasicMaker) SetTemplate(template string) {
+	bm.Template = template
+}
+
+// Get returns the maker for certain template, to be applied using certain type holder
+func Get(holder *parser.TypeHolder, template string) (Maker, error) {
+	if builtinMakers == nil {
+		return nil, ErrNoMakerRegistered
 	}
 
-	switch templateID {
-	case "datastore":
-		return &Datastore{*bm}, nil
-	case "db":
-		return &Db{*bm}, nil
-	case "handler":
-		return &Handler{*bm}, nil
+	templateID := templateIdentifier(template)
+	maker, ok := builtinMakers[templateID]
+	if !ok {
+		return nil, NewErrNotFound(fmt.Sprintf("Maker with id '%v'", templateID))
 	}
 
-	return nil, errors.New("Maker not found")
+	maker.SetTypeHolder(holder)
+	maker.SetTemplate(template)
+	return maker, nil
 }
 
 func templateIdentifier(templateAbsPath string) string {
 	filename := filepath.Base(templateAbsPath)
 	var extension = filepath.Ext(filename)
 	return filename[0 : len(filename)-len(extension)]
-}
-
-func createOutputPath(outputFolder, templateID, typeIdentifierInLower string) string {
-	switch templateID {
-	case "db":
-		return filepath.Join(outputFolder, "datastore/db.go")
-	case "datastore":
-		return filepath.Join(outputFolder, "datastore", typeIdentifierInLower+".go")
-	case "handler":
-		return filepath.Join(outputFolder, "service", typeIdentifierInLower+".go")
-	}
-
-	return ""
-}
-
-func ensureDir(dir string) error {
-	_, err := os.Stat(dir)
-	if os.IsNotExist(err) {
-		return os.MkdirAll(dir, 0755)
-	}
-	return nil
 }

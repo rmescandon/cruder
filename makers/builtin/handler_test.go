@@ -17,7 +17,7 @@
  *
  */
 
-package makers
+package builtin
 
 import (
 	"io/ioutil"

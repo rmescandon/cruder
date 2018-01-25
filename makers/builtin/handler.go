@@ -17,38 +17,39 @@
  *
  */
 
-package makers
+package builtin
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/errors"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/makers"
 )
 
 // Handler makes the controller
 type Handler struct {
-	BasicMaker
+	makers.BasicMaker
 }
 
-// OutputFilepath returns the path to the generated file
-func (h *Handler) OutputFilepath() string {
-	return h.Output.Path
+// ID returns the identifier 'handler' for this maker
+func (h *Handler) ID() string {
+	return "handler"
 }
 
 // Make generates the output
 func (h *Handler) Make() error {
 	// check if output file exists
-	_, err := os.Stat(h.Output.Path)
+	_, err := os.Stat(h.outputFilepath())
 	if err == nil {
-		return errors.NewErrOutputExists(h.Output.Path)
+		return makers.NewErrOutputExists(h.outputFilepath())
 	}
 
-	ensureDir(filepath.Dir(h.Output.Path))
+	ensureDir(filepath.Dir(h.outputFilepath()))
 
 	logging.Debugf("Loadig template: %v", filepath.Base(h.Template))
 	templateContent, err := io.FileToString(h.Template)
@@ -66,17 +67,29 @@ func (h *Handler) Make() error {
 		return fmt.Errorf("Error replacing configuration over template %v", filepath.Base(h.Template))
 	}
 
-	f, err := os.Create(h.Output.Path)
+	f, err := os.Create(h.outputFilepath())
 	if err != nil {
-		return fmt.Errorf("Could not create %v: %v", h.Output.Path, err)
+		return fmt.Errorf("Could not create %v: %v", h.outputFilepath(), err)
 	}
 	defer f.Close()
 
 	_, err = f.WriteString(replacedStr)
 	if err != nil {
-		return fmt.Errorf("Error writing to output %v: %v", h.Output.Path, err)
+		return fmt.Errorf("Error writing to output %v: %v", h.outputFilepath(), err)
 	}
 
-	logging.Infof("Generated: %v", h.Output.Path)
+	logging.Infof("Generated: %v", h.outputFilepath())
 	return nil
+}
+
+// outputFilepath returns the path to the generated file
+func (h *Handler) outputFilepath() string {
+	return filepath.Join(
+		config.Config.Output,
+		h.ID(),
+		strings.ToLower(h.TypeHolder.Identifier())+".go")
+}
+
+func init() {
+	makers.Register(&Handler{})
 }
