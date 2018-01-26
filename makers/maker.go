@@ -47,14 +47,14 @@ func (bm *BasicMaker) SetTemplate(template string) {
 	bm.Template = template
 }
 
-// Get returns the maker for certain template, to be applied using certain type holder
-func Get(holder *parser.TypeHolder, template string) (Maker, error) {
-	if builtinMakers == nil {
+// New returns the maker for certain template, to be applied using certain type holder
+func New(holder *parser.TypeHolder, template string) (Maker, error) {
+	if registeredMakers == nil {
 		return nil, ErrNoMakerRegistered
 	}
 
 	templateID := templateIdentifier(template)
-	maker, ok := builtinMakers[templateID]
+	maker, ok := registeredMakers[templateID]
 	if !ok {
 		return nil, NewErrNotFound(fmt.Sprintf("Maker with id '%v'", templateID))
 	}

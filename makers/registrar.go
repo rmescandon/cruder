@@ -25,25 +25,25 @@ import (
 	"github.com/rmescandon/cruder/parser"
 )
 
-// BuiltinMaker adds a method to set the type holder to Maker interface.
-// It is used internally to register builtin makers
-type BuiltinMaker interface {
+// Registrant adds a method to set the type holder to Maker interface.
+// It is used to allow registering new makers
+type Registrant interface {
 	Maker
 	ID() string
 	SetTypeHolder(*parser.TypeHolder)
 	SetTemplate(string)
 }
 
-var builtinMakers map[string]BuiltinMaker
+var registeredMakers map[string]Registrant
 
 // Register registers a builtin maker
-func Register(m BuiltinMaker) error {
-	if builtinMakers[m.ID()] != nil {
+func Register(m Registrant) error {
+	if registeredMakers[m.ID()] != nil {
 		return fmt.Errorf("cannot register duplicated maker %q", m.ID())
 	}
-	if builtinMakers == nil {
-		builtinMakers = make(map[string]BuiltinMaker)
+	if registeredMakers == nil {
+		registeredMakers = make(map[string]Registrant)
 	}
-	builtinMakers[m.ID()] = m
+	registeredMakers[m.ID()] = m
 	return nil
 }

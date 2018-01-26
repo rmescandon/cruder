@@ -25,8 +25,8 @@ import (
 	"strings"
 
 	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/errors"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 	"github.com/rmescandon/cruder/testdata"
 	check "gopkg.in/check.v1"
@@ -90,5 +90,5 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 
 	handler.TypeHolder = typeHolders[0]
 
-	c.Assert(handler.Make(), check.DeepEquals, errors.NewErrOutputExists(handler.Output.Path))
+	c.Assert(handler.Make(), check.DeepEquals, makers.NewErrOutputExists(handler.Output.Path))
 }
