@@ -29,21 +29,22 @@ import (
 // Maker generates a Go output file
 type Maker interface {
 	Make() error
+	OutputFilepath() string
 }
 
-// BasicMaker represents common members for any maker
-type BasicMaker struct {
+// BaseMaker represents common members for any maker
+type BaseMaker struct {
 	TypeHolder *parser.TypeHolder
 	Template   string
 }
 
 // SetTypeHolder sets the type holder for this maker
-func (bm *BasicMaker) SetTypeHolder(holder *parser.TypeHolder) {
+func (bm *BaseMaker) SetTypeHolder(holder *parser.TypeHolder) {
 	bm.TypeHolder = holder
 }
 
 // SetTemplate sets template path for this maker
-func (bm *BasicMaker) SetTemplate(template string) {
+func (bm *BaseMaker) SetTemplate(template string) {
 	bm.Template = template
 }
 

@@ -21,11 +21,11 @@ package builtin
 
 import (
 	"io/ioutil"
-	"path/filepath"
 	"strings"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 	"github.com/rmescandon/cruder/testdata"
 
@@ -54,18 +54,15 @@ func (s *DbSuite) TestMakeDb(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	db := &Db{
-		BasicMaker{
+		makers.BaseMaker{
 			TypeHolder: typeHolders[0],
-			Output: &io.GoFile{
-				Path: filepath.Join(config.Config.Output, "dbtestoutput.go"),
-			},
-			Template: "../testdata/templates/db.template",
+			Template:   "../testdata/templates/db.template",
 		},
 	}
 
 	c.Assert(db.Make(), check.IsNil)
 
-	content, err := io.FileToString(db.Output.Path)
+	content, err := io.FileToString(db.OutputFilepath())
 	c.Assert(err, check.IsNil)
 	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
 	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
@@ -88,7 +85,7 @@ func (s *DbSuite) TestMakeDb(c *check.C) {
 
 	c.Assert(db.Make(), check.IsNil)
 
-	content, err = io.FileToString(db.Output.Path)
+	content, err = io.FileToString(db.OutputFilepath())
 
 	// Verify here if both types are included in output
 	c.Assert(strings.Contains(content, "CreateMyTypeTable() error"), check.Equals, true)

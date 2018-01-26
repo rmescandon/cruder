@@ -33,12 +33,17 @@ import (
 
 // Db maker to include types in datastore interface
 type Db struct {
-	makers.BasicMaker
+	makers.BaseMaker
 }
 
 // ID returns 'db'
 func (db *Db) ID() string {
 	return "db"
+}
+
+// OutputFilepath returns the path to generated file
+func (db *Db) OutputFilepath() string {
+	return filepath.Join(config.Config.Output, fmt.Sprintf("datastore/%v.go", db.ID()))
 }
 
 // Make generates the results
@@ -56,17 +61,17 @@ func (db *Db) Make() error {
 	}
 
 	// check if output file exists
-	_, err = os.Stat(db.outputFilepath())
+	_, err = os.Stat(db.OutputFilepath())
 	if err == nil {
 		db.mergeExistingOutput(replacedStr)
 	} else {
 		// write out generated ast
 		// create needed dirs to outputPath
-		ensureDir(filepath.Dir(db.outputFilepath()))
+		ensureDir(filepath.Dir(db.OutputFilepath()))
 
-		io.StringToFile(replacedStr, db.outputFilepath())
+		io.StringToFile(replacedStr, db.OutputFilepath())
 
-		logging.Infof("Generated: %v", db.outputFilepath())
+		logging.Infof("Generated: %v", db.OutputFilepath())
 	}
 
 	return nil
@@ -74,14 +79,14 @@ func (db *Db) Make() error {
 
 // mergeExistingOutput resolves the conflict when already exists an output file
 func (db *Db) mergeExistingOutput(replacedStr string) error {
-	logging.Infof("Merging new type into: %v", db.outputFilepath())
+	logging.Infof("Merging new type into: %v", db.OutputFilepath())
 	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
 	if err != nil {
 		return err
 	}
 
 	// load current output
-	content, err := io.FileToByteArray(db.outputFilepath())
+	content, err := io.FileToByteArray(db.OutputFilepath())
 	if err != nil {
 		return err
 	}
@@ -103,15 +108,10 @@ func (db *Db) mergeExistingOutput(replacedStr string) error {
 
 	// write out the resultant modified Datastore interface to output
 	// TODO VERIFY that using pointers is enough to alter generatedAst before writting out
-	io.ASTToFile(currentAst, db.outputFilepath())
-	logging.Infof("Merged into: %v successfully", db.outputFilepath())
+	io.ASTToFile(currentAst, db.OutputFilepath())
+	logging.Infof("Merged into: %v successfully", db.OutputFilepath())
 
 	return nil
-}
-
-// outputFilepath returns the path to generated file
-func (db *Db) outputFilepath() string {
-	return filepath.Join(config.Config.Output, fmt.Sprintf("datastore/%v.go", db.ID()))
 }
 
 func init() {

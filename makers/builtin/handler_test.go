@@ -21,7 +21,6 @@ package builtin
 
 import (
 	"io/ioutil"
-	"path/filepath"
 	"strings"
 
 	"github.com/rmescandon/cruder/config"
@@ -58,18 +57,15 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	handler := &Handler{
-		BasicMaker{
+		makers.BaseMaker{
 			TypeHolder: typeHolders[0],
-			Output: &io.GoFile{
-				Path: filepath.Join(config.Config.Output, "handlertestoutput.go"),
-			},
-			Template: "../testdata/templates/handler.template",
+			Template:   "../testdata/templates/handler.template",
 		},
 	}
 
 	c.Assert(handler.Make(), check.IsNil)
 
-	content, err := io.FileToString(handler.Output.Path)
+	content, err := io.FileToString(handler.OutputFilepath())
 	c.Assert(err, check.IsNil)
 	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
 	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
@@ -90,5 +86,5 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 
 	handler.TypeHolder = typeHolders[0]
 
-	c.Assert(handler.Make(), check.DeepEquals, makers.NewErrOutputExists(handler.Output.Path))
+	c.Assert(handler.Make(), check.DeepEquals, makers.NewErrOutputExists(handler.OutputFilepath()))
 }
