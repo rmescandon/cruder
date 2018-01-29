@@ -17,7 +17,7 @@
  *
  */
 
-package builtin
+package makers
 
 import (
 	"fmt"
@@ -28,12 +28,11 @@ import (
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
-	"github.com/rmescandon/cruder/makers"
 )
 
 // Handler makes the controller
 type Handler struct {
-	makers.BaseMaker
+	BaseMaker
 }
 
 // ID returns the identifier 'handler' for this maker
@@ -54,7 +53,7 @@ func (h *Handler) Make() error {
 	// check if output file exists
 	_, err := os.Stat(h.OutputFilepath())
 	if err == nil {
-		return makers.NewErrOutputExists(h.OutputFilepath())
+		return NewErrOutputExists(h.OutputFilepath())
 	}
 
 	ensureDir(filepath.Dir(h.OutputFilepath()))
@@ -91,5 +90,5 @@ func (h *Handler) Make() error {
 }
 
 func init() {
-	makers.Register(&Handler{})
+	register(&Handler{})
 }

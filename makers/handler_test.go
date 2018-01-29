@@ -17,7 +17,7 @@
  *
  */
 
-package builtin
+package makers
 
 import (
 	"io/ioutil"
@@ -25,7 +25,6 @@ import (
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 	"github.com/rmescandon/cruder/testdata"
 	check "gopkg.in/check.v1"
@@ -57,7 +56,7 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	handler := &Handler{
-		makers.BaseMaker{
+		BaseMaker{
 			TypeHolder: typeHolders[0],
 			Template:   "../testdata/templates/handler.template",
 		},
@@ -86,5 +85,5 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 
 	handler.TypeHolder = typeHolders[0]
 
-	c.Assert(handler.Make(), check.DeepEquals, makers.NewErrOutputExists(handler.OutputFilepath()))
+	c.Assert(handler.Make(), check.DeepEquals, NewErrOutputExists(handler.OutputFilepath()))
 }

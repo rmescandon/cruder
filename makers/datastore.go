@@ -17,7 +17,7 @@
  *
  */
 
-package builtin
+package makers
 
 import (
 	"fmt"
@@ -29,12 +29,11 @@ import (
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
-	"github.com/rmescandon/cruder/makers"
 )
 
 // Datastore generates datastore/<type>.go output go file
 type Datastore struct {
-	makers.BaseMaker
+	BaseMaker
 }
 
 // ID returns 'datastore' as this maker identifier
@@ -59,7 +58,7 @@ func (ds *Datastore) Make() error {
 	if err == nil {
 		// in case if does exist, it should match the types file. Otherwise it's an error
 		if ds.OutputFilepath() != ds.TypeHolder.Source.Path {
-			return makers.NewErrOutputExists(ds.OutputFilepath())
+			return NewErrOutputExists(ds.OutputFilepath())
 		}
 
 		// if output file is the same as types one, add the type to the generated output
@@ -132,5 +131,5 @@ func (ds *Datastore) Make() error {
 }
 
 func init() {
-	makers.Register(&Datastore{})
+	register(&Datastore{})
 }
