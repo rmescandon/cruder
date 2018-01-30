@@ -37,6 +37,7 @@ import (
 const (
 	defaultSettingsFile = "settings.yaml"
 	defaultProjectURL   = "github.com/myuser/myproject"
+	defaultAPIVersion   = "v1"
 )
 
 // Options type holding possible cli params
@@ -45,6 +46,7 @@ type Options struct {
 	TypesFile  string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code" required:"yes"`
 	Output     string `short:"o" long:"output" description:"Folder where building output structure of generated files"`
 	ProjectURL string `short:"u" long:"url" description:"Url of this project. If not specified 'github.com/myproject' is used"`
+	APIVersion string `short:"a" long:"apiversion" description:"Version of the REST api"`
 	Settings   string `short:"c" long:"config" description:"Settings file path"`
 
 	// Options loaded from settings file
@@ -99,7 +101,11 @@ func (c *Options) ValidateAndInitialize() error {
 func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
 	replaced := templateContent
 
+	// github.com/myaccount/myproject
 	replaced = strings.Replace(replaced, "_#PROJECT#_", c.ProjectURL, -1)
+
+	// v1
+	replaced = strings.Replace(replaced, "_#API.VERSION", c.APIVersion, -1)
 
 	return replaced, nil
 }
@@ -131,6 +137,10 @@ func (c *Options) setDefaultValuesWhenNeeded() error {
 
 	if len(c.ProjectURL) == 0 {
 		c.ProjectURL = defaultProjectURL
+	}
+
+	if len(c.APIVersion) == 0 {
+		c.APIVersion = defaultAPIVersion
 	}
 
 	return nil

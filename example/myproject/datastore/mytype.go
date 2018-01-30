@@ -123,7 +123,7 @@ func (db *DB) rowToMyType(row *sql.Row) (MyType, error) {
 	return myType, nil
 }
 
-func (db *DB) rowsToMyType(rows *sql.Rows) (MyType, error) {
+func (db *DB) nextRowToMyType(rows *sql.Rows) (MyType, error) {
 	myType := MyType{}
 	err := rows.Scan(&myType.ID, &myType.Name, &myType.Description, &myType.SubTypes)
 	if err != nil {
@@ -137,7 +137,7 @@ func (db *DB) rowsToMyTypes(rows *sql.Rows) ([]MyType, error) {
 	myTypeList := []MyType{}
 
 	for rows.Next() {
-		myType, err := db.rowsToMyType(rows)
+		myType, err := db.nextRowToMyType(rows)
 		if err != nil {
 			return nil, err
 		}

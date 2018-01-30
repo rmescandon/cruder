@@ -113,7 +113,7 @@ func (db *DB) rowTo_#TYPE#_(row *sql.Row) (_#TYPE#_, error) {
 	return _#TYPE.IDENTIFIER#_, nil
 }
 
-func (db *DB) rowsTo_#TYPE#_(rows *sql.Rows) (_#TYPE#_, error) {
+func (db *DB) nextRowTo_#TYPE#_(rows *sql.Rows) (_#TYPE#_, error) {
 	_#TYPE.IDENTIFIER#_ := _#TYPE#_{}
 	err := rows.Scan(&_#ID.FIELD.NAME#_, _#FIELDS.ENUM.REF#_)
 	if err != nil {
@@ -127,7 +127,7 @@ func (db *DB) rowsTo_#TYPE#_s(rows *sql.Rows) ([]_#TYPE#_, error) {
 	_#TYPE.IDENTIFIER#_List := []_#TYPE#_{}
 
 	for rows.Next() {
-		_#TYPE.IDENTIFIER#_, err := db.rowsTo_#TYPE#_(rows)
+		_#TYPE.IDENTIFIER#_, err := db.nextRowTo_#TYPE#_(rows)
 		if err != nil {
 			return nil, err
 		}

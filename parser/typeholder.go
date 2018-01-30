@@ -207,13 +207,41 @@ func (holder *TypeHolder) FieldsAsDMLParams() string {
 func (holder *TypeHolder) IDFieldTypeParse() string {
 	switch holder.IDFieldType() {
 	case "int":
-		return "strconv.Atoi(vars[\"id\"])"
+		return "strconv.Atoi(vars[\"" + holder.IDFieldName() + "\"])"
 	case "decimal":
-		return "strconv.ParseFloat(vars[\"id\"])"
+		return "strconv.ParseFloat(vars[\"" + holder.IDFieldName() + "\"])"
 	case "bool":
-		return "strconv.ParseBool(vars[\"id\"])"
+		return "strconv.ParseBool(vars[\"" + holder.IDFieldName() + "\"])"
 	default:
-		return "vars[\"id\"]"
+		return "vars[\"" + holder.IDFieldName() + "\"]"
+	}
+}
+
+// IDFieldTypeFormat returns the type formatting instruction to have ID as string
+func (holder *TypeHolder) IDFieldTypeFormat() string {
+	switch holder.IDFieldType() {
+	case "int":
+		return "strconv.Itoa(vars[\"" + holder.IDFieldName() + "\"])"
+	case "decimal":
+		return "strconf.FormatFloat(vars[\"" + holder.IDFieldName() + "\"])"
+	case "bool":
+		return "strconf.FormatBool(vars[\"" + holder.IDFieldName() + "\"])"
+	default:
+		return "vars[\"" + holder.IDFieldName() + "\"]"
+	}
+}
+
+// IDFieldPattern returns the pattern associated with id field type, to be used when routing REST paths
+func (holder *TypeHolder) IDFieldPattern() string {
+	switch holder.IDFieldType() {
+	case "int":
+		return "[0-9]+"
+	case "decimal":
+		return "^[0-9]+(\\.[0-9]{1,2})?$"
+	case "bool":
+		return "^(?:tru|fals)e$"
+	default:
+		return "[a-zA-Z0-9-_\\.]+"
 	}
 }
 
@@ -221,21 +249,71 @@ func (holder *TypeHolder) IDFieldTypeParse() string {
 func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, error) {
 	replaced := templateContent
 
+	/*
+		For a type like:
+
+		type TheType struct {
+			ID          int
+			Name        string
+			Description string
+			SubTypes    []string
+		}
+
+		here are the replacements meaning:
+	*/
+
+	// TheType
 	replaced = strings.Replace(replaced, "_#TYPE#_", holder.Name, -1)
+
+	// theType
 	replaced = strings.Replace(replaced, "_#TYPE.IDENTIFIER#_", holder.Identifier(), -1)
+
+	// thetype
 	replaced = strings.Replace(replaced, "_#TYPE.LOWERCASE#_", strings.ToLower(holder.Name), -1)
+
+	// id
 	replaced = strings.Replace(replaced, "_#ID.FIELD.NAME#_", holder.IDFieldName(), -1)
+
+	// int
 	replaced = strings.Replace(replaced, "_#ID.FIELD.TYPE#_", holder.IDFieldType(), -1)
+
+	// name
 	replaced = strings.Replace(replaced, "_#FIND.FIELD.NAME#_", holder.FindFieldName(), -1)
+
+	// theType.Name, theType.Description, theType.Subtypes
 	replaced = strings.Replace(replaced, "_#FIELDS.ENUM#_", holder.FieldsEnum(), -1)
+
+	// &theType.Name, &theType.Description, &theType.Subtypes
 	replaced = strings.Replace(replaced, "_#FIELDS.ENUM.REF#_", holder.FieldsEnumRef(), -1)
+
+	// id int serial primary_key not null
 	replaced = strings.Replace(replaced, "_#ID.FIELD.DDL#_", holder.IDFieldInDDL(), -1)
+
+	// Name			varchar,
+	// Description	varchar,
+	// Subtypes		varchar
 	replaced = strings.Replace(replaced, "_#FIELDS.DDL#_", holder.FieldsInDDL(), -1)
+
+	// name, description, subtypes
 	replaced = strings.Replace(replaced, "_#FIELDS.DML#_", holder.FieldsInDML(), -1)
+
+	// $1, $2, $3
 	replaced = strings.Replace(replaced, "_#VALUES.DML.PARAMS#_", holder.ValuesInDMLParams(), -1)
+
+	// id=$4
 	replaced = strings.Replace(replaced, "_#ID.FIELD.DML.PARAM#_", holder.IDFieldAsDMLParam(), -1)
+
+	// name=$1, description=$2, subtypes=$3
 	replaced = strings.Replace(replaced, "_#FIELDS.DML.PARAMS#_", holder.FieldsAsDMLParams(), -1)
+
+	// strconv.Atoi(vars["id"])
 	replaced = strings.Replace(replaced, "_#ID.FIELD.TYPE.PARSE#_", holder.IDFieldTypeParse(), -1)
+
+	// strconv.Itoa(vars["id"])
+	replaced = strings.Replace(replaced, "_#ID.FIELD.TYPE.FORMAT#_", holder.IDFieldTypeFormat(), -1)
+
+	// [a-z]+
+	replaced = strings.Replace(replaced, "_#ID.FIELD.PATTERN#_", holder.IDFieldPattern(), -1)
 
 	return replaced, nil
 }

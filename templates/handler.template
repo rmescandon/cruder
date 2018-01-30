@@ -69,7 +69,6 @@ func List_#TYPE#_s(w http.ResponseWriter, r *http.Request) {
 // Get_#TYPE#_ handles reading _#TYPE.LOWERCASE#_ API operation
 func Get_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	//FIXME see how to make this conversion when generated the file. Probably with a switch
 	_#ID.FIELD.NAME#_, err := _#ID.FIELD.TYPE.PARSE#_
 	if err != nil {
 		replyWithError(
@@ -156,14 +155,12 @@ func Create_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//FIXME see how to make this conversion when generated the file. Probably with a switch
-	reply201Created(w, composeLocation(r, strconv.Itoa(_#ID.FIELD.NAME#_)))
+	reply201Created(w, composeLocation(r, _#ID.FIELD.TYPE.FORMAT#_))
 }
 
 // Update_#TYPE#_ handles updating _#TYPE.LOWERCASE#_ API operation
 func Update_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	//FIXME see how to make this conversion when generated the file. Probably with a switch
 	_#ID.FIELD.NAME#_, err := _#ID.FIELD.TYPE.PARSE#_
 	if err != nil {
 		replyWithError(
@@ -209,7 +206,6 @@ func Update_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 // Delete_#TYPE#_ handles deleting _#TYPE.LOWERCASE#_ API operation
 func Delete_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	//FIXME see how to make this conversion when generated the file. Probably with a switch
 	_#ID.FIELD.NAME#_, err := _#ID.FIELD.TYPE.PARSE#_
 	if err != nil {
 		replyWithError(
