@@ -56,7 +56,8 @@ func (db *Db) Make() error {
 
 	replacedStr, err := db.TypeHolder.ReplaceInTemplate(templateContent)
 	if err != nil {
-		return fmt.Errorf("Error replacing type %v over template %v", db.TypeHolder.Name, filepath.Base(db.Template))
+		return fmt.Errorf("Error replacing type %v over template %v",
+			db.TypeHolder.Name, filepath.Base(db.Template))
 	}
 
 	// check if output file exists

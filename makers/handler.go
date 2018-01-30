@@ -66,12 +66,14 @@ func (h *Handler) Make() error {
 
 	replacedStr, err := h.TypeHolder.ReplaceInTemplate(templateContent)
 	if err != nil {
-		return fmt.Errorf("Error replacing type %v over template %v", h.TypeHolder.Name, filepath.Base(h.Template))
+		return fmt.Errorf("Error replacing type %v over template %v",
+			h.TypeHolder.Name, filepath.Base(h.Template))
 	}
 
 	replacedStr, err = config.Config.ReplaceInTemplate(replacedStr)
 	if err != nil {
-		return fmt.Errorf("Error replacing configuration over template %v", filepath.Base(h.Template))
+		return fmt.Errorf("Error replacing configuration over template %v",
+			filepath.Base(h.Template))
 	}
 
 	f, err := os.Create(h.OutputFilepath())

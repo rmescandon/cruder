@@ -77,7 +77,8 @@ func (ds *Datastore) Make() error {
 
 	replacedStr, err := ds.TypeHolder.ReplaceInTemplate(templateContent)
 	if err != nil {
-		return fmt.Errorf("Error replacing type %v over template %v", ds.TypeHolder.Name, filepath.Base(ds.Template))
+		return fmt.Errorf("Error replacing type %v over template %v",
+			ds.TypeHolder.Name, filepath.Base(ds.Template))
 	}
 
 	f, err := os.Create(ds.OutputFilepath())
@@ -93,7 +94,7 @@ func (ds *Datastore) Make() error {
 
 	logging.Infof("Generated: %v", ds.OutputFilepath())
 
-	// TODO IMPLEMENT if  addOriginalType....
+	// TODO Improve this by not writting to file and use memory []byte instead
 	if addOriginalType {
 		// - reload result file to AST
 		// - prepend GenType AST to it
@@ -112,7 +113,9 @@ func (ds *Datastore) Make() error {
 		for i, decl := range outputAst.Decls {
 			switch decl.(type) {
 			case *ast.FuncDecl:
-				outputAst.Decls = append(outputAst.Decls[:i], append([]ast.Decl{ds.TypeHolder.Decl}, outputAst.Decls[i:]...)...)
+				// trick to prepend instead of appending
+				outputAst.Decls = append(outputAst.Decls[:i],
+					append([]ast.Decl{ds.TypeHolder.Decl}, outputAst.Decls[i:]...)...)
 				foundFirstFunc = true
 			}
 
