@@ -69,21 +69,9 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
 	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
 
-	// -----------------------------------------------------------------------
-	// 2.- Reset typeHolders and load now OtherType. Create the output and see
-	// if maker returns ErrOutputExists error
-	otherTypeFile, err := testdata.TestOtherTypeFile()
-	c.Assert(err, check.IsNil)
-	c.Assert(otherTypeFile, check.NotNil)
-
-	source, err = io.NewGoFile(otherTypeFile.Name())
-	c.Assert(err, check.IsNil)
-
-	typeHolders, err = parser.ComposeTypeHolders(source)
-	c.Assert(err, check.IsNil)
-	c.Assert(typeHolders, check.HasLen, 1)
-
-	handler.TypeHolder = typeHolders[0]
-
+	//---------------------------------------------------
+	// 2.- Execute the maker again and verify that maker returns
+	// ErrOutputExists error
+	//
 	c.Assert(handler.Make(), check.DeepEquals, NewErrOutputExists(handler.OutputFilepath()))
 }
