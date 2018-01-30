@@ -59,6 +59,12 @@ func (r *Router) Make() error {
 			r.TypeHolder.Name, filepath.Base(r.Template))
 	}
 
+	replacedStr, err = config.Config.ReplaceInTemplate(replacedStr)
+	if err != nil {
+		return fmt.Errorf("Error replacing configuration over template %v",
+			filepath.Base(r.Template))
+	}
+
 	// check if output file exists
 	_, err = os.Stat(r.OutputFilepath())
 	if err == nil {

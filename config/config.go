@@ -105,7 +105,7 @@ func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
 	replaced = strings.Replace(replaced, "_#PROJECT#_", c.ProjectURL, -1)
 
 	// v1
-	replaced = strings.Replace(replaced, "_#API.VERSION", c.APIVersion, -1)
+	replaced = strings.Replace(replaced, "_#API.VERSION#_", c.APIVersion, -1)
 
 	return replaced, nil
 }
