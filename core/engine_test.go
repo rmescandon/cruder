@@ -17,7 +17,7 @@
  *
  */
 
-package output
+package core
 
 import (
 	"io/ioutil"
@@ -26,8 +26,8 @@ import (
 	"testing"
 
 	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/decl"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/parser"
 	"github.com/rmescandon/cruder/testdata"
 
 	check "gopkg.in/check.v1"
@@ -35,7 +35,7 @@ import (
 
 type EngineSuite struct {
 	typeFile    *os.File
-	typeHolders []*decl.TypeHolder
+	typeHolders []*parser.TypeHolder
 	templates   []string
 }
 
@@ -59,7 +59,7 @@ func (s *EngineSuite) SetUpTest(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(source, check.NotNil)
 
-	s.typeHolders, err = decl.ComposeTypeHolders(source)
+	s.typeHolders, err = parser.ComposeTypeHolders(source)
 	c.Assert(err, check.IsNil)
 
 	s.templates, err = availableTemplates()
@@ -69,7 +69,7 @@ func (s *EngineSuite) SetUpTest(c *check.C) {
 
 func (s *EngineSuite) TestGetMakers(c *check.C) {
 
-	makers, err := makers(s.typeHolders, s.templates)
+	makers, err := buildMakers(s.typeHolders, s.templates)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
 	c.Assert(makers, check.HasLen, 3)
@@ -97,7 +97,7 @@ func (s *EngineSuite) TestReplaceInAllTemplates(c *check.C) {
 	c.Assert(s.typeHolders[0].Source.Ast, check.NotNil)
 	c.Assert(s.typeHolders[0].Source.Ast, check.DeepEquals, ast)
 
-	makers, err := makers(s.typeHolders, s.templates)
+	makers, err := buildMakers(s.typeHolders, s.templates)
 	c.Assert(err, check.IsNil)
 	// TODO increase when having more makers ready
 	c.Assert(makers, check.HasLen, 3)

@@ -17,9 +17,17 @@
  *
  */
 
-package output
+package makers
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+// Errors
+var (
+	ErrNoMakerRegistered = errors.New("Any maker has been registered")
+)
 
 // ErrOutputExists error struct for an existing output file
 type ErrOutputExists struct {
@@ -34,4 +42,19 @@ func (e ErrOutputExists) Error() string {
 // NewErrOutputExists returns a new ErrOutputExists struct
 func NewErrOutputExists(output string) ErrOutputExists {
 	return ErrOutputExists{Path: output}
+}
+
+// ErrNotFound error struct for a not existing thing
+type ErrNotFound struct {
+	What string
+}
+
+// Error returns the error string
+func (e ErrNotFound) Error() string {
+	return fmt.Sprintf("%v not Found", e.What)
+}
+
+// NewErrNotFound returns a new ErrNotFound
+func NewErrNotFound(what string) ErrNotFound {
+	return ErrNotFound{What: what}
 }

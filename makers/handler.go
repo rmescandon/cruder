@@ -17,12 +17,13 @@
  *
  */
 
-package output
+package makers
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
@@ -31,23 +32,31 @@ import (
 
 // Handler makes the controller
 type Handler struct {
-	BasicMaker
+	BaseMaker
+}
+
+// ID returns the identifier 'handler' for this maker
+func (h *Handler) ID() string {
+	return "handler"
 }
 
 // OutputFilepath returns the path to the generated file
 func (h *Handler) OutputFilepath() string {
-	return h.Output.Path
+	return filepath.Join(
+		config.Config.Output,
+		h.ID(),
+		strings.ToLower(h.TypeHolder.Identifier())+".go")
 }
 
 // Make generates the output
 func (h *Handler) Make() error {
 	// check if output file exists
-	_, err := os.Stat(h.Output.Path)
+	_, err := os.Stat(h.OutputFilepath())
 	if err == nil {
-		return NewErrOutputExists(h.Output.Path)
+		return NewErrOutputExists(h.OutputFilepath())
 	}
 
-	ensureDir(filepath.Dir(h.Output.Path))
+	ensureDir(filepath.Dir(h.OutputFilepath()))
 
 	logging.Debugf("Loadig template: %v", filepath.Base(h.Template))
 	templateContent, err := io.FileToString(h.Template)
@@ -65,17 +74,21 @@ func (h *Handler) Make() error {
 		return fmt.Errorf("Error replacing configuration over template %v", filepath.Base(h.Template))
 	}
 
-	f, err := os.Create(h.Output.Path)
+	f, err := os.Create(h.OutputFilepath())
 	if err != nil {
-		return fmt.Errorf("Could not create %v: %v", h.Output.Path, err)
+		return fmt.Errorf("Could not create %v: %v", h.OutputFilepath(), err)
 	}
 	defer f.Close()
 
 	_, err = f.WriteString(replacedStr)
 	if err != nil {
-		return fmt.Errorf("Error writing to output %v: %v", h.Output.Path, err)
+		return fmt.Errorf("Error writing to output %v: %v", h.OutputFilepath(), err)
 	}
 
-	logging.Infof("Generated: %v", h.Output.Path)
+	logging.Infof("Generated: %v", h.OutputFilepath())
 	return nil
+}
+
+func init() {
+	register(&Handler{})
 }

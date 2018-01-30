@@ -17,7 +17,7 @@
  *
  */
 
-package output
+package core
 
 import (
 	"os/exec"

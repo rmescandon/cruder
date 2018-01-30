@@ -17,26 +17,36 @@
  *
  */
 
-package output
+package makers
 
 import (
 	"fmt"
 	"go/ast"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
 )
 
 // Datastore generates datastore/<type>.go output go file
 type Datastore struct {
-	BasicMaker
+	BaseMaker
+}
+
+// ID returns 'datastore' as this maker identifier
+func (ds *Datastore) ID() string {
+	return "datastore"
 }
 
 // OutputFilepath returns the path to generated file
 func (ds *Datastore) OutputFilepath() string {
-	return ds.Output.Path
+	return filepath.Join(
+		config.Config.Output,
+		ds.ID(),
+		strings.ToLower(ds.TypeHolder.Identifier())+".go")
 }
 
 // Make generates the results
@@ -44,18 +54,18 @@ func (ds *Datastore) Make() error {
 	addOriginalType := false
 
 	// check if output file exists
-	_, err := os.Stat(ds.Output.Path)
+	_, err := os.Stat(ds.OutputFilepath())
 	if err == nil {
 		// in case if does exist, it should match the types file. Otherwise it's an error
-		if ds.Output.Path != ds.TypeHolder.Source.Path {
-			return NewErrOutputExists(ds.Output.Path)
+		if ds.OutputFilepath() != ds.TypeHolder.Source.Path {
+			return NewErrOutputExists(ds.OutputFilepath())
 		}
 
 		// if output file is the same as types one, add the type to the generated output
 		addOriginalType = true
 	} else {
 		// create needed dirs to outputPath
-		ensureDir(filepath.Dir(ds.Output.Path))
+		ensureDir(filepath.Dir(ds.OutputFilepath()))
 	}
 
 	// execute the replacement
@@ -70,25 +80,25 @@ func (ds *Datastore) Make() error {
 		return fmt.Errorf("Error replacing type %v over template %v", ds.TypeHolder.Name, filepath.Base(ds.Template))
 	}
 
-	f, err := os.Create(ds.Output.Path)
+	f, err := os.Create(ds.OutputFilepath())
 	if err != nil {
-		return fmt.Errorf("Could not create %v: %v", ds.Output.Path, err)
+		return fmt.Errorf("Could not create %v: %v", ds.OutputFilepath(), err)
 	}
 	defer f.Close()
 
 	_, err = f.WriteString(replacedStr)
 	if err != nil {
-		return fmt.Errorf("Error writing to output %v: %v", ds.Output.Path, err)
+		return fmt.Errorf("Error writing to output %v: %v", ds.OutputFilepath(), err)
 	}
 
-	logging.Infof("Generated: %v", ds.Output.Path)
+	logging.Infof("Generated: %v", ds.OutputFilepath())
 
 	// TODO IMPLEMENT if  addOriginalType....
 	if addOriginalType {
 		// - reload result file to AST
 		// - prepend GenType AST to it
 		// - write out AST to output, overwriting
-		outputBytes, err := io.FileToByteArray(ds.Output.Path)
+		outputBytes, err := io.FileToByteArray(ds.OutputFilepath())
 		if err != nil {
 			return err
 		}
@@ -111,11 +121,15 @@ func (ds *Datastore) Make() error {
 			}
 		}
 
-		err = io.ASTToFile(outputAst, ds.Output.Path)
+		err = io.ASTToFile(outputAst, ds.OutputFilepath())
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func init() {
+	register(&Datastore{})
 }

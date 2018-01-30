@@ -1,7 +1,7 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 
 /*
- * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ * Copyright (C) 2018 Roberto Mier Escandon <rmescandon@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -17,15 +17,14 @@
  *
  */
 
-package output
+package makers
 
-import check "gopkg.in/check.v1"
+import "os"
 
-type ErrorSuite struct{}
-
-var _ = check.Suite(&ErrorSuite{})
-
-func (s *ErrorSuite) TestErrOutputExistsMessage(c *check.C) {
-	err := NewErrOutputExists("/any/random/path")
-	c.Assert(err.Error(), check.Equals, "File /any/random/path already exists. Skip writting")
+func ensureDir(dir string) error {
+	_, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		return os.MkdirAll(dir, 0755)
+	}
+	return nil
 }

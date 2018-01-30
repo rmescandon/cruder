@@ -17,16 +17,17 @@
  *
  */
 
-package output
+package core
 
 import (
 	"fmt"
 	"path/filepath"
 
 	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/decl"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/makers"
+	"github.com/rmescandon/cruder/parser"
 )
 
 // GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
@@ -38,7 +39,7 @@ func GenerateSkeletonCode() error {
 		return fmt.Errorf("Error reading go source file: %v", err)
 	}
 
-	typeHolders, err := decl.ComposeTypeHolders(source)
+	typeHolders, err := parser.ComposeTypeHolders(source)
 	if err != nil {
 		return fmt.Errorf("Error composing type holders from types file: %v", err)
 	}
@@ -48,7 +49,7 @@ func GenerateSkeletonCode() error {
 		return fmt.Errorf("Error listing available templates: %v", err)
 	}
 
-	makers, err := makers(typeHolders, templates)
+	makers, err := buildMakers(typeHolders, templates)
 	if err != nil {
 		return err
 	}
@@ -69,18 +70,21 @@ func availableTemplates() ([]string, error) {
 	return filepath.Glob(filepath.Join(config.Config.TemplatesPath, "*.template"))
 }
 
-func makers(typeHolders []*decl.TypeHolder, availableTemplates []string) ([]Maker, error) {
-	var makers []Maker
-	for _, template := range availableTemplates {
-		logging.Debugf("Found template: %v", filepath.Base(template))
-		for _, t := range typeHolders {
-			maker, err := NewMaker(t, template)
+func buildMakers(holders []*parser.TypeHolder, templates []string) ([]makers.Maker, error) {
+	var mks []makers.Maker
+	for _, t := range templates {
+		logging.Debugf("Found template: %v", filepath.Base(t))
+		for _, h := range holders {
+			//FIXME: this won't work as every maker asociated with a type is reused for the next type
+			// Execute Run for every maker got until next one or
+			// Create dynamic objects by reflection into makers.Get
+			m, err := makers.New(h, t)
 			if err != nil {
-				return []Maker{}, err
+				return []makers.Maker{}, err
 			}
-			makers = append(makers, maker)
+			mks = append(mks, m)
 		}
 
 	}
-	return makers, nil
+	return mks, nil
 }

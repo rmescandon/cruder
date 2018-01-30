@@ -25,7 +25,7 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/output"
+	"github.com/rmescandon/cruder/core"
 )
 
 var parser = flags.NewParser(&config.Config, flags.HelpFlag)
@@ -69,5 +69,5 @@ func run() error {
 		return err
 	}
 
-	return output.GenerateSkeletonCode()
+	return core.GenerateSkeletonCode()
 }
