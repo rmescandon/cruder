@@ -46,7 +46,7 @@ func (r *Router) OutputFilepath() string {
 
 // Make generates the results
 func (r *Router) Make() error {
-	// execute the replacement
+	// Execute the replacement
 	logging.Debugf("Loadig template: %v", filepath.Base(r.Template))
 	templateContent, err := io.FileToString(r.Template)
 	if err != nil {
@@ -65,25 +65,42 @@ func (r *Router) Make() error {
 			filepath.Base(r.Template))
 	}
 
-	// check if output file exists
+	// Check if output file exists to merge current with existing output
 	_, err = os.Stat(r.OutputFilepath())
 	if err == nil {
-		r.mergeExistingOutput(replacedStr)
-	} else {
-		// write out generated ast
-		// create needed dirs to outputPath
-		ensureDir(filepath.Dir(r.OutputFilepath()))
-
-		io.StringToFile(replacedStr, r.OutputFilepath())
-
-		logging.Infof("Generated: %v", r.OutputFilepath())
+		return r.mergeExistingOutput(replacedStr)
 	}
 
+	// Create needed dirs to outputPath and write out substituted string
+	ensureDir(filepath.Dir(r.OutputFilepath()))
+
+	io.StringToFile(replacedStr, r.OutputFilepath())
+
+	logging.Infof("Generated: %v", r.OutputFilepath())
 	return nil
 }
 
-func (r *Router) mergeExistingOutput(replacedStr string) {
-	//TODO IMPLEMENT
+func (r *Router) mergeExistingOutput(replacedStr string) error {
+	logging.Infof("Merging new type into: %v", r.OutputFilepath())
+	_, err := io.ByteArrayToAST([]byte(replacedStr))
+	if err != nil {
+		return err
+	}
+
+	// Load current output
+	content, err := io.FileToByteArray(r.OutputFilepath())
+	if err != nil {
+		return err
+	}
+
+	_, err = io.ByteArrayToAST(content)
+	if err != nil {
+		return err
+	}
+
+	//TODO IMPLEMENT THE MERGE HERE
+
+	return nil
 }
 
 func init() {

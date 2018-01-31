@@ -47,7 +47,7 @@ func (db *Db) OutputFilepath() string {
 
 // Make generates the results
 func (db *Db) Make() error {
-	// execute the replacement
+	// Execute the replacement
 	logging.Debugf("Loadig template: %v", filepath.Base(db.Template))
 	templateContent, err := io.FileToString(db.Template)
 	if err != nil {
@@ -60,20 +60,18 @@ func (db *Db) Make() error {
 			db.TypeHolder.Name, filepath.Base(db.Template))
 	}
 
-	// check if output file exists
+	// Check if output file exists
 	_, err = os.Stat(db.OutputFilepath())
 	if err == nil {
-		db.mergeExistingOutput(replacedStr)
-	} else {
-		// write out generated ast
-		// create needed dirs to outputPath
-		ensureDir(filepath.Dir(db.OutputFilepath()))
-
-		io.StringToFile(replacedStr, db.OutputFilepath())
-
-		logging.Infof("Generated: %v", db.OutputFilepath())
+		return db.mergeExistingOutput(replacedStr)
 	}
 
+	// Create needed dirs to outputPath and write out substituted string
+	ensureDir(filepath.Dir(db.OutputFilepath()))
+
+	io.StringToFile(replacedStr, db.OutputFilepath())
+
+	logging.Infof("Generated: %v", db.OutputFilepath())
 	return nil
 }
 
@@ -85,7 +83,7 @@ func (db *Db) mergeExistingOutput(replacedStr string) error {
 		return err
 	}
 
-	// load current output
+	// Load current output
 	content, err := io.FileToByteArray(db.OutputFilepath())
 	if err != nil {
 		return err
@@ -99,14 +97,14 @@ func (db *Db) mergeExistingOutput(replacedStr string) error {
 	generatedIface := parser.GetInterface(generatedAst, "Datastore")
 	currentIface := parser.GetInterface(currentAst, "Datastore")
 
-	// search for generatedIface methods into currentIface and add them if not found
+	// Search for generatedIface methods into currentIface and add them if not found
 	for _, method := range parser.GetInterfaceMethods(generatedIface) {
 		if !parser.HasMethod(currentIface, method.Names[0].Name) {
 			parser.AddMethod(currentIface, method)
 		}
 	}
 
-	// write out the resultant modified Datastore interface to output
+	// Write out the resultant modified Datastore interface to output
 	// TODO VERIFY that using pointers is enough to alter generatedAst before writting out
 	io.ASTToFile(currentAst, db.OutputFilepath())
 	logging.Infof("Merged into: %v successfully", db.OutputFilepath())
