@@ -71,6 +71,18 @@ func getTypeDecls(file *ast.File) []*ast.GenDecl {
 	return typeDecls
 }
 
+// GetFuncDecls returns the list of func declarations
+func GetFuncDecls(file *ast.File) []*ast.FuncDecl {
+	funcDecls := []*ast.FuncDecl{}
+	for _, decl := range file.Decls {
+		switch decl.(type) {
+		case *ast.FuncDecl:
+			funcDecls = append(funcDecls, decl.(*ast.FuncDecl))
+		}
+	}
+	return funcDecls
+}
+
 func getInterfaces(file *ast.File) []*ast.GenDecl {
 	interfaces := []*ast.GenDecl{}
 	typeDecls := getTypeDecls(file)

@@ -68,7 +68,7 @@ func (s *RouterSuite) TestMakeRouter(c *check.C) {
 
 	// -----------------------------------------------------------------------
 	// 2.- Reset typeHolders and load now OtherType. Create the output and see
-	// if both MyType and OtherType are included in Datastore interface
+	// if both MyType and OtherType are included into
 	otherTypeFile, err := testdata.TestOtherTypeFile()
 	c.Assert(err, check.IsNil)
 	c.Assert(otherTypeFile, check.NotNil)

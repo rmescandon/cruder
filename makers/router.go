@@ -21,12 +21,15 @@ package makers
 
 import (
 	"fmt"
+	"go/ast"
+	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/parser"
 )
 
 // Router generates service/router.go output go file
@@ -82,7 +85,7 @@ func (r *Router) Make() error {
 
 func (r *Router) mergeExistingOutput(replacedStr string) error {
 	logging.Infof("Merging new type into: %v", r.OutputFilepath())
-	_, err := io.ByteArrayToAST([]byte(replacedStr))
+	/*generatedAst*/ _, err := io.ByteArrayToAST([]byte(replacedStr))
 	if err != nil {
 		return err
 	}
@@ -93,15 +96,83 @@ func (r *Router) mergeExistingOutput(replacedStr string) error {
 		return err
 	}
 
-	_, err = io.ByteArrayToAST(content)
+	currentAst, err := io.ByteArrayToAST(content)
 	if err != nil {
 		return err
+	}
+
+	existingHandlers := findHandlers(currentAst)
+	for _, h := range existingHandlers {
+		log.Printf("HANDLER: %v", h)
 	}
 
 	//TODO IMPLEMENT THE MERGE HERE
 
 	return nil
 }
+
+func findRouterFunction(file *ast.File) *ast.FuncDecl {
+	funcs := parser.GetFuncDecls(file)
+	for _, f := range funcs {
+		if f.Name.Name == "Router" {
+			return f
+		}
+	}
+	return nil
+}
+
+func getRouterFunctionStatements(file *ast.File) []*ast.ExprStmt {
+	stmts := []*ast.ExprStmt{}
+	r := findRouterFunction(file)
+	for _, stmt := range r.Body.List {
+		switch stmt.(type) {
+		case *ast.ExprStmt:
+			stmts = append(stmts, stmt.(*ast.ExprStmt))
+		}
+	}
+	return stmts
+}
+
+func findHandlers(file *ast.File) []string {
+	handlers := []string{}
+	stmts := getRouterFunctionStatements(file)
+	for _, s := range stmts {
+		for _, arg := range s.X.(*ast.CallExpr).Fun.(*ast.SelectorExpr).X.(*ast.CallExpr).Args {
+			for _, ident := range arg.(*ast.CallExpr).Args {
+				switch ident.(type) {
+				case *ast.Ident:
+					handlers = append(handlers, ident.(*ast.Ident).Name)
+				}
+			}
+		}
+	}
+	return handlers
+}
+
+// func findHandlersInRouterFunction(file *ast.File) []string {
+// 	handlers := []string{}
+// 	for _, decl := range file.Decls {
+// 		switch decl.(type) {
+// 		case *ast.FuncDecl:
+// 			if decl.(*ast.FuncDecl).Name.Name == "Router" {
+// 				for _, stmt := range decl.(*ast.FuncDecl).Body.List {
+// 					switch stmt.(type) {
+// 					case *ast.ExprStmt:
+// 						for _, arg := range stmt.(*ast.ExprStmt).X.(*ast.CallExpr).Fun.(*ast.SelectorExpr).X.(*ast.CallExpr).Args {
+// 							for _, ident := range arg.(*ast.CallExpr).Args {
+// 								switch ident.(type) {
+// 								case *ast.Ident:
+// 									handlers = append(handlers, ident.(*ast.Ident).Name)
+// 								}
+// 							}
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return handlers
+// }
 
 func init() {
 	register(&Router{})
