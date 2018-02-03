@@ -35,11 +35,11 @@ func composePath(operation string) string {
 func Router() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.Handle(composePath("_#TYPE.LOWERCASE#_"), http.HandlerFunc(CreateMyType)).Methods("POST")
-	router.Handle(composePath("_#TYPE.LOWERCASE#_"), http.HandlerFunc(ListMyTypes)).Methods("GET")
-	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(GetMyType)).Methods("GET")
-	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(UpdateMyType)).Methods("PUT")
-	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(DeleteMyType)).Methods("DELETE")
+	router.Handle(composePath("_#TYPE.LOWERCASE#_"), http.HandlerFunc(Create_#TYPE#_)).Methods("POST")
+	router.Handle(composePath("_#TYPE.LOWERCASE#_"), http.HandlerFunc(List_#TYPE#_s)).Methods("GET")
+	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(Get_#TYPE#_)).Methods("GET")
+	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(Update_#TYPE#_)).Methods("PUT")
+	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(Delete_#TYPE#_)).Methods("DELETE")
 
 	return router
 }

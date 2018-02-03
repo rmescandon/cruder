@@ -85,24 +85,20 @@ func (s *RouterSuite) TestMakeRouter(c *check.C) {
 	c.Assert(r.Make(), check.IsNil)
 
 	content, err = io.FileToString(r.OutputFilepath())
-	/*
-		// Verify here if both types are included in output
-		c.Assert(strings.Contains(content, "CreateMyTypeTable() error"), check.Equals, true)
-		c.Assert(strings.Contains(content, "ListMyTypes() ([]MyType, error)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "GetMyType(ID int) (MyType, error)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "FindMyType(query string) (MyType, error)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "CreateMyType(myType MyType) (int, error)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "UpdateMyType(ID int, myType MyType)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "DeleteMyType(ID int) error"), check.Equals, true)
 
-		c.Assert(strings.Contains(content, "CreateMyOtherTypeTable() error"), check.Equals, true)
-		c.Assert(strings.Contains(content, "ListMyOtherTypes() ([]MyOtherType, error)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "GetMyOtherType(AnID int) (MyOtherType, error)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "FindMyOtherType(query string) (MyOtherType, error)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "CreateMyOtherType(myOtherType MyOtherType) (int, error)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "UpdateMyOtherType(AnID int, myOtherType MyOtherType)"), check.Equals, true)
-		c.Assert(strings.Contains(content, "DeleteMyOtherType(AnID int) error"), check.Equals, true)
-	*/
+	// Verify here if both types are included in output
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype\"), http.HandlerFunc(CreateMyType)).Methods(\"POST\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype\"), http.HandlerFunc(ListMyTypes)).Methods(\"GET\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype/{ID:[0-9]+}\"), http.HandlerFunc(GetMyType)).Methods(\"GET\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype/{ID:[0-9]+}\"), http.HandlerFunc(UpdateMyType)).Methods(\"PUT\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype/{ID:[0-9]+}\"), http.HandlerFunc(DeleteMyType)).Methods(\"DELETE\")"), check.Equals, true)
+
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype\"), http.HandlerFunc(CreateMyOtherType)).Methods(\"POST\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype\"), http.HandlerFunc(ListMyOtherTypes)).Methods(\"GET\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype/{AnID:[0-9]+}\"), http.HandlerFunc(GetMyOtherType)).Methods(\"GET\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype/{AnID:[0-9]+}\"), http.HandlerFunc(UpdateMyOtherType)).Methods(\"PUT\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype/{AnID:[0-9]+}\"), http.HandlerFunc(DeleteMyOtherType)).Methods(\"DELETE\")"), check.Equals, true)
+
 	c.Assert(err, check.IsNil)
 	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
 	c.Assert(strings.Contains(content, "#_"), check.Equals, false)

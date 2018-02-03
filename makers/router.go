@@ -22,7 +22,6 @@ package makers
 import (
 	"fmt"
 	"go/ast"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -85,7 +84,7 @@ func (r *Router) Make() error {
 
 func (r *Router) mergeExistingOutput(replacedStr string) error {
 	logging.Infof("Merging new type into: %v", r.OutputFilepath())
-	/*generatedAst*/ _, err := io.ByteArrayToAST([]byte(replacedStr))
+	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
 	if err != nil {
 		return err
 	}
@@ -101,14 +100,33 @@ func (r *Router) mergeExistingOutput(replacedStr string) error {
 		return err
 	}
 
-	existingHandlers := findHandlers(currentAst)
-	for _, h := range existingHandlers {
-		log.Printf("HANDLER: %v", h)
+	// Search generated handlers amongst existing ones and add only new ones
+	stmts := getRouterFunctionStatements(currentAst)
+	existingHandlers := findHandlersInStatements(stmts)
+	generatedHandlers := findHandlers(generatedAst)
+	stmtsToAdd := []ast.Stmt{}
+	for k := range generatedHandlers {
+		if _, ok := existingHandlers[k]; !ok {
+			stmtsToAdd = append(stmtsToAdd, generatedHandlers[k])
+		}
 	}
 
-	//TODO IMPLEMENT THE MERGE HERE
+	addStatements(currentAst, stmtsToAdd)
 
-	return nil
+	return io.ASTToFile(currentAst, r.OutputFilepath())
+}
+
+func addStatements(file *ast.File, stmts []ast.Stmt) {
+	r := findRouterFunction(file)
+	for i, stmt := range r.Body.List {
+		switch stmt.(type) {
+		case *ast.ExprStmt:
+			// once found first expr statement, insert all new here
+			r.Body.List = append(r.Body.List[:i],
+				append(stmts, r.Body.List[i:]...)...)
+			return
+		}
+	}
 }
 
 func findRouterFunction(file *ast.File) *ast.FuncDecl {
@@ -133,46 +151,25 @@ func getRouterFunctionStatements(file *ast.File) []*ast.ExprStmt {
 	return stmts
 }
 
-func findHandlers(file *ast.File) []string {
-	handlers := []string{}
+func findHandlers(file *ast.File) map[string]*ast.ExprStmt {
 	stmts := getRouterFunctionStatements(file)
+	return findHandlersInStatements(stmts)
+}
+
+func findHandlersInStatements(stmts []*ast.ExprStmt) map[string]*ast.ExprStmt {
+	handlers := make(map[string]*ast.ExprStmt)
 	for _, s := range stmts {
 		for _, arg := range s.X.(*ast.CallExpr).Fun.(*ast.SelectorExpr).X.(*ast.CallExpr).Args {
 			for _, ident := range arg.(*ast.CallExpr).Args {
 				switch ident.(type) {
 				case *ast.Ident:
-					handlers = append(handlers, ident.(*ast.Ident).Name)
+					handlers[ident.(*ast.Ident).Name] = s
 				}
 			}
 		}
 	}
 	return handlers
 }
-
-// func findHandlersInRouterFunction(file *ast.File) []string {
-// 	handlers := []string{}
-// 	for _, decl := range file.Decls {
-// 		switch decl.(type) {
-// 		case *ast.FuncDecl:
-// 			if decl.(*ast.FuncDecl).Name.Name == "Router" {
-// 				for _, stmt := range decl.(*ast.FuncDecl).Body.List {
-// 					switch stmt.(type) {
-// 					case *ast.ExprStmt:
-// 						for _, arg := range stmt.(*ast.ExprStmt).X.(*ast.CallExpr).Fun.(*ast.SelectorExpr).X.(*ast.CallExpr).Args {
-// 							for _, ident := range arg.(*ast.CallExpr).Args {
-// 								switch ident.(type) {
-// 								case *ast.Ident:
-// 									handlers = append(handlers, ident.(*ast.Ident).Name)
-// 								}
-// 							}
-// 						}
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return handlers
-// }
 
 func init() {
 	register(&Router{})
