@@ -3,6 +3,9 @@ export LANG=C.UTF-8
 export LANGUAGE=en
 set -eu
 
+export GOPATH="${GOPATH:-$(realpath "$(dirname "$0")"/../../../../)}"
+export PATH="$PATH:${GOPATH%%:*}/bin"
+
 STATIC=""
 UNIT=""
 
@@ -10,7 +13,6 @@ case "${1:-all}" in
     all)
         STATIC="yes"
         UNIT="yes"
-        SNAP="yes"
         ;;
     --static)
         STATIC="yes"
@@ -33,15 +35,13 @@ exit_with_exit_code() {
 }
 addtrap() {
     CURRENTTRAP="$CURRENTTRAP ; $1"
-    trap "store_exit_code; $CURRENTTRAP ; exit_with_exit_code" EXIT
+    trap 'store_exit_code; $CURRENTTRAP ; exit_with_exit_code' EXIT
 }
 
 endmsg() {
     if [ $EXIT_CODE -eq 0 ]; then
-        p="success.txt"
         m="All good, what could possibly go wrong."
     else
-        p="failure.txt"
         m="Crushing failure and despair."
     fi
     echo "$m"
@@ -51,25 +51,28 @@ addtrap endmsg
 
 # Append the coverage profile of a package to the project coverage.
 append_coverage() {
-    local profile="$1"
-    if [ -f $profile ]; then
-        cat $profile | grep -v "mode: set" >> .coverage/coverage.out
-        rm $profile
+    profile="$1"
+    if [ -f "$profile" ]; then
+        grep -v "^mode:" -- "$profile" >> .coverage/coverage.out
+        rm "$profile"
     fi
 }
 
-
-export PATH=$PATH:$GOPATH/bin
-
 echo Obtaining dependencies
-go get -t ./...
+./get-deps.sh
 
 if [ ! -z "$STATIC" ]; then
-
     echo Checking docs
-    ./mdlint.py *.md
+    ./mdlint.py ./*.md
+
     echo Checking formatting
-    fmt=$(gofmt -l .)
+    fmt=""
+    for dir in $(go list -f '{{.Dir}}' ./... | grep -v '/vendor/' ); do
+        s="$(gofmt -s -l "$dir")"
+        if [ -n "$s" ]; then
+            fmt="$s\n$fmt"
+        fi
+    done
 
     if [ -n "$fmt" ]; then
         echo "Formatting wrong in following files"
@@ -79,33 +82,66 @@ if [ ! -z "$STATIC" ]; then
 
     # go vet
     echo Running vet
-    go vet ./...
+    go list ./... | grep -v '/vendor/' | xargs go vet
 
     # golint
     echo Install golint
-    go get github.com/golang/lint/golint
-    export PATH=$PATH:$GOPATH/bin
-
+    if ! which golint >/dev/null; then
+        go get github.com/golang/lint/golint
+    fi
+    
     echo Running lint
-    lint=$(golint ./...)
-    if [ -n "$lint" ]; then
-        echo "Lint complains:"
-        echo "$lint"
-        exit 1
+    for dir in $(go list -f '{{.Dir}}' ./... | grep -v '/vendor/' ); do
+        lint="$(golint "$dir")"
+        if [ -n "$lint" ]; then
+            echo "Lint complains:"
+            echo "$lint"
+            exit 1
+        fi
+    done
+
+    if which shellcheck >/dev/null; then
+        echo Checking shell scripts...
+        ( git ls-files -z 2>/dev/null ||
+                find . \( -name .git -o -name vendor \) -prune -o -print0 ) |
+            xargs -0 file -N |
+            awk -F": " '$2~/shell.script/{print $1}' |
+            xargs shellcheck
+        regexp='GOPATH(?!%%:\*)(?!:)[^=]*/'
+        if grep -qPr --exclude HACKING.md --exclude-dir .git --exclude-dir vendor "$regexp"; then
+            echo "Using GOPATH as if it were a single entry and not a list:"
+            grep -PHrn -C1 --color=auto --exclude HACKING.md --exclude-dir .git --exclude-dir vendor "$regexp"
+            exit 1
+        fi
+        unset regexp
     fi
 
     echo Checking spelling errors
-    go get -u github.com/client9/misspell/cmd/misspell
-    for file in $(ls | xargs -I % find % -type f | grep -v static | grep -v webapp | grep -v README.md); do
-        ${GOBIN:-$GOPATH/bin}/misspell -error -i auther $file
+    if ! which misspell >/dev/null; then
+        go get -u github.com/client9/misspell/cmd/misspell
+    fi
+    for file in *; do
+        if [ "$file" = "vendor" ]; then
+            continue
+        fi
+        misspell -error -i auther "$file"
     done
 
     echo Checking for ineffective assignments
-    go get -u github.com/gordonklaus/ineffassign
-    for file in $(ls | xargs -I % find % -type f | grep -v static | grep -v webapp); do
-        ${GOBIN:-$GOPATH/bin}/ineffassign $file
-    done
+    if ! which ineffassign >/dev/null; then
+        go get -u github.com/gordonklaus/ineffassign
+    fi
+    ineffassign .
 
+    echo Checking for naked returns
+    if ! which nakedret >/dev/null; then
+        go get -u github.com/alexkohler/nakedret
+    fi
+    got=$(nakedret ./... 2>&1)
+    if [ -n "$got" ]; then
+        echo "$got"
+        exit 1
+    fi
 fi
 
 if [ ! -z "$UNIT" ]; then
@@ -118,15 +154,15 @@ if [ ! -z "$UNIT" ]; then
     go build -v ./...
 
     # tests
-    echo Running tests from $(pwd)
-    for pkg in $(go list ./... | grep -v '/cmds/'); do
-        go test -v -coverprofile=.coverage/profile.out $pkg
+    echo Running tests from "$(pwd)"
+    for pkg in $(go list ./...); do
+        go test -v -coverprofile=.coverage/profile.out "$pkg"
         append_coverage .coverage/profile.out
     done
 
 fi
 
-UNCLEAN="$(git status -s|grep ^??)" || true
+UNCLEAN="$(git status -s|grep '^??')" || true
 if [ -n "$UNCLEAN" ]; then
     cat <<EOF
 

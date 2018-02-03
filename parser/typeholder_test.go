@@ -21,7 +21,7 @@ package parser
 
 import (
 	"strings"
-	tst "testing"
+	"testing"
 
 	check "gopkg.in/check.v1"
 )
@@ -33,16 +33,16 @@ type TypeHolderSuite struct {
 var _ = check.Suite(&TypeHolderSuite{})
 
 // Test rewrites testing in a suite
-func Test(t *tst.T) { check.TestingT(t) }
+func Test(t *testing.T) { check.TestingT(t) }
 
 func (s *TypeHolderSuite) SetUpTest(c *check.C) {
 	s.typeHolder = TypeHolder{
 		Name: "MyType",
 		Fields: []TypeField{
-			TypeField{Name: "ID", Type: "int"},
-			TypeField{Name: "Field1", Type: "string"},
-			TypeField{Name: "Field2", Type: "decimal"},
-			TypeField{Name: "Field3", Type: "int"},
+			{Name: "ID", Type: "int"},
+			{Name: "Field1", Type: "string"},
+			{Name: "Field2", Type: "decimal"},
+			{Name: "Field3", Type: "int"},
 		},
 	}
 }

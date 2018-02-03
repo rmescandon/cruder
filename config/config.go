@@ -164,13 +164,14 @@ func (c *Options) loadSettings() error {
 	return nil
 }
 
-func normalizePath(ptrStr *string) (err error) {
+func normalizePath(ptrStr *string) error {
 	if strings.Contains(*ptrStr, "~") {
 		*ptrStr = strings.Replace(*ptrStr, "~", os.Getenv("HOME"), -1)
 	}
 
+	var err error
 	*ptrStr, err = filepath.Abs(*ptrStr)
-	return
+	return err
 }
 
 func (c *Options) normalizePaths() error {
