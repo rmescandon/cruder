@@ -36,7 +36,7 @@ type ErrOutputExists struct {
 
 // Error returns the error string
 func (e ErrOutputExists) Error() string {
-	return fmt.Sprintf("File %v already exists. Skip writting", e.Path)
+	return fmt.Sprintf("File %v already exists. Skip writing", e.Path)
 }
 
 // NewErrOutputExists returns a new ErrOutputExists struct

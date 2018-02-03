@@ -94,7 +94,7 @@ func (ds *Datastore) Make() error {
 
 	logging.Infof("Generated: %v", ds.OutputFilepath())
 
-	// TODO Improve this by not writting to file and use memory []byte instead
+	// TODO Improve this by not writing to file and use memory []byte instead
 	if addOriginalType {
 		// - reload result file to AST
 		// - prepend GenType AST to it

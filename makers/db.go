@@ -105,7 +105,7 @@ func (db *Db) mergeExistingOutput(replacedStr string) error {
 	}
 
 	// Write out the resultant modified Datastore interface to output
-	// TODO VERIFY that using pointers is enough to alter generatedAst before writting out
+	// TODO VERIFY that using pointers is enough to alter generatedAst before writing out
 	io.ASTToFile(currentAst, db.OutputFilepath())
 	logging.Infof("Merged into: %v successfully", db.OutputFilepath())
 

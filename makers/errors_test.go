@@ -27,5 +27,5 @@ var _ = check.Suite(&ErrorSuite{})
 
 func (s *ErrorSuite) TestErrOutputExistsMessage(c *check.C) {
 	err := NewErrOutputExists("/any/random/path")
-	c.Assert(err.Error(), check.Equals, "File /any/random/path already exists. Skip writting")
+	c.Assert(err.Error(), check.Equals, "File /any/random/path already exists. Skip writing")
 }

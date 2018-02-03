@@ -75,7 +75,7 @@ func buildMakers(holders []*parser.TypeHolder, templates []string) ([]makers.Mak
 	for _, t := range templates {
 		logging.Debugf("Found template: %v", filepath.Base(t))
 		for _, h := range holders {
-			//FIXME: this won't work as every maker asociated with a type is reused for the next type
+			//FIXME: this won't work as every maker associated with a type is reused for the next type
 			// Execute Run for every maker got until next one or
 			// Create dynamic objects by reflection into makers.Get
 			m, err := makers.New(h, t)
