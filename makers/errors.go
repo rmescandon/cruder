@@ -58,3 +58,18 @@ func (e ErrNotFound) Error() string {
 func NewErrNotFound(what string) ErrNotFound {
 	return ErrNotFound{What: what}
 }
+
+// ErrEmptyString error for a string with length 0
+type ErrEmptyString struct {
+	What string
+}
+
+// Error returns the error string
+func (e ErrEmptyString) Error() string {
+	return fmt.Sprintf("%v empty string", e.What)
+}
+
+// NewErrEmptyString returns a new ErrEmptyString
+func NewErrEmptyString(what string) ErrEmptyString {
+	return ErrEmptyString{What: what}
+}
