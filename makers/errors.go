@@ -34,29 +34,9 @@ type ErrOutputExists struct {
 	Path string
 }
 
-// Error returns the error string
-func (e ErrOutputExists) Error() string {
-	return fmt.Sprintf("File %v already exists. Skip writing", e.Path)
-}
-
-// NewErrOutputExists returns a new ErrOutputExists struct
-func NewErrOutputExists(output string) ErrOutputExists {
-	return ErrOutputExists{Path: output}
-}
-
 // ErrNotFound error struct for a not existing thing
 type ErrNotFound struct {
 	What string
-}
-
-// Error returns the error string
-func (e ErrNotFound) Error() string {
-	return fmt.Sprintf("%v not Found", e.What)
-}
-
-// NewErrNotFound returns a new ErrNotFound
-func NewErrNotFound(what string) ErrNotFound {
-	return ErrNotFound{What: what}
 }
 
 // ErrEmptyString error for a string with length 0
@@ -64,12 +44,32 @@ type ErrEmptyString struct {
 	What string
 }
 
-// Error returns the error string
-func (e ErrEmptyString) Error() string {
-	return fmt.Sprintf("%v empty string", e.What)
+// NewErrOutputExists returns a new ErrOutputExists struct
+func NewErrOutputExists(output string) ErrOutputExists {
+	return ErrOutputExists{Path: output}
+}
+
+// NewErrNotFound returns a new ErrNotFound
+func NewErrNotFound(what string) ErrNotFound {
+	return ErrNotFound{What: what}
 }
 
 // NewErrEmptyString returns a new ErrEmptyString
 func NewErrEmptyString(what string) ErrEmptyString {
 	return ErrEmptyString{What: what}
+}
+
+// Error returns the error string
+func (e ErrOutputExists) Error() string {
+	return fmt.Sprintf("File %v already exists. Skip writing", e.Path)
+}
+
+// Error returns the error string
+func (e ErrNotFound) Error() string {
+	return fmt.Sprintf("%v not Found", e.What)
+}
+
+// Error returns the error string
+func (e ErrEmptyString) Error() string {
+	return fmt.Sprintf("%v empty string", e.What)
 }
