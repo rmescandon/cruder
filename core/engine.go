@@ -20,11 +20,9 @@
 package core
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
@@ -32,37 +30,39 @@ import (
 
 // GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
 func GenerateSkeletonCode() error {
-	logging.Debug("Generating Skeleton Code...")
 
-	source, err := io.NewGoFile(config.Config.TypesFile)
-	if err != nil {
-		return fmt.Errorf("Error reading go source file: %v", err)
-	}
+	return makers.LoadPlugins()
+	// logging.Debug("Generating Skeleton Code...")
 
-	typeHolders, err := parser.ComposeTypeHolders(source)
-	if err != nil {
-		return fmt.Errorf("Error composing type holders from types file: %v", err)
-	}
+	// source, err := io.NewGoFile(config.Config.TypesFile)
+	// if err != nil {
+	// 	return fmt.Errorf("Error reading go source file: %v", err)
+	// }
 
-	templates, err := availableTemplates()
-	if err != nil {
-		return fmt.Errorf("Error listing available templates: %v", err)
-	}
+	// typeHolders, err := parser.ComposeTypeHolders(source)
+	// if err != nil {
+	// 	return fmt.Errorf("Error composing type holders from types file: %v", err)
+	// }
 
-	makers, err := buildMakers(typeHolders, templates)
-	if err != nil {
-		return err
-	}
+	// templates, err := availableTemplates()
+	// if err != nil {
+	// 	return fmt.Errorf("Error listing available templates: %v", err)
+	// }
 
-	for _, maker := range makers {
-		err := maker.Make()
-		if err != nil {
-			logging.Warningf("Could not run maker: %v", err)
-			continue
-		}
-	}
+	// makers, err := buildMakers(typeHolders, templates)
+	// if err != nil {
+	// 	return err
+	// }
 
-	return nil
+	// for _, maker := range makers {
+	// 	err := maker.Make()
+	// 	if err != nil {
+	// 		logging.Warningf("Could not run maker: %v", err)
+	// 		continue
+	// 	}
+	// }
+
+	// return nil
 }
 
 func availableTemplates() ([]string, error) {

@@ -48,10 +48,12 @@ type Options struct {
 	ProjectURL string `short:"u" long:"url" description:"Url of this project. If not specified 'github.com/myproject' is used"`
 	APIVersion string `short:"a" long:"apiversion" description:"Version of the REST api"`
 	Settings   string `short:"c" long:"config" description:"Settings file path"`
+	Plugins    string `short:"p" long:"plugins" description:"Path to the folder with .so plugin files"`
 
 	// Options loaded from settings file
 	Version       string `yaml:"version"`
 	TemplatesPath string `yaml:"templates"`
+	Builtin       string `yaml:"plugins"`
 }
 
 // Config holds received configuration from command line

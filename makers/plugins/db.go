@@ -17,7 +17,7 @@
  *
  */
 
-package makers
+package main
 
 import (
 	"fmt"
@@ -27,12 +27,13 @@ import (
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // Db maker to include types in datastore interface
 type Db struct {
-	BaseMaker
+	makers.BaseMaker
 }
 
 // ID returns 'db'
@@ -67,7 +68,7 @@ func (db *Db) Make() error {
 	}
 
 	// Create needed dirs to outputPath and write out substituted string
-	ensureDir(filepath.Dir(db.OutputFilepath()))
+	io.EnsureDir(filepath.Dir(db.OutputFilepath()))
 
 	io.StringToFile(replacedStr, db.OutputFilepath())
 
@@ -113,5 +114,5 @@ func (db *Db) mergeExistingOutput(replacedStr string) error {
 }
 
 func init() {
-	register(&Db{})
+	makers.Register(&Db{})
 }

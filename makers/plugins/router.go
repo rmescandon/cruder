@@ -17,7 +17,7 @@
  *
  */
 
-package makers
+package main
 
 import (
 	"fmt"
@@ -28,12 +28,13 @@ import (
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // Router generates service/router.go output go file
 type Router struct {
-	BaseMaker
+	makers.BaseMaker
 }
 
 // ID returns 'router' as this maker identifier
@@ -74,7 +75,7 @@ func (r *Router) Make() error {
 	}
 
 	// Create needed dirs to outputPath and write out substituted string
-	ensureDir(filepath.Dir(r.OutputFilepath()))
+	io.EnsureDir(filepath.Dir(r.OutputFilepath()))
 
 	io.StringToFile(replacedStr, r.OutputFilepath())
 
@@ -172,5 +173,5 @@ func findHandlersInStatements(stmts []*ast.ExprStmt) map[string]*ast.ExprStmt {
 }
 
 func init() {
-	register(&Router{})
+	makers.Register(&Router{})
 }

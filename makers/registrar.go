@@ -21,7 +21,12 @@ package makers
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+	"plugin"
 
+	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/logging"
 	"github.com/rmescandon/cruder/parser"
 )
 
@@ -37,13 +42,59 @@ type Registrant interface {
 var registeredMakers map[string]Registrant
 
 // Register registers a builtin maker
-func register(m Registrant) error {
+func Register(m Registrant) error {
 	if registeredMakers[m.ID()] != nil {
 		return fmt.Errorf("cannot register duplicated maker %q", m.ID())
 	}
 	if registeredMakers == nil {
 		registeredMakers = make(map[string]Registrant)
 	}
+
+	logging.Infof("Registering plugin: %v", m.ID())
 	registeredMakers[m.ID()] = m
 	return nil
+}
+
+// LoadPlugins load external maker plugins
+func LoadPlugins() error {
+	files, err := ioutil.ReadDir(config.Config.Builtin)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		if filepath.Ext(f.Name()) != ".so" {
+			continue
+		}
+
+		_, err := plugin.Open(f.Name())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+	// mod := "./makers/pl/datastore.so"
+	// _, err := plugin.Open(mod)
+	// if err != nil {
+	// 	logging.Error(err)
+	// 	return err
+	// }
+
+	// _, err = plug.Lookup("Plugin")
+	// if err != nil {
+	// 	logging.Error(err)
+	// 	return err
+	// }
+
+	// logging.Infof("HOWMANY:%v", len(registeredMakers))
+
+	// r := p.(Registrant)
+	// m := p.(Maker)
+
+	// r.SetTypeHolder(nil)
+
+	// fmt.Printf("Got:%v", m.OutputFilepath())
+
 }

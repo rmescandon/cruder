@@ -17,40 +17,15 @@
  *
  */
 
-package makers
+package errs
 
-import (
-	"os"
-	"path/filepath"
+import check "gopkg.in/check.v1"
 
-	"github.com/rmescandon/cruder/config"
-)
+type ErrorSuite struct{}
 
-// Reply struct holding data to copy reply template
-type Reply struct {
-	CopyMaker
-}
+var _ = check.Suite(&ErrorSuite{})
 
-// ID returns 'reply' as this maker identifier
-func (r *Reply) ID() string {
-	return "reply"
-}
-
-// OutputFilepath returns the path to the output file
-func (r *Reply) OutputFilepath() string {
-	return filepath.Join(config.Config.Output, "service/reply.go")
-}
-
-// Make copies template to output path
-func (r *Reply) Make() error {
-	_, err := os.Stat(r.OutputFilepath())
-	if err == nil {
-		return NewErrOutputExists(r.OutputFilepath())
-	}
-
-	return r.CopyMaker.copy(r.OutputFilepath())
-}
-
-func init() {
-	register(&Reply{})
+func (s *ErrorSuite) TestErrOutputExistsMessage(c *check.C) {
+	err := NewErrOutputExists("/any/random/path")
+	c.Assert(err.Error(), check.Equals, "File /any/random/path already exists. Skip writing")
 }
