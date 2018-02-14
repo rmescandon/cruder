@@ -26,7 +26,7 @@ import (
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 )
@@ -49,7 +49,7 @@ func (db *Db) OutputFilepath() string {
 // Make generates the results
 func (db *Db) Make() error {
 	// Execute the replacement
-	logging.Debugf("Loadig template: %v", filepath.Base(db.Template))
+	log.Debugf("Loadig template: %v", filepath.Base(db.Template))
 	templateContent, err := io.FileToString(db.Template)
 	if err != nil {
 		return fmt.Errorf("Error reading template file: %v", err)
@@ -72,13 +72,13 @@ func (db *Db) Make() error {
 
 	io.StringToFile(replacedStr, db.OutputFilepath())
 
-	logging.Infof("Generated: %v", db.OutputFilepath())
+	log.Infof("Generated: %v", db.OutputFilepath())
 	return nil
 }
 
 // mergeExistingOutput resolves the conflict when already exists an output file
 func (db *Db) mergeExistingOutput(replacedStr string) error {
-	logging.Infof("Merging new type into: %v", db.OutputFilepath())
+	log.Infof("Merging new type into: %v", db.OutputFilepath())
 	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func (db *Db) mergeExistingOutput(replacedStr string) error {
 	// Write out the resultant modified Datastore interface to output
 	// TODO VERIFY that using pointers is enough to alter generatedAst before writing out
 	io.ASTToFile(currentAst, db.OutputFilepath())
-	logging.Infof("Merged into: %v successfully", db.OutputFilepath())
+	log.Infof("Merged into: %v successfully", db.OutputFilepath())
 
 	return nil
 }

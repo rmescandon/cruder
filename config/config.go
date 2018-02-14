@@ -28,10 +28,10 @@ import (
 	yaml "gopkg.in/yaml.v1"
 
 	flags "github.com/jessevdk/go-flags"
-	gologging "github.com/op/go-logging"
+	logging "github.com/op/go-logging"
 
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 )
 
 const (
@@ -70,9 +70,9 @@ func (c *Options) ValidateAndInitialize() error {
 	}
 
 	if len(c.Verbose) > 0 {
-		logging.InitLogger(gologging.DEBUG)
+		log.InitLogger(logging.DEBUG)
 	} else {
-		logging.InitLogger(gologging.WARNING)
+		log.InitLogger(logging.WARNING)
 	}
 
 	err := c.setDefaultValuesWhenNeeded()

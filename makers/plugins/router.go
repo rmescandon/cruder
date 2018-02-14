@@ -27,7 +27,7 @@ import (
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 )
@@ -50,7 +50,7 @@ func (r *Router) OutputFilepath() string {
 // Make generates the results
 func (r *Router) Make() error {
 	// Execute the replacement
-	logging.Debugf("Loadig template: %v", filepath.Base(r.Template))
+	log.Debugf("Loadig template: %v", filepath.Base(r.Template))
 	templateContent, err := io.FileToString(r.Template)
 	if err != nil {
 		return fmt.Errorf("Error reading template file: %v", err)
@@ -79,12 +79,12 @@ func (r *Router) Make() error {
 
 	io.StringToFile(replacedStr, r.OutputFilepath())
 
-	logging.Infof("Generated: %v", r.OutputFilepath())
+	log.Infof("Generated: %v", r.OutputFilepath())
 	return nil
 }
 
 func (r *Router) mergeExistingOutput(replacedStr string) error {
-	logging.Infof("Merging new type into: %v", r.OutputFilepath())
+	log.Infof("Merging new type into: %v", r.OutputFilepath())
 	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
 	if err != nil {
 		return err

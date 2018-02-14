@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 
 	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 )
 
 // Defined cli commands
@@ -87,6 +87,6 @@ func execCmd(cmd int, target string) error {
 		}
 	}
 
-	logging.Infof("%v", string(bs))
+	log.Infof("%v", string(bs))
 	return nil
 }

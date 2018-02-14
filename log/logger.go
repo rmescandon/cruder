@@ -17,7 +17,7 @@
  *
  */
 
-package logging
+package log
 
 import (
 	"os"
@@ -25,7 +25,7 @@ import (
 	logging "github.com/op/go-logging"
 )
 
-var log = logging.MustGetLogger("cruder")
+var l = logging.MustGetLogger("cruder")
 
 // InitLogger initializes logger for backend with the specified level
 func InitLogger(level logging.Level) {
@@ -44,40 +44,40 @@ func InitLogger(level logging.Level) {
 
 // Errorf calls logger in eror level with format
 func Errorf(format string, args ...interface{}) {
-	log.Errorf(format, args)
+	l.Errorf(format, args)
 }
 
 // Error calls logger in error level
 func Error(args ...interface{}) {
-	log.Error(args)
+	l.Error(args)
 }
 
 // Warningf calls logger in warning level with format
 func Warningf(format string, args ...interface{}) {
-	log.Warningf(format, args)
+	l.Warningf(format, args)
 }
 
 // Warning calls logger in warning level
 func Warning(args ...interface{}) {
-	log.Warning(args)
+	l.Warning(args)
 }
 
 // Infof calls logger in info level with format
 func Infof(format string, args ...interface{}) {
-	log.Infof(format, args)
+	l.Infof(format, args)
 }
 
 // Info calls logger in info level
 func Info(args ...interface{}) {
-	log.Info(args)
+	l.Info(args)
 }
 
 // Debugf calls logger in debug level with format
 func Debugf(format string, args ...interface{}) {
-	log.Debugf(format, args)
+	l.Debugf(format, args)
 }
 
 // Debug calls logger in debug level
 func Debug(args ...interface{}) {
-	log.Debug(args)
+	l.Debug(args)
 }

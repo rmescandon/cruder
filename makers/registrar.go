@@ -26,7 +26,7 @@ import (
 	"plugin"
 
 	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/parser"
 )
 
@@ -50,7 +50,7 @@ func Register(m Registrant) error {
 		registeredMakers = make(map[string]Registrant)
 	}
 
-	logging.Infof("Registering plugin: %v", m.ID())
+	log.Infof("Registering plugin: %v", m.ID())
 	registeredMakers[m.ID()] = m
 	return nil
 }
@@ -67,6 +67,8 @@ func LoadPlugins() error {
 			continue
 		}
 
+		// Once the plugin is open, its init() func is called and
+		// there the plugins registers itself as a maker
 		_, err := plugin.Open(f.Name())
 		if err != nil {
 			return err
@@ -74,27 +76,4 @@ func LoadPlugins() error {
 	}
 
 	return nil
-
-	// mod := "./makers/pl/datastore.so"
-	// _, err := plugin.Open(mod)
-	// if err != nil {
-	// 	logging.Error(err)
-	// 	return err
-	// }
-
-	// _, err = plug.Lookup("Plugin")
-	// if err != nil {
-	// 	logging.Error(err)
-	// 	return err
-	// }
-
-	// logging.Infof("HOWMANY:%v", len(registeredMakers))
-
-	// r := p.(Registrant)
-	// m := p.(Maker)
-
-	// r.SetTypeHolder(nil)
-
-	// fmt.Printf("Got:%v", m.OutputFilepath())
-
 }

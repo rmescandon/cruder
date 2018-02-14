@@ -25,7 +25,7 @@ import (
 
 	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 )
 
 // CopyMaker base struct for makers that only copies input template to output file
@@ -39,7 +39,7 @@ func (c *CopyMaker) Copy(output string) error {
 		return errs.NewErrEmptyString("Output filepath")
 	}
 
-	logging.Debugf("Loadig template: %v", filepath.Base(c.Template))
+	log.Debugf("Loadig template: %v", filepath.Base(c.Template))
 	templateContent, err := io.FileToString(c.Template)
 	if err != nil {
 		return fmt.Errorf("Error reading template file: %v", err)
@@ -49,6 +49,6 @@ func (c *CopyMaker) Copy(output string) error {
 
 	io.StringToFile(templateContent, output)
 
-	logging.Infof("Generated: %v", output)
+	log.Infof("Generated: %v", output)
 	return nil
 }

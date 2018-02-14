@@ -28,7 +28,7 @@ import (
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
 )
 
@@ -60,7 +60,7 @@ func (h *Handler) Make() error {
 
 	io.EnsureDir(filepath.Dir(h.OutputFilepath()))
 
-	logging.Debugf("Loadig template: %v", filepath.Base(h.Template))
+	log.Debugf("Loadig template: %v", filepath.Base(h.Template))
 	templateContent, err := io.FileToString(h.Template)
 	if err != nil {
 		return fmt.Errorf("Error reading template file: %v", err)
@@ -89,7 +89,7 @@ func (h *Handler) Make() error {
 		return fmt.Errorf("Error writing to output %v: %v", h.OutputFilepath(), err)
 	}
 
-	logging.Infof("Generated: %v", h.OutputFilepath())
+	log.Infof("Generated: %v", h.OutputFilepath())
 	return nil
 }
 

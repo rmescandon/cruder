@@ -29,7 +29,7 @@ import (
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
 )
 
@@ -71,7 +71,7 @@ func (ds *Datastore) Make() error {
 	}
 
 	// execute the replacement
-	logging.Debugf("Loadig template: %v", filepath.Base(ds.Template))
+	log.Debugf("Loadig template: %v", filepath.Base(ds.Template))
 	templateContent, err := io.FileToString(ds.Template)
 	if err != nil {
 		return fmt.Errorf("Error reading template file: %v", err)
@@ -94,7 +94,7 @@ func (ds *Datastore) Make() error {
 		return fmt.Errorf("Error writing to output %v: %v", ds.OutputFilepath(), err)
 	}
 
-	logging.Infof("Generated: %v", ds.OutputFilepath())
+	log.Infof("Generated: %v", ds.OutputFilepath())
 
 	// TODO Improve this by not writing to file and use memory []byte instead
 	if addOriginalType {
