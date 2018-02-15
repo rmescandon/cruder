@@ -21,7 +21,6 @@ package makers
 
 import (
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"plugin"
 
@@ -57,19 +56,15 @@ func Register(m Registrant) error {
 
 // LoadPlugins load external maker plugins
 func LoadPlugins() error {
-	files, err := ioutil.ReadDir(config.Config.Builtin)
+	plugins, err := filepath.Glob(filepath.Join(config.Config.Builtin, "*.so"))
 	if err != nil {
 		return err
 	}
 
-	for _, f := range files {
-		if filepath.Ext(f.Name()) != ".so" {
-			continue
-		}
-
+	for _, p := range plugins {
 		// Once the plugin is open, its init() func is called and
 		// there the plugins registers itself as a maker
-		_, err := plugin.Open(f.Name())
+		_, err = plugin.Open(p)
 		if err != nil {
 			return err
 		}
