@@ -58,16 +58,16 @@ func run() error {
 		return err
 	}
 
-	// err = config.Config.ValidateAndInitialize()
-	// if err != nil {
-	// 	if e, ok := err.(*flags.Error); ok {
-	// 		if e.Type == flags.ErrHelp {
-	// 			parser.WriteHelp(os.Stdout)
-	// 			return nil
-	// 		}
-	// 	}
-	// 	return err
-	// }
+	err = config.Config.ValidateAndInitialize()
+	if err != nil {
+		if e, ok := err.(*flags.Error); ok {
+			if e.Type == flags.ErrHelp {
+				parser.WriteHelp(os.Stdout)
+				return nil
+			}
+		}
+		return err
+	}
 
 	return core.GenerateSkeletonCode()
 }

@@ -22,6 +22,7 @@ package core
 import (
 	"fmt"
 	"path/filepath"
+	"plugin"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
@@ -34,6 +35,11 @@ import (
 func GenerateSkeletonCode() error {
 
 	log.Info("Generating Skeleton Code...")
+
+	err := loadPlugins()
+	if err != nil {
+		return err
+	}
 
 	source, err := io.NewGoFile(config.Config.TypesFile)
 	if err != nil {
@@ -60,6 +66,31 @@ func GenerateSkeletonCode() error {
 		if err != nil {
 			log.Warningf("Could not run maker: %v", err)
 			continue
+		}
+	}
+
+	return nil
+}
+
+func loadPlugins() error {
+	plugins, err := filepath.Glob(filepath.Join(config.Config.BuiltinPlugins, "*.so"))
+	if err != nil {
+		return err
+	}
+
+	userPlugins, err := filepath.Glob(filepath.Join(config.Config.UserPlugins, "*.so"))
+	if err != nil {
+		return err
+	}
+
+	plugins = append(plugins, userPlugins...)
+
+	for _, p := range plugins {
+		// Once the plugin is open, its init() func is called and
+		// the plugins register themselves as makers
+		_, err = plugin.Open(p)
+		if err != nil {
+			return err
 		}
 	}
 

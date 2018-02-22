@@ -21,10 +21,7 @@ package makers
 
 import (
 	"fmt"
-	"path/filepath"
-	"plugin"
 
-	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/parser"
 )
@@ -51,24 +48,5 @@ func Register(m Registrant) error {
 
 	log.Infof("Registering plugin: %v", m.ID())
 	registeredMakers[m.ID()] = m
-	return nil
-}
-
-// LoadPlugins load external maker plugins
-func LoadPlugins() error {
-	plugins, err := filepath.Glob(filepath.Join(config.Config.Builtin, "*.so"))
-	if err != nil {
-		return err
-	}
-
-	for _, p := range plugins {
-		// Once the plugin is open, its init() func is called and
-		// there the plugins registers itself as a maker
-		_, err = plugin.Open(p)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }

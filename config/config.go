@@ -42,18 +42,18 @@ const (
 
 // Options type holding possible cli params
 type Options struct {
-	Verbose    []bool `short:"v" long:"verbose" description:"Verbose output"`
-	TypesFile  string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code" required:"yes"`
-	Output     string `short:"o" long:"output" description:"Folder where building output structure of generated files"`
-	ProjectURL string `short:"u" long:"url" description:"Url of this project. If not specified 'github.com/myproject' is used"`
-	APIVersion string `short:"a" long:"apiversion" description:"Version of the REST api"`
-	Settings   string `short:"c" long:"config" description:"Settings file path"`
-	Plugins    string `short:"p" long:"plugins" description:"Path to the folder with .so plugin files"`
+	Verbose     []bool `short:"v" long:"verbose" description:"Verbose output"`
+	TypesFile   string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code" required:"yes"`
+	Output      string `short:"o" long:"output" description:"Folder where building output structure of generated files"`
+	ProjectURL  string `short:"u" long:"url" description:"Url of this project. If not specified 'github.com/myproject' is used"`
+	APIVersion  string `short:"a" long:"apiversion" description:"Version of the REST api"`
+	Settings    string `short:"c" long:"config" description:"Settings file path"`
+	UserPlugins string `short:"p" long:"plugins" description:"Path to the folder with .so plugin files"`
 
 	// Options loaded from settings file
-	Version       string `yaml:"version"`
-	TemplatesPath string `yaml:"templates"`
-	Builtin       string `yaml:"plugins"`
+	Version        string `yaml:"version"`
+	TemplatesPath  string `yaml:"templates"`
+	BuiltinPlugins string `yaml:"plugins"`
 }
 
 // Config holds received configuration from command line
