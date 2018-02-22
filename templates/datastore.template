@@ -31,12 +31,12 @@ const create_#TYPE#_TableSQL = `
 	)
 `
 
-const list_#TYPE#_sSQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ order by _#ID.FIELD.NAME#_"
-const get_#TYPE#_SQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME#_=$1"
-const find_#TYPE#_SQL = "select _#ID.FIELD.NAME#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ where _#FIND.FIELD.NAME#_ like '%$1%'"
-const create_#TYPE#_SQL = "insert into _#TYPE.LOWERCASE#_ (_#FIELDS.DML#_) values (_#VALUES.DML.PARAMS#_) returning _#ID.FIELD.NAME#_"
+const list_#TYPE#_sSQL = "select _#ID.FIELD.NAME.LOWERCASE#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ order by _#ID.FIELD.NAME.LOWERCASE#_"
+const get_#TYPE#_SQL = "select _#ID.FIELD.NAME.LOWERCASE#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME.LOWERCASE#_=$1"
+const find_#TYPE#_SQL = "select _#ID.FIELD.NAME.LOWERCASE#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ where _#FIND.FIELD.NAME#_ like '%$1%'"
+const create_#TYPE#_SQL = "insert into _#TYPE.LOWERCASE#_ (_#FIELDS.DML#_) values (_#VALUES.DML.PARAMS#_) returning _#ID.FIELD.NAME.LOWERCASE#_"
 const update_#TYPE#_SQL = "update _#TYPE.LOWERCASE#_ set _#FIELDS.DML.PARAMS#_ where _#ID.FIELD.DML.PARAM#_"
-const delete_#TYPE#_SQL = "delete from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME#_=$1"
+const delete_#TYPE#_SQL = "delete from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME.LOWERCASE#_=$1"
 
 // Create_#TYPE#_Table creates the database table
 func (db *DB) Create_#TYPE#_Table() error {
@@ -56,8 +56,8 @@ func (db *DB) List_#TYPE#_s() ([]_#TYPE#_, error) {
 }
 
 // Get_#TYPE#_ returns a specific register
-func (db *DB) Get_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_) (_#TYPE#_, error) {
-	row := db.QueryRow(get_#TYPE#_SQL, _#ID.FIELD.NAME#_)
+func (db *DB) Get_#TYPE#_(_#ID.FIELD.NAME.LOWERCASE#_ _#ID.FIELD.TYPE#_) (_#TYPE#_, error) {
+	row := db.QueryRow(get_#TYPE#_SQL, _#ID.FIELD.NAME.LOWERCASE#_)
 	_#TYPE.IDENTIFIER#_, err := db.rowTo_#TYPE#_(row)
 	if err != nil {
 		return _#TYPE#_{}, fmt.Errorf("Error retrieving _#TYPE.LOWERCASE#_ register: %v", err)
@@ -77,17 +77,17 @@ func (db *DB) Find_#TYPE#_(query string) (_#TYPE#_, error) {
 
 // Create_#TYPE#_ Inserts a new register
 func (db *DB) Create_#TYPE#_(_#TYPE.IDENTIFIER#_ _#TYPE#_) (_#ID.FIELD.TYPE#_, error) {
-	var _#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_
-	err := db.QueryRow(create_#TYPE#_SQL, _#FIELDS.ENUM#_).Scan(&_#ID.FIELD.NAME#_)
+	var _#ID.FIELD.NAME.LOWERCASE#_ _#ID.FIELD.TYPE#_
+	err := db.QueryRow(create_#TYPE#_SQL, _#FIELDS.ENUM#_).Scan(&_#ID.FIELD.NAME.LOWERCASE#_)
 	if err != nil {
-		return fmt.Errorf("Error creating _#TYPE.LOWERCASE#_ register: %v", err)
+		return -1, fmt.Errorf("Error creating _#TYPE.LOWERCASE#_ register: %v", err)
 	}
-	return _#ID.FIELD.NAME#_, nil
+	return _#ID.FIELD.NAME.LOWERCASE#_, nil
 }
 
 // Update_#TYPE#_ updates a register
-func (db *DB) Update_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_, _#TYPE.IDENTIFIER#_ _#TYPE#_) error {
-	_, err := db.Exec(update_#TYPE#_SQL, _#FIELDS.ENUM#_, _#ID.FIELD.NAME#_)
+func (db *DB) Update_#TYPE#_(_#ID.FIELD.NAME.LOWERCASE#_ _#ID.FIELD.TYPE#_, _#TYPE.IDENTIFIER#_ _#TYPE#_) error {
+	_, err := db.Exec(update_#TYPE#_SQL, _#FIELDS.ENUM#_, _#ID.FIELD.NAME.LOWERCASE#_)
 	if err != nil {
 		return fmt.Errorf("Error updating _#TYPE.LOWERCASE#_ register: %v", err)
 	}
@@ -95,8 +95,8 @@ func (db *DB) Update_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_, _#TYPE.IDENTIF
 }
 
 // Delete_#TYPE#_ deletes a register
-func (db *DB) Delete_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_) error {
-	_, err := db.Exec(delete_#TYPE#_SQL, _#ID.FIELD.NAME#_)
+func (db *DB) Delete_#TYPE#_(_#ID.FIELD.NAME.LOWERCASE#_ _#ID.FIELD.TYPE#_) error {
+	_, err := db.Exec(delete_#TYPE#_SQL, _#ID.FIELD.NAME.LOWERCASE#_)
 	if err != nil {
 		return fmt.Errorf("Error deleting _#TYPE.LOWERCASE#_ register: %v", err)
 	}
@@ -105,7 +105,7 @@ func (db *DB) Delete_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_) error {
 
 func (db *DB) rowTo_#TYPE#_(row *sql.Row) (_#TYPE#_, error) {
 	_#TYPE.IDENTIFIER#_ := _#TYPE#_{}
-	err := row.Scan(&_#ID.FIELD.NAME#_, _#FIELDS.ENUM.REF#_)
+	err := row.Scan(&_#TYPE.IDENTIFIER#_._#ID.FIELD.NAME#_, _#FIELDS.ENUM.REF#_)
 	if err != nil {
 		return _#TYPE#_{}, err
 	}
@@ -115,7 +115,7 @@ func (db *DB) rowTo_#TYPE#_(row *sql.Row) (_#TYPE#_, error) {
 
 func (db *DB) nextRowTo_#TYPE#_(rows *sql.Rows) (_#TYPE#_, error) {
 	_#TYPE.IDENTIFIER#_ := _#TYPE#_{}
-	err := rows.Scan(&_#ID.FIELD.NAME#_, _#FIELDS.ENUM.REF#_)
+	err := rows.Scan(&_#TYPE.IDENTIFIER#_._#ID.FIELD.NAME#_, _#FIELDS.ENUM.REF#_)
 	if err != nil {
 		return _#TYPE#_{}, err
 	}

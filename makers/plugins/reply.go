@@ -40,7 +40,7 @@ func (r *Reply) ID() string {
 
 // OutputFilepath returns the path to the output file
 func (r *Reply) OutputFilepath() string {
-	return filepath.Join(config.Config.Output, "service/reply.go")
+	return filepath.Join(config.Config.Output, "handler/reply.go")
 }
 
 // Make copies template to output path

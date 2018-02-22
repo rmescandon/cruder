@@ -168,7 +168,7 @@ func (holder *TypeHolder) FieldsInDML() string {
 			continue
 		}
 
-		tokens = append(tokens, field.Name)
+		tokens = append(tokens, strings.ToLower(field.Name))
 	}
 
 	return strings.Join(tokens, ", ")
@@ -271,8 +271,11 @@ func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, err
 	// thetype
 	replaced = strings.Replace(replaced, "_#TYPE.LOWERCASE#_", strings.ToLower(holder.Name), -1)
 
-	// id
+	// ID
 	replaced = strings.Replace(replaced, "_#ID.FIELD.NAME#_", holder.IDFieldName(), -1)
+
+	// id
+	replaced = strings.Replace(replaced, "_#ID.FIELD.NAME.LOWERCASE#_", strings.ToLower(holder.IDFieldName()), -1)
 
 	// int
 	replaced = strings.Replace(replaced, "_#ID.FIELD.TYPE#_", holder.IDFieldType(), -1)

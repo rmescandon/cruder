@@ -115,7 +115,7 @@ func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
 func (c *Options) setDefaultValuesWhenNeeded() error {
 	if len(c.Output) == 0 {
 		// calculate current dir and set it as default output path
-		dir, err := currentDir()
+		dir, err := os.Getwd()
 		if err != nil {
 			return &flags.Error{
 				Type:    flags.ErrUnknown,
@@ -127,7 +127,7 @@ func (c *Options) setDefaultValuesWhenNeeded() error {
 
 	if len(c.Settings) == 0 {
 		// calculate current dir and set it as default settings path
-		dir, err := currentDir()
+		dir, err := os.Getwd()
 		if err != nil {
 			return &flags.Error{
 				Type:    flags.ErrUnknown,
@@ -146,10 +146,6 @@ func (c *Options) setDefaultValuesWhenNeeded() error {
 	}
 
 	return nil
-}
-
-func currentDir() (string, error) {
-	return filepath.Abs(filepath.Dir(os.Args[0]))
 }
 
 func (c *Options) loadSettings() error {
@@ -183,6 +179,16 @@ func (c *Options) normalizePaths() error {
 	}
 
 	err = normalizePath(&c.TypesFile)
+	if err != nil {
+		return err
+	}
+
+	err = normalizePath(&c.UserPlugins)
+	if err != nil {
+		return err
+	}
+
+	err = normalizePath(&c.BuiltinPlugins)
 	if err != nil {
 		return err
 	}
