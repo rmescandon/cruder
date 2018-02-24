@@ -23,7 +23,9 @@ import (
 	"io/ioutil"
 
 	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 	"github.com/rmescandon/cruder/testdata"
 
@@ -52,8 +54,8 @@ func (s *ReplySuite) TestCopyReply(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	r := &Reply{
-		CopyMaker{
-			BaseMaker{
+		makers.CopyMaker{
+			BaseMaker: makers.BaseMaker{
 				TypeHolder: typeHolders[0],
 				Template:   "../testdata/templates/reply.template",
 			},
@@ -87,7 +89,7 @@ func (s *ReplySuite) TestCopyReply(c *check.C) {
 	err = r.Make()
 	c.Assert(err, check.NotNil)
 	switch err.(type) {
-	case ErrOutputExists:
+	case errs.ErrOutputExists:
 	default:
 		c.Fail()
 	}

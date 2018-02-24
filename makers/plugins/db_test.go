@@ -25,6 +25,7 @@ import (
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 	"github.com/rmescandon/cruder/testdata"
 
@@ -53,7 +54,7 @@ func (s *DbSuite) TestMakeDb(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	db := &Db{
-		BaseMaker{
+		makers.BaseMaker{
 			TypeHolder: typeHolders[0],
 			Template:   "../testdata/templates/db.template",
 		},

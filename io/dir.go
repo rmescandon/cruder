@@ -21,7 +21,7 @@ package io
 
 import "os"
 
-// EnsureDir checks for a dir existance and creates it if not exists
+// EnsureDir checks for a dir existence and creates it if not exists
 func EnsureDir(dir string) error {
 	_, err := os.Stat(dir)
 	if os.IsNotExist(err) {
