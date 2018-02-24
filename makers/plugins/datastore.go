@@ -17,7 +17,7 @@
  *
  */
 
-package makers
+package main
 
 import (
 	"fmt"
@@ -27,13 +27,15 @@ import (
 	"strings"
 
 	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
+	"github.com/rmescandon/cruder/makers"
 )
 
 // Datastore generates datastore/<type>.go output go file
 type Datastore struct {
-	BaseMaker
+	makers.BaseMaker
 }
 
 // ID returns 'datastore' as this maker identifier
@@ -58,18 +60,18 @@ func (ds *Datastore) Make() error {
 	if err == nil {
 		// in case if does exist, it should match the types file. Otherwise it's an error
 		if ds.OutputFilepath() != ds.TypeHolder.Source.Path {
-			return NewErrOutputExists(ds.OutputFilepath())
+			return errs.NewErrOutputExists(ds.OutputFilepath())
 		}
 
 		// if output file is the same as types one, add the type to the generated output
 		addOriginalType = true
 	} else {
 		// create needed dirs to outputPath
-		ensureDir(filepath.Dir(ds.OutputFilepath()))
+		io.EnsureDir(filepath.Dir(ds.OutputFilepath()))
 	}
 
 	// execute the replacement
-	logging.Debugf("Loadig template: %v", filepath.Base(ds.Template))
+	log.Debugf("Loadig template: %v", filepath.Base(ds.Template))
 	templateContent, err := io.FileToString(ds.Template)
 	if err != nil {
 		return fmt.Errorf("Error reading template file: %v", err)
@@ -92,7 +94,7 @@ func (ds *Datastore) Make() error {
 		return fmt.Errorf("Error writing to output %v: %v", ds.OutputFilepath(), err)
 	}
 
-	logging.Infof("Generated: %v", ds.OutputFilepath())
+	log.Infof("Generated: %v", ds.OutputFilepath())
 
 	// TODO Improve this by not writing to file and use memory []byte instead
 	if addOriginalType {
@@ -134,5 +136,5 @@ func (ds *Datastore) Make() error {
 }
 
 func init() {
-	register(&Datastore{})
+	makers.Register(&Datastore{})
 }

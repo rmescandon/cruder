@@ -1,7 +1,7 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 
 /*
- * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ * Copyright (C) 2018 Roberto Mier Escandon <rmescandon@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -17,7 +17,7 @@
  *
  */
 
-package makers
+package main
 
 import (
 	"io/ioutil"
@@ -25,17 +25,18 @@ import (
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 	"github.com/rmescandon/cruder/testdata"
 
 	check "gopkg.in/check.v1"
 )
 
-type DbSuite struct{}
+type RouterSuite struct{}
 
-var _ = check.Suite(&DbSuite{})
+var _ = check.Suite(&RouterSuite{})
 
-func (s *DbSuite) TestMakeDb(c *check.C) {
+func (s *RouterSuite) TestMakeRouter(c *check.C) {
 	//--------------------------------------------------------------------------
 	// 1.- Create an output file for MyType, not having a previous existing file
 	typeFile, err := testdata.TestTypeFile()
@@ -52,23 +53,23 @@ func (s *DbSuite) TestMakeDb(c *check.C) {
 	config.Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
-	db := &Db{
-		BaseMaker{
+	r := &Router{
+		makers.BaseMaker{
 			TypeHolder: typeHolders[0],
-			Template:   "../testdata/templates/db.template",
+			Template:   "../testdata/templates/router.template",
 		},
 	}
 
-	c.Assert(db.Make(), check.IsNil)
+	c.Assert(r.Make(), check.IsNil)
 
-	content, err := io.FileToString(db.OutputFilepath())
+	content, err := io.FileToString(r.OutputFilepath())
 	c.Assert(err, check.IsNil)
 	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
 	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
 
 	// -----------------------------------------------------------------------
 	// 2.- Reset typeHolders and load now OtherType. Create the output and see
-	// if both MyType and OtherType are included in Datastore interface
+	// if both MyType and OtherType are included into
 	otherTypeFile, err := testdata.TestOtherTypeFile()
 	c.Assert(err, check.IsNil)
 	c.Assert(otherTypeFile, check.NotNil)
@@ -80,28 +81,24 @@ func (s *DbSuite) TestMakeDb(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(typeHolders, check.HasLen, 1)
 
-	db.TypeHolder = typeHolders[0]
+	r.TypeHolder = typeHolders[0]
 
-	c.Assert(db.Make(), check.IsNil)
+	c.Assert(r.Make(), check.IsNil)
 
-	content, err = io.FileToString(db.OutputFilepath())
+	content, err = io.FileToString(r.OutputFilepath())
 
 	// Verify here if both types are included in output
-	c.Assert(strings.Contains(content, "CreateMyTypeTable() error"), check.Equals, true)
-	c.Assert(strings.Contains(content, "ListMyTypes() ([]MyType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "GetMyType(ID int) (MyType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "FindMyType(query string) (MyType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "CreateMyType(myType MyType) (int, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "UpdateMyType(ID int, myType MyType)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "DeleteMyType(ID int) error"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype\"), http.HandlerFunc(CreateMyType)).Methods(\"POST\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype\"), http.HandlerFunc(ListMyTypes)).Methods(\"GET\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype/{ID:[0-9]+}\"), http.HandlerFunc(GetMyType)).Methods(\"GET\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype/{ID:[0-9]+}\"), http.HandlerFunc(UpdateMyType)).Methods(\"PUT\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype/{ID:[0-9]+}\"), http.HandlerFunc(DeleteMyType)).Methods(\"DELETE\")"), check.Equals, true)
 
-	c.Assert(strings.Contains(content, "CreateMyOtherTypeTable() error"), check.Equals, true)
-	c.Assert(strings.Contains(content, "ListMyOtherTypes() ([]MyOtherType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "GetMyOtherType(AnID int) (MyOtherType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "FindMyOtherType(query string) (MyOtherType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "CreateMyOtherType(myOtherType MyOtherType) (int, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "UpdateMyOtherType(AnID int, myOtherType MyOtherType)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "DeleteMyOtherType(AnID int) error"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype\"), http.HandlerFunc(CreateMyOtherType)).Methods(\"POST\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype\"), http.HandlerFunc(ListMyOtherTypes)).Methods(\"GET\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype/{AnID:[0-9]+}\"), http.HandlerFunc(GetMyOtherType)).Methods(\"GET\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype/{AnID:[0-9]+}\"), http.HandlerFunc(UpdateMyOtherType)).Methods(\"PUT\")"), check.Equals, true)
+	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype/{AnID:[0-9]+}\"), http.HandlerFunc(DeleteMyOtherType)).Methods(\"DELETE\")"), check.Equals, true)
 
 	c.Assert(err, check.IsNil)
 	c.Assert(strings.Contains(content, "_#"), check.Equals, false)

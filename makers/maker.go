@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/parser"
 )
 
@@ -51,13 +52,13 @@ func (bm *BaseMaker) SetTemplate(template string) {
 // New returns the maker for certain template, to be applied using certain type holder
 func New(holder *parser.TypeHolder, template string) (Maker, error) {
 	if registeredMakers == nil {
-		return nil, ErrNoMakerRegistered
+		return nil, errs.ErrNoMakerRegistered
 	}
 
 	templateID := templateIdentifier(template)
 	maker, ok := registeredMakers[templateID]
 	if !ok {
-		return nil, NewErrNotFound(fmt.Sprintf("Maker with id '%v'", templateID))
+		return nil, errs.NewErrNotFound(fmt.Sprintf("Maker with id '%v'", templateID))
 	}
 
 	maker.SetTypeHolder(holder)

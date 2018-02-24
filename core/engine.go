@@ -22,17 +22,24 @@ package core
 import (
 	"fmt"
 	"path/filepath"
+	"plugin"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
 func GenerateSkeletonCode() error {
-	logging.Debug("Generating Skeleton Code...")
+
+	log.Info("Generating Skeleton Code...")
+
+	err := loadPlugins()
+	if err != nil {
+		return err
+	}
 
 	source, err := io.NewGoFile(config.Config.TypesFile)
 	if err != nil {
@@ -57,7 +64,7 @@ func GenerateSkeletonCode() error {
 	for _, maker := range makers {
 		err := maker.Make()
 		if err != nil {
-			logging.Warningf("Could not run maker: %v", err)
+			log.Warningf("Could not run maker: %v", err)
 			continue
 		}
 	}
@@ -65,15 +72,40 @@ func GenerateSkeletonCode() error {
 	return nil
 }
 
+func loadPlugins() error {
+	plugins, err := filepath.Glob(filepath.Join(config.Config.BuiltinPlugins, "*.so"))
+	if err != nil {
+		return err
+	}
+
+	userPlugins, err := filepath.Glob(filepath.Join(config.Config.UserPlugins, "*.so"))
+	if err != nil {
+		return err
+	}
+
+	plugins = append(plugins, userPlugins...)
+
+	for _, p := range plugins {
+		// Once the plugin is open, its init() func is called and
+		// the plugins register themselves as makers
+		_, err = plugin.Open(p)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func availableTemplates() ([]string, error) {
-	logging.Debugf("searching for available templates at %v", config.Config.TemplatesPath)
+	log.Infof("searching for available templates at %v", config.Config.TemplatesPath)
 	return filepath.Glob(filepath.Join(config.Config.TemplatesPath, "*.template"))
 }
 
 func buildMakers(holders []*parser.TypeHolder, templates []string) ([]makers.Maker, error) {
 	var mks []makers.Maker
 	for _, t := range templates {
-		logging.Debugf("Found template: %v", filepath.Base(t))
+		log.Infof("Found template: %v", filepath.Base(t))
 		for _, h := range holders {
 			//FIXME: this won't work as every maker associated with a type is reused for the next type
 			// Execute Run for every maker got until next one or

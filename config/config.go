@@ -28,10 +28,10 @@ import (
 	yaml "gopkg.in/yaml.v1"
 
 	flags "github.com/jessevdk/go-flags"
-	gologging "github.com/op/go-logging"
+	logging "github.com/op/go-logging"
 
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
 )
 
 const (
@@ -42,16 +42,18 @@ const (
 
 // Options type holding possible cli params
 type Options struct {
-	Verbose    []bool `short:"v" long:"verbose" description:"Verbose output"`
-	TypesFile  string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code" required:"yes"`
-	Output     string `short:"o" long:"output" description:"Folder where building output structure of generated files"`
-	ProjectURL string `short:"u" long:"url" description:"Url of this project. If not specified 'github.com/myproject' is used"`
-	APIVersion string `short:"a" long:"apiversion" description:"Version of the REST api"`
-	Settings   string `short:"c" long:"config" description:"Settings file path"`
+	Verbose     []bool `short:"v" long:"verbose" description:"Verbose output"`
+	TypesFile   string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code" required:"yes"`
+	Output      string `short:"o" long:"output" description:"Folder where building output structure of generated files"`
+	ProjectURL  string `short:"u" long:"url" description:"Url of this project. If not specified 'github.com/myproject' is used"`
+	APIVersion  string `short:"a" long:"apiversion" description:"Version of the REST api"`
+	Settings    string `short:"c" long:"config" description:"Settings file path"`
+	UserPlugins string `short:"p" long:"plugins" description:"Path to the folder with .so plugin files"`
 
 	// Options loaded from settings file
-	Version       string `yaml:"version"`
-	TemplatesPath string `yaml:"templates"`
+	Version        string `yaml:"version"`
+	TemplatesPath  string `yaml:"templates"`
+	BuiltinPlugins string `yaml:"plugins"`
 }
 
 // Config holds received configuration from command line
@@ -68,9 +70,9 @@ func (c *Options) ValidateAndInitialize() error {
 	}
 
 	if len(c.Verbose) > 0 {
-		logging.InitLogger(gologging.DEBUG)
+		log.InitLogger(logging.DEBUG)
 	} else {
-		logging.InitLogger(gologging.WARNING)
+		log.InitLogger(logging.WARNING)
 	}
 
 	err := c.setDefaultValuesWhenNeeded()
@@ -113,7 +115,7 @@ func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
 func (c *Options) setDefaultValuesWhenNeeded() error {
 	if len(c.Output) == 0 {
 		// calculate current dir and set it as default output path
-		dir, err := currentDir()
+		dir, err := os.Getwd()
 		if err != nil {
 			return &flags.Error{
 				Type:    flags.ErrUnknown,
@@ -125,7 +127,7 @@ func (c *Options) setDefaultValuesWhenNeeded() error {
 
 	if len(c.Settings) == 0 {
 		// calculate current dir and set it as default settings path
-		dir, err := currentDir()
+		dir, err := os.Getwd()
 		if err != nil {
 			return &flags.Error{
 				Type:    flags.ErrUnknown,
@@ -144,10 +146,6 @@ func (c *Options) setDefaultValuesWhenNeeded() error {
 	}
 
 	return nil
-}
-
-func currentDir() (string, error) {
-	return filepath.Abs(filepath.Dir(os.Args[0]))
 }
 
 func (c *Options) loadSettings() error {
@@ -181,6 +179,16 @@ func (c *Options) normalizePaths() error {
 	}
 
 	err = normalizePath(&c.TypesFile)
+	if err != nil {
+		return err
+	}
+
+	err = normalizePath(&c.UserPlugins)
+	if err != nil {
+		return err
+	}
+
+	err = normalizePath(&c.BuiltinPlugins)
 	if err != nil {
 		return err
 	}

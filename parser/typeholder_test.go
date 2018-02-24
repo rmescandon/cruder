@@ -80,7 +80,7 @@ func (s *TypeHolderSuite) TestFieldsInDDL(c *check.C) {
 }
 
 func (s *TypeHolderSuite) TestFieldsInDML(c *check.C) {
-	c.Assert(s.typeHolder.FieldsInDML(), check.Equals, "Field1, Field2, Field3")
+	c.Assert(s.typeHolder.FieldsInDML(), check.Equals, "field1, field2, field3")
 }
 
 func (s *TypeHolderSuite) TestValuesInDMLParams(c *check.C) {

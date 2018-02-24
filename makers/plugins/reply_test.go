@@ -17,30 +17,28 @@
  *
  */
 
-package makers
+package main
 
 import (
 	"io/ioutil"
-	"strings"
 
 	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 	"github.com/rmescandon/cruder/testdata"
+
 	check "gopkg.in/check.v1"
 )
 
-type HandlerSuite struct{}
+type ReplySuite struct{}
 
-var _ = check.Suite(&HandlerSuite{})
+var _ = check.Suite(&ReplySuite{})
 
-func (s *HandlerSuite) SetUpSuite(c *check.C) {}
-func (s *HandlerSuite) SetUpTest(c *check.C)  {}
-
-func (s *HandlerSuite) TestMakeHandler(c *check.C) {
-	config.Config.ProjectURL = "github.com/auser/aproject"
+func (s *ReplySuite) TestCopyReply(c *check.C) {
 	//--------------------------------------------------------------------------
-	// 1.- Create an output file for MyType, not having a previous existing file
+	// 1.- Create an output file, not having a previous existing file
 	typeFile, err := testdata.TestTypeFile()
 	c.Assert(err, check.IsNil)
 	c.Assert(typeFile, check.NotNil)
@@ -55,23 +53,44 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 	config.Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
-	handler := &Handler{
-		BaseMaker{
-			TypeHolder: typeHolders[0],
-			Template:   "../testdata/templates/handler.template",
+	r := &Reply{
+		makers.CopyMaker{
+			BaseMaker: makers.BaseMaker{
+				TypeHolder: typeHolders[0],
+				Template:   "../testdata/templates/reply.template",
+			},
 		},
 	}
 
-	c.Assert(handler.Make(), check.IsNil)
+	c.Assert(r.Make(), check.IsNil)
 
-	content, err := io.FileToString(handler.OutputFilepath())
+	srcContent, err := io.FileToString(r.Template)
 	c.Assert(err, check.IsNil)
-	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
-	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
+	dstContent, err := io.FileToString(r.OutputFilepath())
+	c.Assert(err, check.IsNil)
+	c.Assert(srcContent, check.Equals, dstContent)
 
-	//---------------------------------------------------
-	// 2.- Execute the maker again and verify that maker returns
-	// ErrOutputExists error
-	//
-	c.Assert(handler.Make(), check.DeepEquals, NewErrOutputExists(handler.OutputFilepath()))
+	// -----------------------------------------------------------------------
+	// 2.- Reset typeHolders and load now OtherType. Create the output and see
+	// if both MyType and OtherType are included into
+	otherTypeFile, err := testdata.TestOtherTypeFile()
+	c.Assert(err, check.IsNil)
+	c.Assert(otherTypeFile, check.NotNil)
+
+	source, err = io.NewGoFile(otherTypeFile.Name())
+	c.Assert(err, check.IsNil)
+
+	typeHolders, err = parser.ComposeTypeHolders(source)
+	c.Assert(err, check.IsNil)
+	c.Assert(typeHolders, check.HasLen, 1)
+
+	r.TypeHolder = typeHolders[0]
+
+	err = r.Make()
+	c.Assert(err, check.NotNil)
+	switch err.(type) {
+	case errs.ErrOutputExists:
+	default:
+		c.Fail()
+	}
 }

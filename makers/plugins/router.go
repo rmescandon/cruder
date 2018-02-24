@@ -17,7 +17,7 @@
  *
  */
 
-package makers
+package main
 
 import (
 	"fmt"
@@ -27,13 +27,14 @@ import (
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/logging"
+	"github.com/rmescandon/cruder/log"
+	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // Router generates service/router.go output go file
 type Router struct {
-	BaseMaker
+	makers.BaseMaker
 }
 
 // ID returns 'router' as this maker identifier
@@ -49,7 +50,7 @@ func (r *Router) OutputFilepath() string {
 // Make generates the results
 func (r *Router) Make() error {
 	// Execute the replacement
-	logging.Debugf("Loadig template: %v", filepath.Base(r.Template))
+	log.Debugf("Loadig template: %v", filepath.Base(r.Template))
 	templateContent, err := io.FileToString(r.Template)
 	if err != nil {
 		return fmt.Errorf("Error reading template file: %v", err)
@@ -74,16 +75,16 @@ func (r *Router) Make() error {
 	}
 
 	// Create needed dirs to outputPath and write out substituted string
-	ensureDir(filepath.Dir(r.OutputFilepath()))
+	io.EnsureDir(filepath.Dir(r.OutputFilepath()))
 
 	io.StringToFile(replacedStr, r.OutputFilepath())
 
-	logging.Infof("Generated: %v", r.OutputFilepath())
+	log.Infof("Generated: %v", r.OutputFilepath())
 	return nil
 }
 
 func (r *Router) mergeExistingOutput(replacedStr string) error {
-	logging.Infof("Merging new type into: %v", r.OutputFilepath())
+	log.Infof("Merging new type into: %v", r.OutputFilepath())
 	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
 	if err != nil {
 		return err
@@ -172,5 +173,5 @@ func findHandlersInStatements(stmts []*ast.ExprStmt) map[string]*ast.ExprStmt {
 }
 
 func init() {
-	register(&Router{})
+	makers.Register(&Router{})
 }

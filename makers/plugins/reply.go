@@ -17,38 +17,42 @@
  *
  */
 
-package makers
+package main
 
 import (
-	"fmt"
+	"os"
 	"path/filepath"
 
+	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/errs"
-	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/log"
+	"github.com/rmescandon/cruder/makers"
 )
 
-// CopyMaker base struct for makers that only copies input template to output file
-type CopyMaker struct {
-	BaseMaker
+// Reply struct holding data to copy reply template
+type Reply struct {
+	makers.CopyMaker
 }
 
-// Copy does the copy of raw input template to output
-func (c *CopyMaker) Copy(output string) error {
-	if len(output) == 0 {
-		return errs.NewErrEmptyString("Output filepath")
+// ID returns 'reply' as this maker identifier
+func (r *Reply) ID() string {
+	return "reply"
+}
+
+// OutputFilepath returns the path to the output file
+func (r *Reply) OutputFilepath() string {
+	return filepath.Join(config.Config.Output, "handler/reply.go")
+}
+
+// Make copies template to output path
+func (r *Reply) Make() error {
+	_, err := os.Stat(r.OutputFilepath())
+	if err == nil {
+		return errs.NewErrOutputExists(r.OutputFilepath())
 	}
 
-	log.Debugf("Loadig template: %v", filepath.Base(c.Template))
-	templateContent, err := io.FileToString(c.Template)
-	if err != nil {
-		return fmt.Errorf("Error reading template file: %v", err)
-	}
+	return r.CopyMaker.Copy(r.OutputFilepath())
+}
 
-	io.EnsureDir(filepath.Dir(output))
-
-	io.StringToFile(templateContent, output)
-
-	log.Infof("Generated: %v", output)
-	return nil
+func init() {
+	makers.Register(&Reply{})
 }

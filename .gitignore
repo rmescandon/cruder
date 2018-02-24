@@ -1,3 +1,3 @@
 .coverage
 vendor/*/
-
+_plugins/*.so

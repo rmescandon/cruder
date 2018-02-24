@@ -22,6 +22,7 @@ package makers
 import (
 	"fmt"
 
+	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/parser"
 )
 
@@ -37,13 +38,15 @@ type Registrant interface {
 var registeredMakers map[string]Registrant
 
 // Register registers a builtin maker
-func register(m Registrant) error {
+func Register(m Registrant) error {
 	if registeredMakers[m.ID()] != nil {
 		return fmt.Errorf("cannot register duplicated maker %q", m.ID())
 	}
 	if registeredMakers == nil {
 		registeredMakers = make(map[string]Registrant)
 	}
+
+	log.Infof("Registering plugin: %v", m.ID())
 	registeredMakers[m.ID()] = m
 	return nil
 }

@@ -17,7 +17,7 @@
  *
  */
 
-package makers
+package errs
 
 import (
 	"errors"
