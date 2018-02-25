@@ -35,9 +35,14 @@ func ComposeTypeHolders(source *io.GoFile) ([]*TypeHolder, error) {
 	decls := getTypeDecls(source.Ast)
 	for _, decl := range decls {
 		for _, spec := range decl.Specs {
-			fields, err := composeTypeFields(source.Bytes, spec)
+			b, err := source.Bytes()
 			if err != nil {
-				return holders, err
+				return []*TypeHolder{}, err
+			}
+
+			fields, err := composeTypeFields(b, spec)
+			if err != nil {
+				return []*TypeHolder{}, err
 			}
 
 			// validate that there are at least two fields,

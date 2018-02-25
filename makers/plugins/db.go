@@ -44,7 +44,7 @@ func (db *Db) OutputFilepath() string {
 }
 
 // Make generates the results
-func (db *Db) Make(generatedOutput *io.Content, currentOutput *io.Content) (string, error) {
+func (db *Db) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
 	if currentOutput != nil {
 		generatedIface := parser.GetInterface(generatedOutput.Ast, "Datastore")
 		currentIface := parser.GetInterface(currentOutput.Ast, "Datastore")
@@ -56,10 +56,10 @@ func (db *Db) Make(generatedOutput *io.Content, currentOutput *io.Content) (stri
 			}
 		}
 
-		return io.ASTToString(currentOutput.Ast)
+		return currentOutput, nil
 	}
 
-	return string(generatedOutput.Bytes)
+	return generatedOutput, nil
 }
 
 func init() {

@@ -43,12 +43,12 @@ func (r *Reply) OutputFilepath() string {
 }
 
 // Make copies template to output path
-func (r *Reply) Make(generatedOutput *io.Content, currentOutput *io.Content) (string, error) {
+func (r *Reply) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
 	if currentOutput != nil {
-		return "", errs.NewErrOutputExists(r.OutputFilepath())
+		return nil, errs.NewErrOutputExists(r.OutputFilepath())
 	}
 
-	return string(generatedOutput.Bytes), nil
+	return generatedOutput, nil
 }
 
 func init() {

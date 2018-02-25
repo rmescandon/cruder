@@ -20,17 +20,12 @@
 package io
 
 import (
-	"bytes"
 	"go/ast"
-	"go/parser"
-	"go/printer"
-	"go/token"
 )
 
 // Content payload in two formats, byte arrays or syntax tree
 type Content struct {
-	Bytes []byte
-	Ast   *ast.File
+	Ast *ast.File
 }
 
 // NewContent returns a pointer to a content struct from a string payload
@@ -40,41 +35,14 @@ func NewContent(str string) (*Content, error) {
 		return nil, err
 	}
 
-	return &Content{
-		Bytes: []byte(str),
-		Ast:   ast,
-	}, nil
+	return &Content{ast}, nil
 }
 
-// ByteArrayToAST composes syntax tree from a byte array content
-func ByteArrayToAST(buf []byte) (*ast.File, error) {
-	return parser.ParseFile(token.NewFileSet(), "", buf, 0)
+// Bytes returns the content as a byte array
+func (c *Content) Bytes() ([]byte, error) {
+	return ASTToByteArray(c.Ast)
 }
 
-// StringToAST composes syntax tree from a string
-func StringToAST(str string) (*ast.File, error) {
-	return parser.ParseFile(token.NewFileSet(), "", str, 0)
-}
-
-// ASTToString returns a syntax tree as a string
-func ASTToString(ast *ast.File) (string, error) {
-	b, err := astToBuffer(ast)
-	return b.String(), err
-}
-
-// ASTToByteArray returns a syntax tree as a byte array
-func ASTToByteArray(ast *ast.File) ([]byte, error) {
-	b, err := astToBuffer(ast)
-	return b.Bytes(), err
-}
-
-func astToBuffer(ast *ast.File) (bytes.Buffer, error) {
-	var buf bytes.Buffer
-	err := printer.Fprint(&buf, token.NewFileSet(), ast)
-	return buf, err
-}
-
-// TraceAST prints out AST file content
-func TraceAST(f *ast.File) error {
-	return ast.Print(token.NewFileSet(), f)
+func (c *Content) String() (string, error) {
+	return ASTToString(c.Ast)
 }

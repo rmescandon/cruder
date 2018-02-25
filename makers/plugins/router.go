@@ -44,7 +44,7 @@ func (r *Router) OutputFilepath() string {
 }
 
 // Make copies template to output path
-func (r *Reply) Make(generatedOutput *io.Content, currentOutput *io.Content) (string, error) {
+func (r *Reply) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
 	if currentOutput != nil {
 		// Search generated handlers amongst existing ones and add only new ones
 		stmts := getRouterFunctionStatements(currentOutput.Ast)
@@ -59,10 +59,10 @@ func (r *Reply) Make(generatedOutput *io.Content, currentOutput *io.Content) (st
 
 		addStatements(currentOutput.Ast, stmtsToAdd)
 
-		return io.ASTToString(currentOutput.Ast)
+		return currentOutput, nil
 	}
 
-	return string(generatedOutput.Bytes)
+	return generatedOutput, nil
 }
 
 func addStatements(file *ast.File, stmts []ast.Stmt) {

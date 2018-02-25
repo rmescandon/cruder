@@ -48,7 +48,7 @@ func (ds *Datastore) OutputFilepath() string {
 }
 
 // Make generates the result
-func (ds *Datastore) Make(generatedOutput *io.Content, currentOutput *io.Content) (string, error) {
+func (ds *Datastore) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
 	if currentOutput != nil {
 		// in case if does exist, it should match the types file. Otherwise it's an error
 		if ds.OutputFilepath() != ds.TypeHolder.Source.Path {
@@ -74,10 +74,10 @@ func (ds *Datastore) Make(generatedOutput *io.Content, currentOutput *io.Content
 			}
 		}
 
-		return io.ASTToString(currentOutput.Ast)
+		return currentOutput, nil
 	}
 
-	return string(generatedOutput.Bytes)
+	return generatedOutput, nil
 }
 
 func init() {

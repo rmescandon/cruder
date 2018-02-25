@@ -47,12 +47,12 @@ func (h *Handler) OutputFilepath() string {
 }
 
 // Make generates the results
-func (db *Db) Make(generatedOutput *io.Content, currentOutput *io.Content) (string, error) {
+func (db *Db) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
 	if currentOutput != nil {
-		return "", errs.NewErrOutputExists(h.OutputFilepath())
+		return nil, errs.NewErrOutputExists(h.OutputFilepath())
 	}
 
-	return string(generatedOutput.Ast)
+	return generatedOutput, nil
 }
 
 func init() {

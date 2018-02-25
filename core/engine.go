@@ -139,13 +139,13 @@ func processMaker(typeHolder *parser.TypeHolder, template string) error {
 		return err
 	}
 
-	if len(result) > 0 {
+	if result != nil {
 		err = io.EnsureDir(filepath.Dir(maker.OutputFilepath()))
 		if err != nil {
 			return err
 		}
 
-		err = io.StringToFile(result, maker.OutputFilepath())
+		err = io.ASTToFile(result.Ast, maker.OutputFilepath())
 		if err != nil {
 			return err
 		}

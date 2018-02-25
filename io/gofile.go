@@ -39,10 +39,7 @@ func NewGoFile(filepath string) (*GoFile, error) {
 	}
 
 	return &GoFile{
-		Path: filepath,
-		Content: Content{
-			Bytes: buf,
-			Ast:   ast,
-		},
+		Path:    filepath,
+		Content: Content{Ast: ast},
 	}, nil
 }

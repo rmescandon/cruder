@@ -33,7 +33,7 @@ var BasePath string
 
 // Maker generates a Go output file
 type Maker interface {
-	Make(generatedOutput *io.Content, currentOutput *io.Content) (string, error)
+	Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error)
 	OutputFilepath() string
 }
 
