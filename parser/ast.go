@@ -35,7 +35,7 @@ func ComposeTypeHolders(source *io.GoFile) ([]*TypeHolder, error) {
 	decls := getTypeDecls(source.Ast)
 	for _, decl := range decls {
 		for _, spec := range decl.Specs {
-			fields, err := composeTypeFields(source.Content, spec)
+			fields, err := composeTypeFields(source.Bytes, spec)
 			if err != nil {
 				return holders, err
 			}

@@ -20,21 +20,17 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
 )
 
 // Handler makes the controller
 type Handler struct {
-	makers.BaseMaker
+	makers.Base
 }
 
 // ID returns the identifier 'handler' for this maker
@@ -45,52 +41,18 @@ func (h *Handler) ID() string {
 // OutputFilepath returns the path to the generated file
 func (h *Handler) OutputFilepath() string {
 	return filepath.Join(
-		config.Config.Output,
+		makers.BasePath,
 		h.ID(),
 		strings.ToLower(h.TypeHolder.Identifier())+".go")
 }
 
-// Make generates the output
-func (h *Handler) Make() error {
-	// check if output file exists
-	_, err := os.Stat(h.OutputFilepath())
-	if err == nil {
-		return errs.NewErrOutputExists(h.OutputFilepath())
+// Make generates the results
+func (db *Db) Make(generatedOutput *io.Content, currentOutput *io.Content) (string, error) {
+	if currentOutput != nil {
+		return "", errs.NewErrOutputExists(h.OutputFilepath())
 	}
 
-	io.EnsureDir(filepath.Dir(h.OutputFilepath()))
-
-	log.Debugf("Loadig template: %v", filepath.Base(h.Template))
-	templateContent, err := io.FileToString(h.Template)
-	if err != nil {
-		return fmt.Errorf("Error reading template file: %v", err)
-	}
-
-	replacedStr, err := h.TypeHolder.ReplaceInTemplate(templateContent)
-	if err != nil {
-		return fmt.Errorf("Error replacing type %v over template %v",
-			h.TypeHolder.Name, filepath.Base(h.Template))
-	}
-
-	replacedStr, err = config.Config.ReplaceInTemplate(replacedStr)
-	if err != nil {
-		return fmt.Errorf("Error replacing configuration over template %v",
-			filepath.Base(h.Template))
-	}
-
-	f, err := os.Create(h.OutputFilepath())
-	if err != nil {
-		return fmt.Errorf("Could not create %v: %v", h.OutputFilepath(), err)
-	}
-	defer f.Close()
-
-	_, err = f.WriteString(replacedStr)
-	if err != nil {
-		return fmt.Errorf("Error writing to output %v: %v", h.OutputFilepath(), err)
-	}
-
-	log.Infof("Generated: %v", h.OutputFilepath())
-	return nil
+	return string(generatedOutput.Ast)
 }
 
 func init() {

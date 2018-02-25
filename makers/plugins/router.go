@@ -20,21 +20,17 @@
 package main
 
 import (
-	"fmt"
 	"go/ast"
-	"os"
 	"path/filepath"
 
-	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // Router generates service/router.go output go file
 type Router struct {
-	makers.BaseMaker
+	makers.Base
 }
 
 // ID returns 'router' as this maker identifier
@@ -44,77 +40,29 @@ func (r *Router) ID() string {
 
 // OutputFilepath returns the path to generated file
 func (r *Router) OutputFilepath() string {
-	return filepath.Join(config.Config.Output, "/service/router.go")
+	return filepath.Join(makers.BasePath, "/service/router.go")
 }
 
-// Make generates the results
-func (r *Router) Make() error {
-	// Execute the replacement
-	log.Debugf("Loadig template: %v", filepath.Base(r.Template))
-	templateContent, err := io.FileToString(r.Template)
-	if err != nil {
-		return fmt.Errorf("Error reading template file: %v", err)
-	}
-
-	replacedStr, err := r.TypeHolder.ReplaceInTemplate(templateContent)
-	if err != nil {
-		return fmt.Errorf("Error replacing type %v over template %v",
-			r.TypeHolder.Name, filepath.Base(r.Template))
-	}
-
-	replacedStr, err = config.Config.ReplaceInTemplate(replacedStr)
-	if err != nil {
-		return fmt.Errorf("Error replacing configuration over template %v",
-			filepath.Base(r.Template))
-	}
-
-	// Check if output file exists to merge current with existing output
-	_, err = os.Stat(r.OutputFilepath())
-	if err == nil {
-		return r.mergeExistingOutput(replacedStr)
-	}
-
-	// Create needed dirs to outputPath and write out substituted string
-	io.EnsureDir(filepath.Dir(r.OutputFilepath()))
-
-	io.StringToFile(replacedStr, r.OutputFilepath())
-
-	log.Infof("Generated: %v", r.OutputFilepath())
-	return nil
-}
-
-func (r *Router) mergeExistingOutput(replacedStr string) error {
-	log.Infof("Merging new type into: %v", r.OutputFilepath())
-	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
-	if err != nil {
-		return err
-	}
-
-	// Load current output
-	content, err := io.FileToByteArray(r.OutputFilepath())
-	if err != nil {
-		return err
-	}
-
-	currentAst, err := io.ByteArrayToAST(content)
-	if err != nil {
-		return err
-	}
-
-	// Search generated handlers amongst existing ones and add only new ones
-	stmts := getRouterFunctionStatements(currentAst)
-	existingHandlers := findHandlersInStatements(stmts)
-	generatedHandlers := findHandlers(generatedAst)
-	stmtsToAdd := []ast.Stmt{}
-	for k := range generatedHandlers {
-		if _, ok := existingHandlers[k]; !ok {
-			stmtsToAdd = append(stmtsToAdd, generatedHandlers[k])
+// Make copies template to output path
+func (r *Reply) Make(generatedOutput *io.Content, currentOutput *io.Content) (string, error) {
+	if currentOutput != nil {
+		// Search generated handlers amongst existing ones and add only new ones
+		stmts := getRouterFunctionStatements(currentOutput.Ast)
+		existingHandlers := findHandlersInStatements(stmts)
+		generatedHandlers := findHandlers(generatedOutput.Ast)
+		stmtsToAdd := []ast.Stmt{}
+		for k := range generatedHandlers {
+			if _, ok := existingHandlers[k]; !ok {
+				stmtsToAdd = append(stmtsToAdd, generatedHandlers[k])
+			}
 		}
+
+		addStatements(currentOutput.Ast, stmtsToAdd)
+
+		return io.ASTToString(currentOutput.Ast)
 	}
 
-	addStatements(currentAst, stmtsToAdd)
-
-	return io.ASTToFile(currentAst, r.OutputFilepath())
+	return string(generatedOutput.Bytes)
 }
 
 func addStatements(file *ast.File, stmts []ast.Stmt) {

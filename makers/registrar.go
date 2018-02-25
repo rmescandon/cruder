@@ -31,8 +31,8 @@ import (
 type Registrant interface {
 	Maker
 	ID() string
+	SetBasePath()
 	SetTypeHolder(*parser.TypeHolder)
-	SetTemplate(string)
 }
 
 var registeredMakers map[string]Registrant

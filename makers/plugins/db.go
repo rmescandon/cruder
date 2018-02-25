@@ -21,19 +21,16 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
-	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // Db maker to include types in datastore interface
 type Db struct {
-	makers.BaseMaker
+	makers.Base
 }
 
 // ID returns 'db'
@@ -43,74 +40,26 @@ func (db *Db) ID() string {
 
 // OutputFilepath returns the path to generated file
 func (db *Db) OutputFilepath() string {
-	return filepath.Join(config.Config.Output, fmt.Sprintf("datastore/%v.go", db.ID()))
+	return filepath.Join(makers.BasePath, fmt.Sprintf("datastore/%v.go", db.ID()))
 }
 
 // Make generates the results
-func (db *Db) Make() error {
-	// Execute the replacement
-	log.Debugf("Loadig template: %v", filepath.Base(db.Template))
-	templateContent, err := io.FileToString(db.Template)
-	if err != nil {
-		return fmt.Errorf("Error reading template file: %v", err)
-	}
+func (db *Db) Make(generatedOutput *io.Content, currentOutput *io.Content) (string, error) {
+	if currentOutput != nil {
+		generatedIface := parser.GetInterface(generatedOutput.Ast, "Datastore")
+		currentIface := parser.GetInterface(currentOutput.Ast, "Datastore")
 
-	replacedStr, err := db.TypeHolder.ReplaceInTemplate(templateContent)
-	if err != nil {
-		return fmt.Errorf("Error replacing type %v over template %v",
-			db.TypeHolder.Name, filepath.Base(db.Template))
-	}
-
-	// Check if output file exists
-	_, err = os.Stat(db.OutputFilepath())
-	if err == nil {
-		return db.mergeExistingOutput(replacedStr)
-	}
-
-	// Create needed dirs to outputPath and write out substituted string
-	io.EnsureDir(filepath.Dir(db.OutputFilepath()))
-
-	io.StringToFile(replacedStr, db.OutputFilepath())
-
-	log.Infof("Generated: %v", db.OutputFilepath())
-	return nil
-}
-
-// mergeExistingOutput resolves the conflict when already exists an output file
-func (db *Db) mergeExistingOutput(replacedStr string) error {
-	log.Infof("Merging new type into: %v", db.OutputFilepath())
-	generatedAst, err := io.ByteArrayToAST([]byte(replacedStr))
-	if err != nil {
-		return err
-	}
-
-	// Load current output
-	content, err := io.FileToByteArray(db.OutputFilepath())
-	if err != nil {
-		return err
-	}
-
-	currentAst, err := io.ByteArrayToAST(content)
-	if err != nil {
-		return err
-	}
-
-	generatedIface := parser.GetInterface(generatedAst, "Datastore")
-	currentIface := parser.GetInterface(currentAst, "Datastore")
-
-	// Search for generatedIface methods into currentIface and add them if not found
-	for _, method := range parser.GetInterfaceMethods(generatedIface) {
-		if !parser.HasMethod(currentIface, method.Names[0].Name) {
-			parser.AddMethod(currentIface, method)
+		// Search for generatedIface methods into currentIface and add them if not found
+		for _, method := range parser.GetInterfaceMethods(generatedIface) {
+			if !parser.HasMethod(currentIface, method.Names[0].Name) {
+				parser.AddMethod(currentIface, method)
+			}
 		}
+
+		return io.ASTToString(currentOutput.Ast)
 	}
 
-	// Write out the resultant modified Datastore interface to output
-	// TODO VERIFY that using pointers is enough to alter generatedAst before writing out
-	io.ASTToFile(currentAst, db.OutputFilepath())
-	log.Infof("Merged into: %v successfully", db.OutputFilepath())
-
-	return nil
+	return string(generatedOutput.Bytes)
 }
 
 func init() {
