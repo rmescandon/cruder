@@ -33,13 +33,20 @@ var BasePath string
 
 // Maker generates a Go output file
 type Maker interface {
+	ID() string
 	Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error)
 	OutputFilepath() string
 }
 
 // Base represents common members for any maker
 type Base struct {
+	BasePath   string
 	TypeHolder *parser.TypeHolder
+}
+
+// SetBasePath sets the output local path for the generated stuff
+func (b *Base) SetBasePath(basePath string) {
+	b.BasePath = basePath
 }
 
 // SetTypeHolder sets the holder for the type this maker uses

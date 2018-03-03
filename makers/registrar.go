@@ -30,8 +30,7 @@ import (
 // It is used to allow registering new makers
 type Registrant interface {
 	Maker
-	ID() string
-	SetBasePath()
+	SetBasePath(string)
 	SetTypeHolder(*parser.TypeHolder)
 }
 

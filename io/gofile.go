@@ -19,6 +19,12 @@
 
 package io
 
+import (
+	"os"
+
+	"github.com/rmescandon/cruder/errs"
+)
+
 // GoFile represents a go source code disk resource. Each struct
 // member is a different way of having same info
 type GoFile struct {
@@ -28,6 +34,10 @@ type GoFile struct {
 
 // NewGoFile returns a brand new GoFile instance
 func NewGoFile(filepath string) (*GoFile, error) {
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		return nil, errs.NewErrNotFound(filepath)
+	}
+
 	buf, err := FileToByteArray(filepath)
 	if err != nil {
 		return nil, err

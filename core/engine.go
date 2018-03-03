@@ -29,13 +29,16 @@ import (
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
+	"github.com/rmescandon/cruder/makers/builtin"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
 func GenerateSkeletonCode() error {
-
 	log.Info("Generating Skeleton Code...")
+
+	//TODO TEST
+	builtin.DoNothing()
 
 	makers.BasePath = config.Config.Output
 
@@ -117,6 +120,7 @@ func processMaker(typeHolder *parser.TypeHolder, template string) error {
 		return err
 	}
 
+	maker.(makers.Registrant).SetBasePath(config.Config.Output)
 	maker.(makers.Registrant).SetTypeHolder(typeHolder)
 
 	merged, err := merge(typeHolder, template)
@@ -129,12 +133,20 @@ func processMaker(typeHolder *parser.TypeHolder, template string) error {
 		return err
 	}
 
-	currentOutput, err := io.NewGoFile(maker.OutputFilepath())
+	var currentOutput *io.Content
+	currentOutputFile, err := io.NewGoFile(maker.OutputFilepath())
 	if err != nil {
-		return err
+		switch err.(type) {
+		case errs.ErrNotFound:
+			currentOutput = nil
+		default:
+			return err
+		}
+	} else {
+		currentOutput = &currentOutputFile.Content
 	}
 
-	result, err := maker.Make(generatedOutput, &currentOutput.Content)
+	result, err := maker.Make(generatedOutput, currentOutput)
 	if err != nil {
 		return err
 	}
@@ -159,7 +171,7 @@ func processMaker(typeHolder *parser.TypeHolder, template string) error {
 // Merges type, config and template, returning the result as a string
 func merge(typeHolder *parser.TypeHolder, templateFilepath string) (string, error) {
 	// execute the replacement
-	log.Debugf("Loadig template: %v", filepath.Base(templateFilepath))
+	log.Debugf("Loading template: %v", filepath.Base(templateFilepath))
 	templateContent, err := io.FileToString(templateFilepath)
 	if err != nil {
 		return "", fmt.Errorf("Error reading template file: %v", err)
