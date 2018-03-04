@@ -25,16 +25,22 @@ import (
 	"plugin"
 
 	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
+	"github.com/rmescandon/cruder/makers/builtin"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
 func GenerateSkeletonCode() error {
-
 	log.Info("Generating Skeleton Code...")
+
+	//TODO TEST
+	builtin.DoNothing()
+
+	makers.BasePath = config.Config.Output
 
 	err := loadPlugins()
 	if err != nil {
@@ -56,20 +62,7 @@ func GenerateSkeletonCode() error {
 		return fmt.Errorf("Error listing available templates: %v", err)
 	}
 
-	makers, err := buildMakers(typeHolders, templates)
-	if err != nil {
-		return err
-	}
-
-	for _, maker := range makers {
-		err := maker.Make()
-		if err != nil {
-			log.Warningf("Could not run maker: %v", err)
-			continue
-		}
-	}
-
-	return nil
+	return processMakers(typeHolders, templates)
 }
 
 func loadPlugins() error {
@@ -102,21 +95,99 @@ func availableTemplates() ([]string, error) {
 	return filepath.Glob(filepath.Join(config.Config.TemplatesPath, "*.template"))
 }
 
-func buildMakers(holders []*parser.TypeHolder, templates []string) ([]makers.Maker, error) {
-	var mks []makers.Maker
+func processMakers(holders []*parser.TypeHolder, templates []string) error {
 	for _, t := range templates {
 		log.Infof("Found template: %v", filepath.Base(t))
 		for _, h := range holders {
-			//FIXME: this won't work as every maker associated with a type is reused for the next type
-			// Execute Run for every maker got until next one or
-			// Create dynamic objects by reflection into makers.Get
-			m, err := makers.New(h, t)
+			err := processMaker(h, t)
 			if err != nil {
-				return []makers.Maker{}, err
+				return err
 			}
-			mks = append(mks, m)
 		}
 
 	}
-	return mks, nil
+	return nil
+}
+
+func processMaker(typeHolder *parser.TypeHolder, template string) error {
+	maker, err := makers.Get(template)
+	switch err.(type) {
+	case errs.ErrNotFound:
+		log.Warningf("Maker not found, skipped - %v", err)
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	maker.(makers.Registrant).SetBasePath(config.Config.Output)
+	maker.(makers.Registrant).SetTypeHolder(typeHolder)
+
+	merged, err := merge(typeHolder, template)
+	if err != nil {
+		return err
+	}
+
+	generatedOutput, err := io.NewContent(merged)
+	if err != nil {
+		return err
+	}
+
+	var currentOutput *io.Content
+	currentOutputFile, err := io.NewGoFile(maker.OutputFilepath())
+	if err != nil {
+		switch err.(type) {
+		case errs.ErrNotFound:
+			currentOutput = nil
+		default:
+			return err
+		}
+	} else {
+		currentOutput = &currentOutputFile.Content
+	}
+
+	result, err := maker.Make(generatedOutput, currentOutput)
+	if err != nil {
+		return err
+	}
+
+	if result != nil {
+		err = io.EnsureDir(filepath.Dir(maker.OutputFilepath()))
+		if err != nil {
+			return err
+		}
+
+		err = io.ASTToFile(result.Ast, maker.OutputFilepath())
+		if err != nil {
+			return err
+		}
+
+		log.Infof("Generated: %v", maker.OutputFilepath())
+	}
+
+	return nil
+}
+
+// Merges type, config and template, returning the result as a string
+func merge(typeHolder *parser.TypeHolder, templateFilepath string) (string, error) {
+	// execute the replacement
+	log.Debugf("Loading template: %v", filepath.Base(templateFilepath))
+	templateContent, err := io.FileToString(templateFilepath)
+	if err != nil {
+		return "", fmt.Errorf("Error reading template file: %v", err)
+	}
+
+	replacedStr, err := typeHolder.ReplaceInTemplate(templateContent)
+	if err != nil {
+		return "", fmt.Errorf("Error replacing type %v over template %v",
+			typeHolder.Name, filepath.Base(templateFilepath))
+	}
+
+	replacedStr, err = config.Config.ReplaceInTemplate(replacedStr)
+	if err != nil {
+		return "", fmt.Errorf("Error replacing configuration over template %v",
+			filepath.Base(templateFilepath))
+	}
+
+	return replacedStr, err
 }

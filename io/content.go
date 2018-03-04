@@ -20,36 +20,29 @@
 package io
 
 import (
-	"os"
-
-	"github.com/rmescandon/cruder/errs"
+	"go/ast"
 )
 
-// GoFile represents a go source code disk resource. Each struct
-// member is a different way of having same info
-type GoFile struct {
-	Path string
-	Content
+// Content payload in two formats, byte arrays or syntax tree
+type Content struct {
+	Ast *ast.File
 }
 
-// NewGoFile returns a brand new GoFile instance
-func NewGoFile(filepath string) (*GoFile, error) {
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		return nil, errs.NewErrNotFound(filepath)
-	}
-
-	buf, err := FileToByteArray(filepath)
+// NewContent returns a pointer to a content struct from a string payload
+func NewContent(str string) (*Content, error) {
+	ast, err := StringToAST(str)
 	if err != nil {
 		return nil, err
 	}
 
-	ast, err := ByteArrayToAST(buf)
-	if err != nil {
-		return nil, err
-	}
+	return &Content{ast}, nil
+}
 
-	return &GoFile{
-		Path:    filepath,
-		Content: Content{Ast: ast},
-	}, nil
+// Bytes returns the content as a byte array
+func (c *Content) Bytes() ([]byte, error) {
+	return ASTToByteArray(c.Ast)
+}
+
+func (c *Content) String() (string, error) {
+	return ASTToString(c.Ast)
 }

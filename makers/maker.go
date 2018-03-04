@@ -24,33 +24,38 @@ import (
 	"path/filepath"
 
 	"github.com/rmescandon/cruder/errs"
+	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/parser"
 )
 
+// BasePath local folder taken as base path by Makers to write their results
+var BasePath string
+
 // Maker generates a Go output file
 type Maker interface {
-	Make() error
+	ID() string
+	Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error)
 	OutputFilepath() string
 }
 
-// BaseMaker represents common members for any maker
-type BaseMaker struct {
+// Base represents common members for any maker
+type Base struct {
+	BasePath   string
 	TypeHolder *parser.TypeHolder
-	Template   string
 }
 
-// SetTypeHolder sets the type holder for this maker
-func (bm *BaseMaker) SetTypeHolder(holder *parser.TypeHolder) {
-	bm.TypeHolder = holder
+// SetBasePath sets the output local path for the generated stuff
+func (b *Base) SetBasePath(basePath string) {
+	b.BasePath = basePath
 }
 
-// SetTemplate sets template path for this maker
-func (bm *BaseMaker) SetTemplate(template string) {
-	bm.Template = template
+// SetTypeHolder sets the holder for the type this maker uses
+func (b *Base) SetTypeHolder(t *parser.TypeHolder) {
+	b.TypeHolder = t
 }
 
-// New returns the maker for certain template, to be applied using certain type holder
-func New(holder *parser.TypeHolder, template string) (Maker, error) {
+// Get returns the maker related with the template ID
+func Get(template string) (Maker, error) {
 	if registeredMakers == nil {
 		return nil, errs.ErrNoMakerRegistered
 	}
@@ -61,8 +66,6 @@ func New(holder *parser.TypeHolder, template string) (Maker, error) {
 		return nil, errs.NewErrNotFound(fmt.Sprintf("Maker with id '%v'", templateID))
 	}
 
-	maker.SetTypeHolder(holder)
-	maker.SetTemplate(template)
 	return maker, nil
 }
 

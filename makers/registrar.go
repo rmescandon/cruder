@@ -30,9 +30,8 @@ import (
 // It is used to allow registering new makers
 type Registrant interface {
 	Maker
-	ID() string
+	SetBasePath(string)
 	SetTypeHolder(*parser.TypeHolder)
-	SetTemplate(string)
 }
 
 var registeredMakers map[string]Registrant

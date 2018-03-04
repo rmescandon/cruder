@@ -17,20 +17,19 @@
  *
  */
 
-package main
+package builtin
 
 import (
-	"os"
 	"path/filepath"
 
-	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/errs"
+	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/makers"
 )
 
 // Reply struct holding data to copy reply template
 type Reply struct {
-	makers.CopyMaker
+	makers.Base
 }
 
 // ID returns 'reply' as this maker identifier
@@ -40,17 +39,16 @@ func (r *Reply) ID() string {
 
 // OutputFilepath returns the path to the output file
 func (r *Reply) OutputFilepath() string {
-	return filepath.Join(config.Config.Output, "handler/reply.go")
+	return filepath.Join(makers.BasePath, "handler/reply.go")
 }
 
 // Make copies template to output path
-func (r *Reply) Make() error {
-	_, err := os.Stat(r.OutputFilepath())
-	if err == nil {
-		return errs.NewErrOutputExists(r.OutputFilepath())
+func (r *Reply) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
+	if currentOutput != nil {
+		return nil, errs.NewErrOutputExists(r.OutputFilepath())
 	}
 
-	return r.CopyMaker.Copy(r.OutputFilepath())
+	return generatedOutput, nil
 }
 
 func init() {

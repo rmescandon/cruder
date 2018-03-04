@@ -27,12 +27,35 @@ import (
 	"go/printer"
 	"go/token"
 	"os"
+	"path/filepath"
 )
 
 // ByteArrayToAST composes syntax tree from a byte array content
-func ByteArrayToAST(content []byte) (*ast.File, error) {
-	// TODO use parser.Trace Mode (last param) instead of 0 to see what is being parsed
-	return parser.ParseFile(token.NewFileSet(), "", content, 0)
+func ByteArrayToAST(buf []byte) (*ast.File, error) {
+	return parser.ParseFile(token.NewFileSet(), "", buf, 0)
+}
+
+// StringToAST composes syntax tree from a string
+func StringToAST(str string) (*ast.File, error) {
+	return parser.ParseFile(token.NewFileSet(), "", str, 0)
+}
+
+// ASTToString returns a syntax tree as a string
+func ASTToString(ast *ast.File) (string, error) {
+	b, err := astToBuffer(ast)
+	return b.String(), err
+}
+
+// ASTToByteArray returns a syntax tree as a byte array
+func ASTToByteArray(ast *ast.File) ([]byte, error) {
+	b, err := astToBuffer(ast)
+	return b.Bytes(), err
+}
+
+func astToBuffer(ast *ast.File) (bytes.Buffer, error) {
+	var buf bytes.Buffer
+	err := printer.Fprint(&buf, token.NewFileSet(), ast)
+	return buf, err
 }
 
 // TraceAST prints out AST file content
@@ -41,8 +64,8 @@ func TraceAST(f *ast.File) error {
 }
 
 // FileToString reads file content and stores it in a string
-func FileToString(filepath string) (string, error) {
-	b, err := fileToBuffer(filepath)
+func FileToString(file string) (string, error) {
+	b, err := fileToBuffer(file)
 	if err != nil {
 		return "", err
 	}
@@ -50,8 +73,8 @@ func FileToString(filepath string) (string, error) {
 }
 
 // FileToByteArray reads file content and stores it in a byte array
-func FileToByteArray(filepath string) ([]byte, error) {
-	b, err := fileToBuffer(filepath)
+func FileToByteArray(file string) ([]byte, error) {
+	b, err := fileToBuffer(file)
 	if err != nil {
 		return nil, err
 	}
@@ -69,10 +92,15 @@ func ByteArrayToFile(content []byte, filepath string) error {
 }
 
 // ASTToFile writes a syntax tree to file
-func ASTToFile(ast *ast.File, filepath string) error {
-	f, err := os.Create(filepath)
+func ASTToFile(ast *ast.File, file string) error {
+	err := EnsureDir(filepath.Dir(file))
 	if err != nil {
-		return fmt.Errorf("Could not create %v: %v", filepath, err)
+		return err
+	}
+
+	f, err := os.Create(file)
+	if err != nil {
+		return fmt.Errorf("Could not create %v: %v", file, err)
 	}
 	defer f.Close()
 
@@ -80,10 +108,15 @@ func ASTToFile(ast *ast.File, filepath string) error {
 }
 
 // writeToFile writes a string content to a file
-func writeToFile(content interface{}, filepath string) error {
-	f, err := os.Create(filepath)
+func writeToFile(content interface{}, file string) error {
+	err := EnsureDir(filepath.Dir(file))
 	if err != nil {
-		return fmt.Errorf("Could not create %v: %v", filepath, err)
+		return err
+	}
+
+	f, err := os.Create(file)
+	if err != nil {
+		return fmt.Errorf("Could not create %v: %v", file, err)
 	}
 	defer f.Close()
 
@@ -94,14 +127,14 @@ func writeToFile(content interface{}, filepath string) error {
 		_, err = f.WriteString(content.(string))
 	}
 	if err != nil {
-		return fmt.Errorf("Error writing to output %v: %v", filepath, err)
+		return fmt.Errorf("Error writing to output %v: %v", file, err)
 	}
 
 	return nil
 }
 
-func fileToBuffer(filepath string) (*bytes.Buffer, error) {
-	f, err := os.Open(filepath)
+func fileToBuffer(file string) (*bytes.Buffer, error) {
+	f, err := os.Open(file)
 	if err != nil {
 		return nil, err
 	}
