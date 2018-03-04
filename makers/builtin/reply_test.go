@@ -20,15 +20,6 @@
 package builtin
 
 import (
-	"io/ioutil"
-
-	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/errs"
-	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/makers"
-	"github.com/rmescandon/cruder/parser"
-	"github.com/rmescandon/cruder/testdata"
-
 	check "gopkg.in/check.v1"
 )
 
@@ -36,6 +27,7 @@ type ReplySuite struct{}
 
 var _ = check.Suite(&ReplySuite{})
 
+/*
 func (s *ReplySuite) TestCopyReply(c *check.C) {
 	//--------------------------------------------------------------------------
 	// 1.- Create an output file, not having a previous existing file
@@ -94,3 +86,4 @@ func (s *ReplySuite) TestCopyReply(c *check.C) {
 		c.Fail()
 	}
 }
+*/

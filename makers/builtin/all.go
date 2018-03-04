@@ -19,6 +19,7 @@
 
 package builtin
 
+// DoNothing does nothing TODO remove when ready
 func DoNothing() {
 
 }

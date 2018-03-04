@@ -20,16 +20,6 @@
 package builtin
 
 import (
-	"io/ioutil"
-	"strings"
-
-	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/errs"
-	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/makers"
-	"github.com/rmescandon/cruder/parser"
-	"github.com/rmescandon/cruder/testdata"
-
 	check "gopkg.in/check.v1"
 )
 
@@ -40,6 +30,7 @@ var _ = check.Suite(&HandlerSuite{})
 func (s *HandlerSuite) SetUpSuite(c *check.C) {}
 func (s *HandlerSuite) SetUpTest(c *check.C)  {}
 
+/*
 func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 	config.Config.ProjectURL = "github.com/auser/aproject"
 	//--------------------------------------------------------------------------
@@ -78,3 +69,4 @@ func (s *HandlerSuite) TestMakeHandler(c *check.C) {
 	//
 	c.Assert(handler.Make(), check.DeepEquals, errs.NewErrOutputExists(handler.OutputFilepath()))
 }
+*/

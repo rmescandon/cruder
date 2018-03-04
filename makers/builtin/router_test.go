@@ -20,15 +20,6 @@
 package builtin
 
 import (
-	"io/ioutil"
-	"strings"
-
-	"github.com/rmescandon/cruder/config"
-	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/makers"
-	"github.com/rmescandon/cruder/parser"
-	"github.com/rmescandon/cruder/testdata"
-
 	check "gopkg.in/check.v1"
 )
 
@@ -36,6 +27,7 @@ type RouterSuite struct{}
 
 var _ = check.Suite(&RouterSuite{})
 
+/*
 func (s *RouterSuite) TestMakeRouter(c *check.C) {
 	//--------------------------------------------------------------------------
 	// 1.- Create an output file for MyType, not having a previous existing file
@@ -104,3 +96,4 @@ func (s *RouterSuite) TestMakeRouter(c *check.C) {
 	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
 	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
 }
+*/
