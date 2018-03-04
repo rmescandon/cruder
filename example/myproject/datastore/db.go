@@ -21,6 +21,7 @@ package datastore
 
 import (
 	"database/sql"
+	"log"
 )
 
 // Datastore interface for different data storages
@@ -41,3 +42,20 @@ type DB struct {
 
 // Db pointer to database hander
 var Db *DB
+
+// OpenSysDatabase Return an open database connection
+func OpenSysDatabase(driver, dataSource string) {
+	// Open the database connection
+	db, err := sql.Open(driver, dataSource)
+	if err != nil {
+		log.Fatalf("Error opening the database: %v\n", err)
+	}
+
+	// Check that we have a valid database connection
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("Error accessing the database: %v\n", err)
+	}
+
+	Db = &DB{db}
+}
