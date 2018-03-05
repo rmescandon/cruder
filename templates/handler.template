@@ -17,7 +17,7 @@
  *
  */
 
-package service
+package handler
 
 import (
 	"encoding/json"

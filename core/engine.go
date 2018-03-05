@@ -62,7 +62,9 @@ func GenerateSkeletonCode() error {
 		return fmt.Errorf("Error listing available templates: %v", err)
 	}
 
-	return processMakers(typeHolders, templates)
+	processMakers(typeHolders, templates)
+
+	return nil
 }
 
 func loadPlugins() error {
@@ -95,18 +97,18 @@ func availableTemplates() ([]string, error) {
 	return filepath.Glob(filepath.Join(config.Config.TemplatesPath, "*.template"))
 }
 
-func processMakers(holders []*parser.TypeHolder, templates []string) error {
+func processMakers(holders []*parser.TypeHolder, templates []string) {
 	for _, t := range templates {
 		log.Infof("Found template: %v", filepath.Base(t))
 		for _, h := range holders {
 			err := processMaker(h, t)
 			if err != nil {
-				return err
+				// warn of the error but continue with next maker
+				log.Warning(err)
 			}
 		}
 
 	}
-	return nil
 }
 
 func processMaker(typeHolder *parser.TypeHolder, template string) error {

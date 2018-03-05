@@ -21,8 +21,7 @@ package datastore
 
 // UpdateDatabase creates or updates tables by using DDL
 func UpdateDatabase() error {
-	err := Db.Create_#TYPE#_Table()
-	if err != nil {
+	if err := Db.Create_#TYPE#_Table(); err != nil {
 		return err
 	}
 

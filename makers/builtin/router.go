@@ -111,8 +111,9 @@ func findHandlersInStatements(stmts []*ast.ExprStmt) map[string]*ast.ExprStmt {
 		for _, arg := range s.X.(*ast.CallExpr).Fun.(*ast.SelectorExpr).X.(*ast.CallExpr).Args {
 			for _, ident := range arg.(*ast.CallExpr).Args {
 				switch ident.(type) {
-				case *ast.Ident:
-					handlers[ident.(*ast.Ident).Name] = s
+				case *ast.SelectorExpr:
+					n := ident.(*ast.SelectorExpr).Sel.Name
+					handlers[n] = s
 				}
 			}
 		}
