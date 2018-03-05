@@ -27,30 +27,30 @@ import (
 	"github.com/rmescandon/cruder/makers"
 )
 
-// Service makes the controller
-type Service struct {
+// Main is this maker struct
+type Main struct {
 	makers.Base
 }
 
-// ID returns the identifier 'handler' for this maker
-func (s *Service) ID() string {
-	return "service"
+// ID returns the identifier 'main' for this maker
+func (m *Main) ID() string {
+	return "main"
 }
 
 // OutputFilepath returns the path to the generated file
-func (s *Service) OutputFilepath() string {
-	return filepath.Join(makers.BasePath, s.ID(), s.ID()+".go")
+func (m *Main) OutputFilepath() string {
+	return filepath.Join(makers.BasePath, "cmd/service", m.ID()+".go")
 }
 
 // Make generates the results
-func (s *Service) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
+func (m *Main) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
 	if currentOutput != nil {
-		return nil, errs.NewErrOutputExists(s.OutputFilepath())
+		return nil, errs.NewErrOutputExists(m.OutputFilepath())
 	}
 
 	return generatedOutput, nil
 }
 
 func init() {
-	makers.Register(&Service{})
+	makers.Register(&Main{})
 }

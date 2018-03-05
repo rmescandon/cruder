@@ -42,7 +42,11 @@ func (d *DDL) OutputFilepath() string {
 }
 
 // Make generates the results
-func (h *Handler) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
+func (d *DDL) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
+
+	// TODO TRACE
+	generatedOutput.Trace()
+
 	// TODO IMPLEMENT
 	return nil, nil
 }

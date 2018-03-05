@@ -21,7 +21,10 @@ package datastore
 
 import (
 	"database/sql"
-	"log"
+	"fmt"
+
+	// Import the sqlite3 database driver
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Datastore interface for different data storages
@@ -44,18 +47,20 @@ type DB struct {
 var Db *DB
 
 // OpenSysDatabase Return an open database connection
-func OpenSysDatabase(driver, dataSource string) {
+func OpenSysDatabase(driver, dataSource string) error {
 	// Open the database connection
 	db, err := sql.Open(driver, dataSource)
 	if err != nil {
-		log.Fatalf("Error opening the database: %v\n", err)
+		return fmt.Errorf("Error opening the database: %v\n", err)
 	}
 
 	// Check that we have a valid database connection
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("Error accessing the database: %v\n", err)
+		return fmt.Errorf("Error accessing the database: %v\n", err)
 	}
 
 	Db = &DB{db}
+
+	return nil
 }

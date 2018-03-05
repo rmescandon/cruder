@@ -116,7 +116,7 @@ func (holder *TypeHolder) identifierDotField(fieldName string) string {
 func (holder *TypeHolder) IDFieldInDDL() string {
 	result := strings.ToLower(holder.IDFieldName()) + " "
 	if holder.IDFieldType() == "int" {
-		result = result + "serial "
+		result = result + "integer "
 	} else {
 		result = result + holder.IDFieldType() + " "
 	}
@@ -289,7 +289,7 @@ func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, err
 	// &theType.Name, &theType.Description, &theType.Subtypes
 	replaced = strings.Replace(replaced, "_#FIELDS.ENUM.REF#_", holder.FieldsEnumRef(), -1)
 
-	// id int serial primary_key not null
+	// id integer primary_key not null
 	replaced = strings.Replace(replaced, "_#ID.FIELD.DDL#_", holder.IDFieldInDDL(), -1)
 
 	// Name			varchar,
