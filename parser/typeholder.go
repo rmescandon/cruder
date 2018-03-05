@@ -207,13 +207,13 @@ func (holder *TypeHolder) FieldsAsDMLParams() string {
 func (holder *TypeHolder) IDFieldTypeParse() string {
 	switch holder.IDFieldType() {
 	case "int":
-		return "strconv.Atoi(vars[\"" + holder.IDFieldName() + "\"])"
+		return "strconv.Atoi(vars[\"" + strings.ToLower(holder.IDFieldName()) + "\"])"
 	case "decimal":
-		return "strconv.ParseFloat(vars[\"" + holder.IDFieldName() + "\"])"
+		return "strconv.ParseFloat(vars[\"" + strings.ToLower(holder.IDFieldName()) + "\"])"
 	case "bool":
-		return "strconv.ParseBool(vars[\"" + holder.IDFieldName() + "\"])"
+		return "strconv.ParseBool(vars[\"" + strings.ToLower(holder.IDFieldName()) + "\"])"
 	default:
-		return "vars[\"" + holder.IDFieldName() + "\"]"
+		return "vars[\"" + strings.ToLower(holder.IDFieldName()) + "\"]"
 	}
 }
 
@@ -221,13 +221,13 @@ func (holder *TypeHolder) IDFieldTypeParse() string {
 func (holder *TypeHolder) IDFieldTypeFormat() string {
 	switch holder.IDFieldType() {
 	case "int":
-		return "strconv.Itoa(vars[\"" + holder.IDFieldName() + "\"])"
+		return "strconv.Itoa(" + strings.ToLower(holder.IDFieldName()) + ")"
 	case "decimal":
-		return "strconf.FormatFloat(vars[\"" + holder.IDFieldName() + "\"])"
+		return "strconf.FormatFloat(" + strings.ToLower(holder.IDFieldName()) + ")"
 	case "bool":
-		return "strconf.FormatBool(vars[\"" + holder.IDFieldName() + "\"])"
+		return "strconf.FormatBool(" + strings.ToLower(holder.IDFieldName()) + ")"
 	default:
-		return "vars[\"" + holder.IDFieldName() + "\"]"
+		return strings.ToLower(holder.IDFieldName())
 	}
 }
 
@@ -312,7 +312,7 @@ func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, err
 	// strconv.Atoi(vars["id"])
 	replaced = strings.Replace(replaced, "_#ID.FIELD.TYPE.PARSE#_", holder.IDFieldTypeParse(), -1)
 
-	// strconv.Itoa(vars["id"])
+	// strconv.Itoa(id)
 	replaced = strings.Replace(replaced, "_#ID.FIELD.TYPE.FORMAT#_", holder.IDFieldTypeFormat(), -1)
 
 	// [a-z]+

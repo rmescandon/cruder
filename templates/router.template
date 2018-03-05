@@ -39,9 +39,9 @@ func Router() *mux.Router {
 
 	router.Handle(composePath("_#TYPE.LOWERCASE#_"), http.HandlerFunc(handler.Create_#TYPE#_)).Methods("POST")
 	router.Handle(composePath("_#TYPE.LOWERCASE#_"), http.HandlerFunc(handler.List_#TYPE#_s)).Methods("GET")
-	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(handler.Get_#TYPE#_)).Methods("GET")
-	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(handler.Update_#TYPE#_)).Methods("PUT")
-	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(handler.Delete_#TYPE#_)).Methods("DELETE")
+	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME.LOWERCASE#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(handler.Get_#TYPE#_)).Methods("GET")
+	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME.LOWERCASE#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(handler.Update_#TYPE#_)).Methods("PUT")
+	router.Handle(composePath("_#TYPE.LOWERCASE#_/{_#ID.FIELD.NAME.LOWERCASE#_:_#ID.FIELD.PATTERN#_}"), http.HandlerFunc(handler.Delete_#TYPE#_)).Methods("DELETE")
 
 	return router
 }
