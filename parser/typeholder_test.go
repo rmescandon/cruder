@@ -72,7 +72,7 @@ func (s *TypeHolderSuite) TestFieldsEnumRef(c *check.C) {
 }
 
 func (s *TypeHolderSuite) TestIDFieldInDDL(c *check.C) {
-	c.Assert(s.typeHolder.IDFieldInDDL(), check.Equals, "id serial primary key not null,")
+	c.Assert(s.typeHolder.IDFieldInDDL(), check.Equals, "id integer primary key not null,")
 }
 
 func (s *TypeHolderSuite) TestFieldsInDDL(c *check.C) {

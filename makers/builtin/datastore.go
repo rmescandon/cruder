@@ -24,7 +24,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/makers"
 )
@@ -49,32 +48,21 @@ func (ds *Datastore) OutputFilepath() string {
 
 // Make generates the result
 func (ds *Datastore) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
-	if currentOutput != nil {
-		// in case if does exist, it should match the types file. Otherwise it's an error
-		if ds.OutputFilepath() != ds.TypeHolder.Source.Path {
-			return nil, errs.NewErrOutputExists(ds.OutputFilepath())
+	// always include type definition into this datastore generated file
+	foundFirstFunc := false
+	for i, decl := range generatedOutput.Ast.Decls {
+		switch decl.(type) {
+		case *ast.FuncDecl:
+			// trick to prepend instead of appending. The idea here is to include type
+			// definition just before first found function in generated output
+			generatedOutput.Ast.Decls = append(generatedOutput.Ast.Decls[:i],
+				append([]ast.Decl{ds.TypeHolder.Decl}, generatedOutput.Ast.Decls[i:]...)...)
+			foundFirstFunc = true
 		}
 
-		// if output file is the same as types one, add the type to the generated output
-		// - prepend GenType AST to it
-		// - write out AST to output, overwriting
-		// insert GenType AST just before first function
-		foundFirstFunc := false
-		for i, decl := range generatedOutput.Ast.Decls {
-			switch decl.(type) {
-			case *ast.FuncDecl:
-				// trick to prepend instead of appending
-				generatedOutput.Ast.Decls = append(generatedOutput.Ast.Decls[:i],
-					append([]ast.Decl{ds.TypeHolder.Decl}, generatedOutput.Ast.Decls[i:]...)...)
-				foundFirstFunc = true
-			}
-
-			if foundFirstFunc {
-				break
-			}
+		if foundFirstFunc {
+			break
 		}
-
-		return generatedOutput, nil
 	}
 
 	return generatedOutput, nil

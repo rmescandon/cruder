@@ -23,6 +23,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"github.com/rmescandon/myproject/handler"
 )
 
 const apiVersion = "v1"
@@ -35,11 +37,11 @@ func composePath(operation string) string {
 func Router() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.Handle(composePath("mytype"), http.HandlerFunc(CreateMyType)).Methods("POST")
-	router.Handle(composePath("mytype"), http.HandlerFunc(ListMyTypes)).Methods("GET")
-	router.Handle(composePath("mytype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(GetMyType)).Methods("GET")
-	router.Handle(composePath("mytype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(UpdateMyType)).Methods("PUT")
-	router.Handle(composePath("mytype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(DeleteMyType)).Methods("DELETE")
+	router.Handle(composePath("mytype"), http.HandlerFunc(handler.CreateMyType)).Methods("POST")
+	router.Handle(composePath("mytype"), http.HandlerFunc(handler.ListMyTypes)).Methods("GET")
+	router.Handle(composePath("mytype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(handler.GetMyType)).Methods("GET")
+	router.Handle(composePath("mytype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(handler.UpdateMyType)).Methods("PUT")
+	router.Handle(composePath("mytype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(handler.DeleteMyType)).Methods("DELETE")
 
 	return router
 }

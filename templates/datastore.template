@@ -34,7 +34,7 @@ const create_#TYPE#_TableSQL = `
 const list_#TYPE#_sSQL = "select _#ID.FIELD.NAME.LOWERCASE#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ order by _#ID.FIELD.NAME.LOWERCASE#_"
 const get_#TYPE#_SQL = "select _#ID.FIELD.NAME.LOWERCASE#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME.LOWERCASE#_=$1"
 const find_#TYPE#_SQL = "select _#ID.FIELD.NAME.LOWERCASE#_, _#FIELDS.DML#_ from _#TYPE.LOWERCASE#_ where _#FIND.FIELD.NAME#_ like '%$1%'"
-const create_#TYPE#_SQL = "insert into _#TYPE.LOWERCASE#_ (_#FIELDS.DML#_) values (_#VALUES.DML.PARAMS#_) returning _#ID.FIELD.NAME.LOWERCASE#_"
+const create_#TYPE#_SQL = "insert into _#TYPE.LOWERCASE#_ (_#FIELDS.DML#_) values (_#VALUES.DML.PARAMS#_)"
 const update_#TYPE#_SQL = "update _#TYPE.LOWERCASE#_ set _#FIELDS.DML.PARAMS#_ where _#ID.FIELD.DML.PARAM#_"
 const delete_#TYPE#_SQL = "delete from _#TYPE.LOWERCASE#_ where _#ID.FIELD.NAME.LOWERCASE#_=$1"
 
@@ -77,12 +77,13 @@ func (db *DB) Find_#TYPE#_(query string) (_#TYPE#_, error) {
 
 // Create_#TYPE#_ Inserts a new register
 func (db *DB) Create_#TYPE#_(_#TYPE.IDENTIFIER#_ _#TYPE#_) (_#ID.FIELD.TYPE#_, error) {
-	var _#ID.FIELD.NAME.LOWERCASE#_ _#ID.FIELD.TYPE#_
-	err := db.QueryRow(create_#TYPE#_SQL, _#FIELDS.ENUM#_).Scan(&_#ID.FIELD.NAME.LOWERCASE#_)
+	result, err := db.Exec(create_#TYPE#_SQL, _#FIELDS.ENUM#_)
 	if err != nil {
 		return -1, fmt.Errorf("Error creating _#TYPE.LOWERCASE#_ register: %v", err)
 	}
-	return _#ID.FIELD.NAME.LOWERCASE#_, nil
+
+	_#ID.FIELD.NAME.LOWERCASE#_, err := result.LastInsertId()
+	return _#ID.FIELD.TYPE#_(_#ID.FIELD.NAME.LOWERCASE#_), err
 }
 
 // Update_#TYPE#_ updates a register

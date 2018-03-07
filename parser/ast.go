@@ -39,16 +39,11 @@ func ComposeTypeHolders(source *io.GoFile) ([]*TypeHolder, error) {
 
 	for _, decl := range decls {
 		for _, spec := range decl.Specs {
-			b, err := source.Bytes()
-			if err != nil {
-				return []*TypeHolder{}, err
-			}
-
 			var buf bytes.Buffer
 			printer.Fprint(&buf, token.NewFileSet(), spec)
 			log.Info(string(buf.Bytes()))
 
-			fields, err := composeTypeFields(b, spec)
+			fields, err := composeTypeFields(spec)
 			if err != nil {
 				return []*TypeHolder{}, err
 			}
@@ -162,7 +157,7 @@ func AddMethod(iface *ast.InterfaceType, method *ast.Field) {
 	}
 }
 
-func composeTypeFields(content []byte, spec ast.Spec) ([]TypeField, error) {
+func composeTypeFields(spec ast.Spec) ([]TypeField, error) {
 	var fields []TypeField
 	for _, field := range spec.(*ast.TypeSpec).Type.(*ast.StructType).Fields.List {
 		if len(field.Names) != 1 {
@@ -173,9 +168,6 @@ func composeTypeFields(content []byte, spec ast.Spec) ([]TypeField, error) {
 			Name: field.Names[0].Name,
 			Type: fmt.Sprintf("%s", field.Type),
 		})
-
-		//TODO TRACE
-		//log.Info("DDDONE:%v", string(content[field.Type.Pos()-spec.Pos()-1:field.Type.End()-spec.Pos()-1]))
 	}
 	return fields, nil
 }

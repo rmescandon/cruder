@@ -29,22 +29,22 @@ type MyType struct {
 	ID          int
 	Name        string
 	Description string
-	SubTypes    []string
+	SubTypes    bool
 }
 
 const createMyTypeTableSQL = `
 	CREATE TABLE IF NOT EXISTS mytype (
-		id           serial primary key not null,
+		id           integer primary key not null,
 		name         varchar(200),
 		description  varchar(200),
-		subtypes     varchar(200)
+		subtypes     boolean
 	)
 `
 
 const listMyTypesSQL = "select id, name, description, subtypes from mytype order by id"
 const getMyTypeSQL = "select id, name, description, subtypes from mytype where id=$1"
 const findMyTypeSQL = "select id, name, description, subtypes, from mytype where name like '%$1%'"
-const createMyTypeSQL = "insert into mytype (name, description, subtypes) values ($1,$2,$3) RETURNING id"
+const createMyTypeSQL = "insert into mytype (name, description, subtypes) values ($1,$2,$3)"
 const updateMyTypeSQL = "update mytype set name=$1, description=$2, subtypes=$3 where id=$4"
 const deleteMyTypeSQL = "delete from mytype where id=$1"
 
@@ -87,12 +87,17 @@ func (db *DB) FindMyType(name string) (MyType, error) {
 
 // CreateMyType Inserts a new register
 func (db *DB) CreateMyType(myType MyType) (int, error) {
-	var id int
-	err := db.QueryRow(createMyTypeSQL, myType.Name, myType.Description, myType.SubTypes).Scan(&id)
+	result, err := db.Exec(createMyTypeSQL, myType.Name, myType.Description, myType.SubTypes)
 	if err != nil {
 		return -1, fmt.Errorf("Error creating mytype register: %v", err)
 	}
-	return id, nil
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return -1, err
+	}
+
+	return int(id), nil
 }
 
 // UpdateMyType updates a register

@@ -29,13 +29,13 @@ import (
 
 // Datastore interface for different data storages
 type Datastore interface {
-	Create_#TYPE#_Table() error
-	List_#TYPE#_s() ([]_#TYPE#_, error)
-	Get_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_) (_#TYPE#_, error)
-	Find_#TYPE#_(query string) (_#TYPE#_, error)
-	Create_#TYPE#_(_#TYPE.IDENTIFIER#_ _#TYPE#_) (int, error)
-	Update_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_, _#TYPE.IDENTIFIER#_ _#TYPE#_)
-	Delete_#TYPE#_(_#ID.FIELD.NAME#_ _#ID.FIELD.TYPE#_) error
+	CreateMyTypeTable() error
+	ListMyTypes() ([]MyType, error)
+	GetMyType(id int) (MyType, error)
+	FindMyType(name string) (MyType, error)
+	CreateMyType(myType MyType) (int, error)
+	UpdateMyType(id int, myType MyType)
+	DeleteMyType(id int) error
 }
 
 // DB struct holding database implementation for datastore

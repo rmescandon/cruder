@@ -1,7 +1,7 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 
 /*
- * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ * Copyright (C) 2018 Roberto Mier Escandon <rmescandon@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -19,25 +19,12 @@
 
 package datastore
 
-import (
-	"database/sql"
-)
+// UpdateDatabase creates or updates tables by using DDL
+func UpdateDatabase() error {
+	err := Db.CreateMyTypeTable()
+	if err != nil {
+		return err
+	}
 
-// Datastore interface for different data storages
-type Datastore interface {
-	CreateMyTypeTable() error
-	ListMyTypes() ([]MyType, error)
-	GetMyType(id int) (MyType, error)
-	FindMyType(name string) (MyType, error)
-	CreateMyType(myType MyType) (int, error)
-	UpdateMyType(id int, myType MyType)
-	DeleteMyType(id int) error
+	return nil
 }
-
-// DB struct holding database implementation for datastore
-type DB struct {
-	*sql.DB
-}
-
-// Db pointer to database hander
-var Db *DB

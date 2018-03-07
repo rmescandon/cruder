@@ -17,7 +17,7 @@
  *
  */
 
-package service
+package handler
 
 import (
 	"encoding/json"
@@ -70,8 +70,9 @@ func List_#TYPE#_s(w http.ResponseWriter, r *http.Request) {
 // Get_#TYPE#_ handles reading _#TYPE.LOWERCASE#_ API operation
 func Get_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	_#ID.FIELD.NAME#_, err := _#ID.FIELD.TYPE.PARSE#_
+	_#ID.FIELD.NAME.LOWERCASE#_, err := _#ID.FIELD.TYPE.PARSE#_
 	if err != nil {
+		log.Printf("Service error: %v", err)
 		replyWithError(
 			http.StatusNotFound,
 			errorResponse{
@@ -83,7 +84,7 @@ func Get_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_#TYPE.IDENTIFIER#_, err := datastore.Db.Get_#TYPE#_(_#ID.FIELD.NAME#_)
+	_#TYPE.IDENTIFIER#_, err := datastore.Db.Get_#TYPE#_(_#ID.FIELD.NAME.LOWERCASE#_)
 	if err != nil {
 		log.Printf("Service error: %v", err)
 		replyWithError(
@@ -142,7 +143,7 @@ func Create_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_#ID.FIELD.NAME#_, err := datastore.Db.Create_#TYPE#_(_#TYPE.IDENTIFIER#_)
+	_#ID.FIELD.NAME.LOWERCASE#_, err := datastore.Db.Create_#TYPE#_(_#TYPE.IDENTIFIER#_)
 	if err != nil {
 		log.Printf("Service error creating mytpe: %v", err)
 		replyWithError(
@@ -162,7 +163,7 @@ func Create_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 // Update_#TYPE#_ handles updating _#TYPE.LOWERCASE#_ API operation
 func Update_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	_#ID.FIELD.NAME#_, err := _#ID.FIELD.TYPE.PARSE#_
+	_#ID.FIELD.NAME.LOWERCASE#_, err := _#ID.FIELD.TYPE.PARSE#_
 	if err != nil {
 		replyWithError(
 			http.StatusNotFound,
@@ -189,7 +190,7 @@ func Update_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = datastore.Db.Update_#TYPE#_(_#ID.FIELD.NAME#_, _#TYPE.IDENTIFIER#_)
+	err = datastore.Db.Update_#TYPE#_(_#ID.FIELD.NAME.LOWERCASE#_, _#TYPE.IDENTIFIER#_)
 	if err != nil {
 		log.Printf("Service error: %v", err)
 		replyWithError(
@@ -207,7 +208,7 @@ func Update_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 // Delete_#TYPE#_ handles deleting _#TYPE.LOWERCASE#_ API operation
 func Delete_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	_#ID.FIELD.NAME#_, err := _#ID.FIELD.TYPE.PARSE#_
+	_#ID.FIELD.NAME.LOWERCASE#_, err := _#ID.FIELD.TYPE.PARSE#_
 	if err != nil {
 		replyWithError(
 			http.StatusNotFound,
@@ -220,7 +221,7 @@ func Delete_#TYPE#_(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = datastore.Db.Delete_#TYPE#_(_#ID.FIELD.NAME#_)
+	err = datastore.Db.Delete_#TYPE#_(_#ID.FIELD.NAME.LOWERCASE#_)
 	if err != nil {
 		log.Printf("Service error: %v", err)
 		replyWithError(

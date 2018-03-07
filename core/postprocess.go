@@ -34,8 +34,8 @@ const (
 	GoVetCmd
 )
 
-func checkResults() error {
-	err := gofmt(filepath.Join(config.Config.Output, "..."))
+func checkAndFormatResults() error {
+	err := gofmt(config.Config.Output)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func checkResults() error {
 		return err
 	}
 
-	err = golint(config.Config.Output)
+	err = govet(filepath.Join(config.Config.Output, "..."))
 	if err != nil {
 		return err
 	}

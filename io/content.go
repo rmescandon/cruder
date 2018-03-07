@@ -43,6 +43,12 @@ func (c *Content) Bytes() ([]byte, error) {
 	return ASTToByteArray(c.Ast)
 }
 
+// String returns the content as string
 func (c *Content) String() (string, error) {
 	return ASTToString(c.Ast)
+}
+
+// Trace dumps content
+func (c *Content) Trace() error {
+	return TraceAST(c.Ast)
 }

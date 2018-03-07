@@ -17,7 +17,7 @@
  *
  */
 
-package service
+package handler
 
 import (
 	"encoding/json"
@@ -28,7 +28,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/rmescandon/cruder/example/myproject/datastore"
+	"github.com/rmescandon/myproject/datastore"
 )
 
 type myTypesResponse struct {
