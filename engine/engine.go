@@ -17,7 +17,7 @@
  *
  */
 
-package core
+package engine
 
 import (
 	"fmt"
@@ -33,9 +33,9 @@ import (
 	"github.com/rmescandon/cruder/parser"
 )
 
-// GenerateSkeletonCode generates the skeleton code based on loaded configuration and available templates
-func GenerateSkeletonCode() error {
-	log.Info("Generating Skeleton Code...")
+// Run generates the code, based on loaded configuration and available templates
+func Run() error {
+	log.Info("Generating code...")
 
 	//TODO TEST
 	builtin.DoNothing()

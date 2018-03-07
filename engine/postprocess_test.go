@@ -17,7 +17,7 @@
  *
  */
 
-package core
+package engine
 
 import (
 	"io/ioutil"
