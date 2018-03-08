@@ -26,7 +26,8 @@ import (
 
 // Errors
 var (
-	ErrNoMakerRegistered = errors.New("Any maker has been registered")
+	ErrNoMakerRegistered = errors.New("No maker has been registered")
+	ErrNoContent         = errors.New("No content")
 )
 
 // ErrOutputExists error struct for an existing output file

@@ -122,7 +122,6 @@ func processMaker(typeHolder *parser.TypeHolder, template string) error {
 		return err
 	}
 
-	maker.(makers.Registrant).SetBasePath(config.Config.Output)
 	maker.(makers.Registrant).SetTypeHolder(typeHolder)
 
 	merged, err := merge(typeHolder, template)

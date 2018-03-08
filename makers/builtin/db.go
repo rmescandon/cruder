@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
@@ -45,12 +46,27 @@ func (db *Db) OutputFilepath() string {
 
 // Make generates the results
 func (db *Db) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
+	if generatedOutput == nil {
+		return nil, errs.ErrNoContent
+	}
+
 	if currentOutput != nil {
 		generatedIface := parser.GetInterface(generatedOutput.Ast, "Datastore")
+		if generatedIface == nil {
+			return nil, errs.NewErrNotFound("Datastore interface in generated output")
+		}
+
 		currentIface := parser.GetInterface(currentOutput.Ast, "Datastore")
+		if currentIface == nil {
+			return nil, errs.NewErrNotFound("Datastore interface in current output")
+		}
 
 		// Search for generatedIface methods into currentIface and add them if not found
 		for _, method := range parser.GetInterfaceMethods(generatedIface) {
+			if method == nil || len(method.Names) < 1 || method.Names[0] == nil {
+				continue
+			}
+
 			if !parser.HasMethod(currentIface, method.Names[0].Name) {
 				parser.AddMethod(currentIface, method)
 			}

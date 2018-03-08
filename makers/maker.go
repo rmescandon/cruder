@@ -40,13 +40,7 @@ type Maker interface {
 
 // Base represents common members for any maker
 type Base struct {
-	BasePath   string
 	TypeHolder *parser.TypeHolder
-}
-
-// SetBasePath sets the output local path for the generated stuff
-func (b *Base) SetBasePath(basePath string) {
-	b.BasePath = basePath
 }
 
 // SetTypeHolder sets the holder for the type this maker uses

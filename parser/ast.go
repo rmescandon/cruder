@@ -29,7 +29,6 @@ import (
 	"go/token"
 
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/log"
 )
 
 // ComposeTypeHolders composes the type holders for the types in source file
@@ -41,7 +40,6 @@ func ComposeTypeHolders(source *io.GoFile) ([]*TypeHolder, error) {
 		for _, spec := range decl.Specs {
 			var buf bytes.Buffer
 			printer.Fprint(&buf, token.NewFileSet(), spec)
-			log.Info(string(buf.Bytes()))
 
 			fields, err := composeTypeFields(spec)
 			if err != nil {

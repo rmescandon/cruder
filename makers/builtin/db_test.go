@@ -20,84 +20,294 @@
 package builtin
 
 import (
+	"fmt"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
+
+	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/errs"
+	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers"
+	"github.com/rmescandon/cruder/testdata"
 	check "gopkg.in/check.v1"
 )
 
-type DbSuite struct{}
+const (
+	oneTypeContent = `
+	package datastore
+
+	import (
+		"database/sql"
+		"fmt"
+
+		// Import the sqlite3 database driver
+		_ "github.com/mattn/go-sqlite3"
+	)
+
+	// Datastore interface for different data storages
+	type Datastore interface {
+		CreateMyTypeTable() error
+		ListMyTypes() ([]MyType, error)
+		GetMyType(id int) (MyType, error)
+		FindMyType(name string) (MyType, error)
+		CreateMyType(myType MyType) (int, error)
+		UpdateMyType(id int, myType MyType)
+		DeleteMyType(id int) error
+	}
+
+	// DB struct holding database implementation for datastore
+	type DB struct {
+		*sql.DB
+	}
+
+	// Db pointer to database hander
+	var Db *DB
+
+	// OpenSysDatabase Return an open database connection
+	func OpenSysDatabase(driver, dataSource string) error {
+		// Open the database connection
+		db, err := sql.Open(driver, dataSource)
+		if err != nil {
+			return fmt.Errorf("Error opening the database: %v\n", err)
+		}
+
+		// Check that we have a valid database connection
+		err = db.Ping()
+		if err != nil {
+			return fmt.Errorf("Error accessing the database: %v\n", err)
+		}
+
+		Db = &DB{db}
+
+		return nil
+	}
+	`
+
+	otherTypeContent = `
+	package datastore
+
+	import (
+		"database/sql"
+		"fmt"
+
+		// Import the sqlite3 database driver
+		_ "github.com/mattn/go-sqlite3"
+	)
+
+	// Datastore interface for different data storages
+	type Datastore interface {
+		CreateOtherTypeTable() error
+		ListOtherTypes() ([]OtherType, error)
+		GetOtherType(id int) (OtherType, error)
+		FindOtherType(name string) (OtherType, error)
+		CreateOtherType(myType OtherType) (int, error)
+		UpdateOtherType(id int, myType OtherType)
+		DeleteOtherType(id int) error
+	}
+
+	// DB struct holding database implementation for datastore
+	type DB struct {
+		*sql.DB
+	}
+
+	// Db pointer to database hander
+	var Db *DB
+
+	// OpenSysDatabase Return an open database connection
+	func OpenSysDatabase(driver, dataSource string) error {
+		// Open the database connection
+		db, err := sql.Open(driver, dataSource)
+		if err != nil {
+			return fmt.Errorf("Error opening the database: %v\n", err)
+		}
+
+		// Check that we have a valid database connection
+		err = db.Ping()
+		if err != nil {
+			return fmt.Errorf("Error accessing the database: %v\n", err)
+		}
+
+		Db = &DB{db}
+
+		return nil
+	}
+	`
+
+	contentWithoutDatastoreIface = `
+	package datastore
+
+	import (
+		"database/sql"
+		"fmt"
+
+		// Import the sqlite3 database driver
+		_ "github.com/mattn/go-sqlite3"
+	)
+
+	// DB struct holding database implementation for datastore
+	type DB struct {
+		*sql.DB
+	}
+
+	// Db pointer to database hander
+	var Db *DB
+
+	// OpenSysDatabase Return an open database connection
+	func OpenSysDatabase(driver, dataSource string) error {
+		// Open the database connection
+		db, err := sql.Open(driver, dataSource)
+		if err != nil {
+			return fmt.Errorf("Error opening the database: %v\n", err)
+		}
+
+		// Check that we have a valid database connection
+		err = db.Ping()
+		if err != nil {
+			return fmt.Errorf("Error accessing the database: %v\n", err)
+		}
+
+		Db = &DB{db}
+
+		return nil
+	}
+	`
+)
+
+type DbSuite struct {
+	db *Db
+}
 
 var _ = check.Suite(&DbSuite{})
 
-/*
-func (s *DbSuite) TestMakeDb(c *check.C) {
-	//--------------------------------------------------------------------------
-	// 1.- Create an output file for MyType, not having a previous existing file
-	typeFile, err := testdata.TestTypeFile()
+func (d *DbSuite) SetUpTest(c *check.C) {
+	typeHolder, err := testdata.TestTypeHolder()
 	c.Assert(err, check.IsNil)
-	c.Assert(typeFile, check.NotNil)
-
-	source, err := io.NewGoFile(typeFile.Name())
-	c.Assert(err, check.IsNil)
-
-	typeHolders, err := parser.ComposeTypeHolders(source)
-	c.Assert(err, check.IsNil)
-	c.Assert(typeHolders, check.HasLen, 1)
 
 	config.Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
-	db := &Db{
-		makers.Base{
-			TypeHolder: typeHolders[0],
-			Template:   "../testdata/templates/db.template",
-		},
-	}
+	makers.BasePath = config.Config.Output
 
-	c.Assert(db.Make(), check.IsNil)
-
-	content, err := io.FileToString(db.OutputFilepath())
-	c.Assert(err, check.IsNil)
-	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
-	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
-
-	// -----------------------------------------------------------------------
-	// 2.- Reset typeHolders and load now OtherType. Create the output and see
-	// if both MyType and OtherType are included in Datastore interface
-	otherTypeFile, err := testdata.TestOtherTypeFile()
-	c.Assert(err, check.IsNil)
-	c.Assert(otherTypeFile, check.NotNil)
-
-	source, err = io.NewGoFile(otherTypeFile.Name())
-	c.Assert(err, check.IsNil)
-
-	typeHolders, err = parser.ComposeTypeHolders(source)
-	c.Assert(err, check.IsNil)
-	c.Assert(typeHolders, check.HasLen, 1)
-
-	db.TypeHolder = typeHolders[0]
-
-	c.Assert(db.Make(), check.IsNil)
-
-	content, err = io.FileToString(db.OutputFilepath())
-
-	// Verify here if both types are included in output
-	c.Assert(strings.Contains(content, "CreateMyTypeTable() error"), check.Equals, true)
-	c.Assert(strings.Contains(content, "ListMyTypes() ([]MyType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "GetMyType(ID int) (MyType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "FindMyType(query string) (MyType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "CreateMyType(myType MyType) (int, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "UpdateMyType(ID int, myType MyType)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "DeleteMyType(ID int) error"), check.Equals, true)
-
-	c.Assert(strings.Contains(content, "CreateMyOtherTypeTable() error"), check.Equals, true)
-	c.Assert(strings.Contains(content, "ListMyOtherTypes() ([]MyOtherType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "GetMyOtherType(AnID int) (MyOtherType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "FindMyOtherType(query string) (MyOtherType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "CreateMyOtherType(myOtherType MyOtherType) (int, error)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "UpdateMyOtherType(AnID int, myOtherType MyOtherType)"), check.Equals, true)
-	c.Assert(strings.Contains(content, "DeleteMyOtherType(AnID int) error"), check.Equals, true)
-
-	c.Assert(err, check.IsNil)
-	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
-	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
+	d.db = &Db{makers.Base{TypeHolder: typeHolder}}
 }
-*/
+
+func (d *DbSuite) TestID(c *check.C) {
+	c.Assert(d.db.ID(), check.Equals, "db")
+}
+
+func (d *DbSuite) TestOutputPath(c *check.C) {
+	c.Assert(d.db.OutputFilepath(),
+		check.Equals,
+		filepath.Join(
+			makers.BasePath,
+			fmt.Sprintf("datastore/%v.go", d.db.ID())))
+}
+
+func (d *DbSuite) TestOutputPathWhenEmptyBasePath(c *check.C) {
+	makers.BasePath = ""
+	c.Assert(d.db.OutputFilepath(),
+		check.Equals,
+		fmt.Sprintf("datastore/%v.go", d.db.ID()))
+}
+
+func (d *DbSuite) TestMake(c *check.C) {
+	generatedOutput, err := io.NewContent(oneTypeContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(generatedOutput, check.NotNil)
+
+	currentOutput, err := io.NewContent(otherTypeContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(currentOutput, check.NotNil)
+
+	output, err := d.db.Make(generatedOutput, currentOutput)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.NotNil)
+
+	// verify the output contains the target type declaration
+	str, err := output.String()
+	c.Assert(err, check.IsNil)
+
+	c.Assert(strings.Contains(str, "CreateMyTypeTable() error"), check.Equals, true)
+	c.Assert(strings.Contains(str, "ListMyTypes() ([]MyType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "GetMyType(id int) (MyType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "FindMyType(name string) (MyType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "CreateMyType(myType MyType) (int, error)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "UpdateMyType(id int, myType MyType)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "DeleteMyType(id int) error"), check.Equals, true)
+
+	c.Assert(strings.Contains(str, "CreateOtherTypeTable() error"), check.Equals, true)
+	c.Assert(strings.Contains(str, "ListOtherTypes() ([]OtherType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "GetOtherType(id int) (OtherType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "FindOtherType(name string) (OtherType, error)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "CreateOtherType(myType OtherType) (int, error)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "UpdateOtherType(id int, myType OtherType)"), check.Equals, true)
+	c.Assert(strings.Contains(str, "DeleteOtherType(id int) error"), check.Equals, true)
+}
+
+func (d *DbSuite) TestMakeWhenNilParams(c *check.C) {
+	output, err := d.db.Make(nil, nil)
+	c.Assert(err, check.NotNil)
+	c.Assert(output, check.IsNil)
+	c.Assert(err, check.Equals, errs.ErrNoContent)
+}
+
+func (d *DbSuite) TestMakeWhenNilGeneratedOutput(c *check.C) {
+	currentOutput, err := io.NewContent(oneTypeContent)
+	c.Assert(err, check.IsNil)
+
+	output, err := d.db.Make(nil, currentOutput)
+	c.Assert(err, check.NotNil)
+	c.Assert(output, check.IsNil)
+	c.Assert(err, check.Equals, errs.ErrNoContent)
+}
+
+func (d *DbSuite) TestMakeWhenNilCurrentOutput(c *check.C) {
+	generatedOutput, err := io.NewContent(oneTypeContent)
+	c.Assert(err, check.IsNil)
+
+	output, err := d.db.Make(generatedOutput, nil)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.NotNil)
+	c.Assert(output, check.Equals, generatedOutput)
+}
+
+func (d *DbSuite) TestMakeWhenGeneratedOutputHasntDatastoreInterface(c *check.C) {
+	generatedOutput, err := io.NewContent(contentWithoutDatastoreIface)
+	c.Assert(err, check.IsNil)
+	c.Assert(generatedOutput, check.NotNil)
+
+	currentOutput, err := io.NewContent(otherTypeContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(currentOutput, check.NotNil)
+
+	output, err := d.db.Make(generatedOutput, currentOutput)
+	c.Assert(err, check.NotNil)
+	c.Assert(output, check.IsNil)
+
+	switch err.(type) {
+	case errs.ErrNotFound:
+	default:
+		c.Fail()
+	}
+}
+
+func (d *DbSuite) TestMakeWhenCurrentOutputHasntDatastoreInterface(c *check.C) {
+	generatedOutput, err := io.NewContent(oneTypeContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(generatedOutput, check.NotNil)
+
+	currentOutput, err := io.NewContent(contentWithoutDatastoreIface)
+	c.Assert(err, check.IsNil)
+	c.Assert(currentOutput, check.NotNil)
+
+	output, err := d.db.Make(generatedOutput, currentOutput)
+	c.Assert(err, check.NotNil)
+	c.Assert(output, check.IsNil)
+
+	switch err.(type) {
+	case errs.ErrNotFound:
+	default:
+		c.Fail()
+	}
+}
