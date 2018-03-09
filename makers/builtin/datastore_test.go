@@ -89,7 +89,7 @@ var _ = check.Suite(&DatastoreSuite{})
 
 func Test(t *testing.T) { check.TestingT(t) }
 
-func (d *DatastoreSuite) SetUpTest(c *check.C) {
+func (s *DatastoreSuite) SetUpTest(c *check.C) {
 	typeHolder, err := testdata.TestTypeHolder()
 	c.Assert(err, check.IsNil)
 
@@ -98,46 +98,46 @@ func (d *DatastoreSuite) SetUpTest(c *check.C) {
 
 	makers.BasePath = config.Config.Output
 
-	d.datastore = &Datastore{makers.Base{TypeHolder: typeHolder}}
+	s.datastore = &Datastore{makers.Base{TypeHolder: typeHolder}}
 }
 
-func (d *DatastoreSuite) TestID(c *check.C) {
-	c.Assert(d.datastore.ID(), check.Equals, "datastore")
+func (s *DatastoreSuite) TestID(c *check.C) {
+	c.Assert(s.datastore.ID(), check.Equals, "datastore")
 }
 
-func (d *DatastoreSuite) TestOutputPath(c *check.C) {
-	c.Assert(d.datastore.OutputFilepath(),
+func (s *DatastoreSuite) TestOutputPath(c *check.C) {
+	c.Assert(s.datastore.OutputFilepath(),
 		check.Equals,
 		filepath.Join(
 			makers.BasePath,
-			d.datastore.ID(),
-			strings.ToLower(d.datastore.TypeHolder.Name)+".go"))
+			s.datastore.ID(),
+			strings.ToLower(s.datastore.TypeHolder.Name)+".go"))
 }
 
-func (d *DatastoreSuite) TestOutputPathWhenNilType(c *check.C) {
-	d.datastore.TypeHolder = nil
-	c.Assert(d.datastore.OutputFilepath(), check.Equals, "")
+func (s *DatastoreSuite) TestOutputPath_nilType(c *check.C) {
+	s.datastore.TypeHolder = nil
+	c.Assert(s.datastore.OutputFilepath(), check.Equals, "")
 }
 
-func (d *DatastoreSuite) TestOutputPathWhenEmptyTypeName(c *check.C) {
-	d.datastore.TypeHolder.Name = ""
-	c.Assert(d.datastore.OutputFilepath(), check.Equals, "")
+func (s *DatastoreSuite) TestOutputPath_emptyTypeName(c *check.C) {
+	s.datastore.TypeHolder.Name = ""
+	c.Assert(s.datastore.OutputFilepath(), check.Equals, "")
 }
 
-func (d *DatastoreSuite) TestOutputPathWhenEmptyBasePath(c *check.C) {
+func (s *DatastoreSuite) TestOutputPath_emptyBasePath(c *check.C) {
 	makers.BasePath = ""
-	c.Assert(d.datastore.OutputFilepath(),
+	c.Assert(s.datastore.OutputFilepath(),
 		check.Equals,
 		filepath.Join(
-			d.datastore.ID(),
-			strings.ToLower(d.datastore.TypeHolder.Name)+".go"))
+			s.datastore.ID(),
+			strings.ToLower(s.datastore.TypeHolder.Name)+".go"))
 }
 
-func (d *DatastoreSuite) TestMake(c *check.C) {
+func (s *DatastoreSuite) TestMake(c *check.C) {
 	content, err := io.NewContent(testContent)
 	c.Assert(err, check.IsNil)
 
-	output, err := d.datastore.Make(content, content)
+	output, err := s.datastore.Make(content, content)
 	c.Assert(err, check.IsNil)
 	c.Assert(output, check.NotNil)
 
@@ -147,28 +147,28 @@ func (d *DatastoreSuite) TestMake(c *check.C) {
 	c.Assert(strings.Contains(str, "type MyType struct {"), check.Equals, true)
 }
 
-func (d *DatastoreSuite) TestMakeWhenNilParams(c *check.C) {
-	output, err := d.datastore.Make(nil, nil)
+func (s *DatastoreSuite) TestMake_nilParams(c *check.C) {
+	output, err := s.datastore.Make(nil, nil)
 	c.Assert(err, check.NotNil)
 	c.Assert(output, check.IsNil)
 	c.Assert(err, check.Equals, errs.ErrNoContent)
 }
 
-func (d *DatastoreSuite) TestMakeWhenNilGeneratedOutput(c *check.C) {
+func (s *DatastoreSuite) TestMake_nilGeneratedOutput(c *check.C) {
 	currentOutput, err := io.NewContent(testContent)
 	c.Assert(err, check.IsNil)
 
-	output, err := d.datastore.Make(nil, currentOutput)
+	output, err := s.datastore.Make(nil, currentOutput)
 	c.Assert(err, check.NotNil)
 	c.Assert(output, check.IsNil)
 	c.Assert(err, check.Equals, errs.ErrNoContent)
 }
 
-func (d *DatastoreSuite) TestMakeWhenNilCurrentOutput(c *check.C) {
+func (s *DatastoreSuite) TestMake_nilCurrentOutput(c *check.C) {
 	generatedOutput, err := io.NewContent(testContent)
 	c.Assert(err, check.IsNil)
 
-	output, err := d.datastore.Make(generatedOutput, nil)
+	output, err := s.datastore.Make(generatedOutput, nil)
 	c.Assert(err, check.IsNil)
 	c.Assert(output, check.NotNil)
 
@@ -178,11 +178,11 @@ func (d *DatastoreSuite) TestMakeWhenNilCurrentOutput(c *check.C) {
 	c.Assert(strings.Contains(str, "type MyType struct {"), check.Equals, true)
 }
 
-func (d *DatastoreSuite) TestMakeWhenGeneratedOutputHasntFunctions(c *check.C) {
+func (s *DatastoreSuite) TestMake_generatedOutputHasntFunctions(c *check.C) {
 	generatedOutput, err := io.NewContent(testContentWithoutFunctions)
 	c.Assert(err, check.IsNil)
 
-	output, err := d.datastore.Make(generatedOutput, nil)
+	output, err := s.datastore.Make(generatedOutput, nil)
 	c.Assert(err, check.NotNil)
 	c.Assert(output, check.IsNil)
 

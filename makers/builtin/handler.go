@@ -40,6 +40,10 @@ func (h *Handler) ID() string {
 
 // OutputFilepath returns the path to the generated file
 func (h *Handler) OutputFilepath() string {
+	if h.TypeHolder == nil || len(h.TypeHolder.Name) == 0 {
+		return ""
+	}
+
 	return filepath.Join(
 		makers.BasePath,
 		h.ID(),

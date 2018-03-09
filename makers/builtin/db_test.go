@@ -1,7 +1,7 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 
 /*
- * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
+ * Copyright (C) 2018 Roberto Mier Escandon <rmescandon@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -180,7 +180,7 @@ type DbSuite struct {
 
 var _ = check.Suite(&DbSuite{})
 
-func (d *DbSuite) SetUpTest(c *check.C) {
+func (s *DbSuite) SetUpTest(c *check.C) {
 	typeHolder, err := testdata.TestTypeHolder()
 	c.Assert(err, check.IsNil)
 
@@ -189,29 +189,29 @@ func (d *DbSuite) SetUpTest(c *check.C) {
 
 	makers.BasePath = config.Config.Output
 
-	d.db = &Db{makers.Base{TypeHolder: typeHolder}}
+	s.db = &Db{makers.Base{TypeHolder: typeHolder}}
 }
 
-func (d *DbSuite) TestID(c *check.C) {
-	c.Assert(d.db.ID(), check.Equals, "db")
+func (s *DbSuite) TestID(c *check.C) {
+	c.Assert(s.db.ID(), check.Equals, "db")
 }
 
-func (d *DbSuite) TestOutputPath(c *check.C) {
-	c.Assert(d.db.OutputFilepath(),
+func (s *DbSuite) TestOutputPath(c *check.C) {
+	c.Assert(s.db.OutputFilepath(),
 		check.Equals,
 		filepath.Join(
 			makers.BasePath,
-			fmt.Sprintf("datastore/%v.go", d.db.ID())))
+			fmt.Sprintf("datastore/%v.go", s.db.ID())))
 }
 
-func (d *DbSuite) TestOutputPathWhenEmptyBasePath(c *check.C) {
+func (s *DbSuite) TestOutputPathWhenEmptyBasePath(c *check.C) {
 	makers.BasePath = ""
-	c.Assert(d.db.OutputFilepath(),
+	c.Assert(s.db.OutputFilepath(),
 		check.Equals,
-		fmt.Sprintf("datastore/%v.go", d.db.ID()))
+		fmt.Sprintf("datastore/%v.go", s.db.ID()))
 }
 
-func (d *DbSuite) TestMake(c *check.C) {
+func (s *DbSuite) TestMake(c *check.C) {
 	generatedOutput, err := io.NewContent(oneTypeContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
@@ -220,7 +220,7 @@ func (d *DbSuite) TestMake(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
-	output, err := d.db.Make(generatedOutput, currentOutput)
+	output, err := s.db.Make(generatedOutput, currentOutput)
 	c.Assert(err, check.IsNil)
 	c.Assert(output, check.NotNil)
 
@@ -228,51 +228,77 @@ func (d *DbSuite) TestMake(c *check.C) {
 	str, err := output.String()
 	c.Assert(err, check.IsNil)
 
-	c.Assert(strings.Contains(str, "CreateMyTypeTable() error"), check.Equals, true)
-	c.Assert(strings.Contains(str, "ListMyTypes() ([]MyType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "GetMyType(id int) (MyType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "FindMyType(name string) (MyType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "CreateMyType(myType MyType) (int, error)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "UpdateMyType(id int, myType MyType)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "DeleteMyType(id int) error"), check.Equals, true)
+	c.Assert(strings.Count(str, "CreateMyTypeTable() error"), check.Equals, 1)
+	c.Assert(strings.Count(str, "ListMyTypes() ([]MyType, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "GetMyType(id int) (MyType, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "FindMyType(name string) (MyType, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "CreateMyType(myType MyType) (int, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "UpdateMyType(id int, myType MyType)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "DeleteMyType(id int) error"), check.Equals, 1)
 
-	c.Assert(strings.Contains(str, "CreateOtherTypeTable() error"), check.Equals, true)
-	c.Assert(strings.Contains(str, "ListOtherTypes() ([]OtherType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "GetOtherType(id int) (OtherType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "FindOtherType(name string) (OtherType, error)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "CreateOtherType(myType OtherType) (int, error)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "UpdateOtherType(id int, myType OtherType)"), check.Equals, true)
-	c.Assert(strings.Contains(str, "DeleteOtherType(id int) error"), check.Equals, true)
+	c.Assert(strings.Count(str, "CreateOtherTypeTable() error"), check.Equals, 1)
+	c.Assert(strings.Count(str, "ListOtherTypes() ([]OtherType, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "GetOtherType(id int) (OtherType, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "FindOtherType(name string) (OtherType, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "CreateOtherType(myType OtherType) (int, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "UpdateOtherType(id int, myType OtherType)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "DeleteOtherType(id int) error"), check.Equals, 1)
 }
 
-func (d *DbSuite) TestMakeWhenNilParams(c *check.C) {
-	output, err := d.db.Make(nil, nil)
+func (s *DbSuite) TestMake_targetTypeExists(c *check.C) {
+	generatedOutput, err := io.NewContent(oneTypeContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(generatedOutput, check.NotNil)
+
+	currentOutput, err := io.NewContent(oneTypeContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(currentOutput, check.NotNil)
+
+	output, err := s.db.Make(generatedOutput, currentOutput)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.NotNil)
+
+	// verify the output contains the target type declaration
+	str, err := output.String()
+	c.Assert(err, check.IsNil)
+
+	c.Assert(strings.Count(str, "CreateMyTypeTable() error"), check.Equals, 1)
+	c.Assert(strings.Count(str, "ListMyTypes() ([]MyType, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "GetMyType(id int) (MyType, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "FindMyType(name string) (MyType, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "CreateMyType(myType MyType) (int, error)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "UpdateMyType(id int, myType MyType)"), check.Equals, 1)
+	c.Assert(strings.Count(str, "DeleteMyType(id int) error"), check.Equals, 1)
+}
+
+func (s *DbSuite) TestMake_nilParams(c *check.C) {
+	output, err := s.db.Make(nil, nil)
 	c.Assert(err, check.NotNil)
 	c.Assert(output, check.IsNil)
 	c.Assert(err, check.Equals, errs.ErrNoContent)
 }
 
-func (d *DbSuite) TestMakeWhenNilGeneratedOutput(c *check.C) {
+func (s *DbSuite) TestMake_nilGeneratedOutput(c *check.C) {
 	currentOutput, err := io.NewContent(oneTypeContent)
 	c.Assert(err, check.IsNil)
 
-	output, err := d.db.Make(nil, currentOutput)
+	output, err := s.db.Make(nil, currentOutput)
 	c.Assert(err, check.NotNil)
 	c.Assert(output, check.IsNil)
 	c.Assert(err, check.Equals, errs.ErrNoContent)
 }
 
-func (d *DbSuite) TestMakeWhenNilCurrentOutput(c *check.C) {
+func (s *DbSuite) TestMake_nilCurrentOutput(c *check.C) {
 	generatedOutput, err := io.NewContent(oneTypeContent)
 	c.Assert(err, check.IsNil)
 
-	output, err := d.db.Make(generatedOutput, nil)
+	output, err := s.db.Make(generatedOutput, nil)
 	c.Assert(err, check.IsNil)
 	c.Assert(output, check.NotNil)
 	c.Assert(output, check.Equals, generatedOutput)
 }
 
-func (d *DbSuite) TestMakeWhenGeneratedOutputHasntDatastoreInterface(c *check.C) {
+func (s *DbSuite) TestMake_generatedOutputHasntDatastoreInterface(c *check.C) {
 	generatedOutput, err := io.NewContent(contentWithoutDatastoreIface)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
@@ -281,7 +307,7 @@ func (d *DbSuite) TestMakeWhenGeneratedOutputHasntDatastoreInterface(c *check.C)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
-	output, err := d.db.Make(generatedOutput, currentOutput)
+	output, err := s.db.Make(generatedOutput, currentOutput)
 	c.Assert(err, check.NotNil)
 	c.Assert(output, check.IsNil)
 
@@ -292,7 +318,7 @@ func (d *DbSuite) TestMakeWhenGeneratedOutputHasntDatastoreInterface(c *check.C)
 	}
 }
 
-func (d *DbSuite) TestMakeWhenCurrentOutputHasntDatastoreInterface(c *check.C) {
+func (s *DbSuite) TestMake_currentOutputHasntDatastoreInterface(c *check.C) {
 	generatedOutput, err := io.NewContent(oneTypeContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
@@ -301,7 +327,7 @@ func (d *DbSuite) TestMakeWhenCurrentOutputHasntDatastoreInterface(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
-	output, err := d.db.Make(generatedOutput, currentOutput)
+	output, err := s.db.Make(generatedOutput, currentOutput)
 	c.Assert(err, check.NotNil)
 	c.Assert(output, check.IsNil)
 

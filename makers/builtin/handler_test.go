@@ -20,15 +20,65 @@
 package builtin
 
 import (
+	"io/ioutil"
+	"path/filepath"
+	"strings"
+
+	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/makers"
+	"github.com/rmescandon/cruder/testdata"
 	check "gopkg.in/check.v1"
 )
 
-type HandlerSuite struct{}
+type HandlerSuite struct {
+	handler *Handler
+}
 
 var _ = check.Suite(&HandlerSuite{})
 
-func (s *HandlerSuite) SetUpSuite(c *check.C) {}
-func (s *HandlerSuite) SetUpTest(c *check.C)  {}
+func (s *HandlerSuite) SetUpTest(c *check.C) {
+	typeHolder, err := testdata.TestTypeHolder()
+	c.Assert(err, check.IsNil)
+
+	config.Config.Output, err = ioutil.TempDir("", "cruder_")
+	c.Assert(err, check.IsNil)
+
+	makers.BasePath = config.Config.Output
+
+	s.handler = &Handler{makers.Base{TypeHolder: typeHolder}}
+}
+
+func (s *HandlerSuite) TestID(c *check.C) {
+	c.Assert(s.handler.ID(), check.Equals, "handler")
+}
+
+func (s *HandlerSuite) TestOutputPath(c *check.C) {
+	c.Assert(s.handler.OutputFilepath(),
+		check.Equals,
+		filepath.Join(
+			makers.BasePath,
+			s.handler.ID(),
+			strings.ToLower(s.handler.TypeHolder.Name)+".go"))
+}
+
+func (s *HandlerSuite) TestOutputPath_nilType(c *check.C) {
+	s.handler.TypeHolder = nil
+	c.Assert(s.handler.OutputFilepath(), check.Equals, "")
+}
+
+func (s *HandlerSuite) TestOutputPath_emptyTypeName(c *check.C) {
+	s.handler.TypeHolder.Name = ""
+	c.Assert(s.handler.OutputFilepath(), check.Equals, "")
+}
+
+func (s *HandlerSuite) TestOutputPath_emptyBasePath(c *check.C) {
+	makers.BasePath = ""
+	c.Assert(s.handler.OutputFilepath(),
+		check.Equals,
+		filepath.Join(
+			s.handler.ID(),
+			strings.ToLower(s.handler.TypeHolder.Name)+".go"))
+}
 
 /*
 func (s *HandlerSuite) TestMakeHandler(c *check.C) {
