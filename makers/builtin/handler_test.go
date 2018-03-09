@@ -25,9 +25,63 @@ import (
 	"strings"
 
 	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/errs"
+	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/testdata"
 	check "gopkg.in/check.v1"
+)
+
+const (
+	handlerContent = `package handler
+
+	import (
+		"encoding/json"
+		"fmt"
+		"io"
+		"log"
+		"net/http"
+		"strconv"
+
+		"github.com/gorilla/mux"
+		"github.com/rmescandon/myproject/datastore"
+	)
+
+	type myTypesResponse struct {
+		MyTypes []datastore.MyType
+	}
+
+	// ListMyTypes handles listing mytypes API operation
+	func ListMyTypes(w http.ResponseWriter, r *http.Request) {
+		myTypes, err := datastore.Db.ListMyTypes()
+		if err != nil {
+			log.Printf("Service error: %v", err)
+			replyWithError(
+				http.StatusInternalServerError,
+				errorResponse{
+					Code:    "list-mytypes-failed",
+					Message: "Could not list available mytypes due to a server error",
+				},
+				w,
+			)
+			return
+		}
+
+		response := myTypesResponse{MyTypes: myTypes}
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			log.Printf("Service error: %v", err)
+			replyWithError(
+				http.StatusInternalServerError,
+				errorResponse{
+					Code:    "list-applications-failed",
+					Message: "A server error has happened when encoding the response",
+				},
+				w,
+			)
+			return
+		}
+	}
+	`
 )
 
 type HandlerSuite struct {
@@ -80,43 +134,56 @@ func (s *HandlerSuite) TestOutputPath_emptyBasePath(c *check.C) {
 			strings.ToLower(s.handler.TypeHolder.Name)+".go"))
 }
 
-/*
-func (s *HandlerSuite) TestMakeHandler(c *check.C) {
-	config.Config.ProjectURL = "github.com/auser/aproject"
-	//--------------------------------------------------------------------------
-	// 1.- Create an output file for MyType, not having a previous existing file
-	typeFile, err := testdata.TestTypeFile()
+func (s *HandlerSuite) TestMake(c *check.C) {
+	generatedOutput, err := io.NewContent(handlerContent)
 	c.Assert(err, check.IsNil)
-	c.Assert(typeFile, check.NotNil)
+	c.Assert(generatedOutput, check.NotNil)
 
-	source, err := io.NewGoFile(typeFile.Name())
+	output, err := s.handler.Make(generatedOutput, nil)
 	c.Assert(err, check.IsNil)
+	c.Assert(output, check.NotNil)
 
-	typeHolders, err := parser.ComposeTypeHolders(source)
+	// verify that the output contains create table for both types
+	str, err := output.String()
 	c.Assert(err, check.IsNil)
-	c.Assert(typeHolders, check.HasLen, 1)
-
-	config.Config.Output, err = ioutil.TempDir("", "cruder_")
-	c.Assert(err, check.IsNil)
-
-	handler := &Handler{
-		makers.BaseMaker{
-			TypeHolder: typeHolders[0],
-			Template:   "../testdata/templates/handler.template",
-		},
-	}
-
-	c.Assert(handler.Make(), check.IsNil)
-
-	content, err := io.FileToString(handler.OutputFilepath())
-	c.Assert(err, check.IsNil)
-	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
-	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
-
-	//---------------------------------------------------
-	// 2.- Execute the maker again and verify that maker returns
-	// ErrOutputExists error
-	//
-	c.Assert(handler.Make(), check.DeepEquals, errs.NewErrOutputExists(handler.OutputFilepath()))
+	c.Assert(len(str) > 0, check.Equals, true)
+	c.Assert(output, check.Equals, generatedOutput)
 }
-*/
+
+func (s *HandlerSuite) TestMake_existingOutput(c *check.C) {
+	output, err := io.NewContent(handlerContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.NotNil)
+
+	out, err := s.handler.Make(output, output)
+	c.Assert(err, check.NotNil)
+	c.Assert(out, check.IsNil)
+
+	switch err.(type) {
+	case errs.ErrOutputExists:
+	default:
+		c.Fail()
+	}
+}
+
+func (s *HandlerSuite) TestMake_nilGeneratedOutput(c *check.C) {
+	output, err := s.handler.Make(nil, nil)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.IsNil)
+}
+
+func (s *HandlerSuite) TestMake_nilGeneratedOutputButExistsOutput(c *check.C) {
+	output, err := io.NewContent(handlerContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.NotNil)
+
+	out, err := s.handler.Make(nil, output)
+	c.Assert(err, check.NotNil)
+	c.Assert(out, check.IsNil)
+
+	switch err.(type) {
+	case errs.ErrOutputExists:
+	default:
+		c.Fail()
+	}
+}
