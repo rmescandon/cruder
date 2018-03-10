@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	handlerContent = `package handler
+	handlerTestContent = `package handler
 
 	import (
 		"encoding/json"
@@ -135,7 +135,7 @@ func (s *HandlerSuite) TestOutputPath_emptyBasePath(c *check.C) {
 }
 
 func (s *HandlerSuite) TestMake(c *check.C) {
-	generatedOutput, err := io.NewContent(handlerContent)
+	generatedOutput, err := io.NewContent(handlerTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
@@ -151,7 +151,7 @@ func (s *HandlerSuite) TestMake(c *check.C) {
 }
 
 func (s *HandlerSuite) TestMake_existingOutput(c *check.C) {
-	output, err := io.NewContent(handlerContent)
+	output, err := io.NewContent(handlerTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(output, check.NotNil)
 
@@ -173,7 +173,7 @@ func (s *HandlerSuite) TestMake_nilGeneratedOutput(c *check.C) {
 }
 
 func (s *HandlerSuite) TestMake_nilGeneratedOutputButExistsOutput(c *check.C) {
-	output, err := io.NewContent(handlerContent)
+	output, err := io.NewContent(handlerTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(output, check.NotNil)
 

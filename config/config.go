@@ -61,7 +61,6 @@ var Config Options
 
 // ValidateAndInitialize check received params and initialize default ones
 func (c *Options) ValidateAndInitialize() error {
-
 	if len(c.TypesFile) == 0 {
 		return &flags.Error{
 			Type:    flags.ErrHelp,

@@ -21,6 +21,8 @@ package config
 
 import (
 	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	tst "testing"
 
@@ -76,4 +78,17 @@ func (s *ConfigSuite) TestProjectURL(c *check.C) {
 
 	result = Config.ReplaceInTemplate(template)
 	c.Assert(result, check.Equals, "launchpad.com/myuser/myproject")
+}
+
+func (s *ConfigSuite) TestSetDefaultValues(c *check.C) {
+	Config = Options{}
+
+	c.Assert(Config.setDefaultValuesWhenNeeded(), check.IsNil)
+	curr, err := os.Getwd()
+	c.Assert(err, check.IsNil)
+
+	c.Assert(Config.Output, check.Equals, curr)
+	c.Assert(Config.Settings, check.Equals, filepath.Join(curr, defaultSettingsFile))
+	c.Assert(Config.ProjectURL, check.Equals, defaultProjectURL)
+	c.Assert(Config.APIVersion, check.Equals, defaultAPIVersion)
 }

@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	oneTypeContent = `
+	oneTypeTestContent = `
 	package datastore
 
 	import (
@@ -84,7 +84,7 @@ const (
 	}
 	`
 
-	otherTypeContent = `
+	otherTypeTestContent = `
 	package datastore
 
 	import (
@@ -134,7 +134,7 @@ const (
 	}
 	`
 
-	contentWithoutDatastoreIface = `
+	testContentWithoutDatastoreIface = `
 	package datastore
 
 	import (
@@ -212,11 +212,11 @@ func (s *DbSuite) TestOutputPathWhenEmptyBasePath(c *check.C) {
 }
 
 func (s *DbSuite) TestMake(c *check.C) {
-	generatedOutput, err := io.NewContent(oneTypeContent)
+	generatedOutput, err := io.NewContent(oneTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
-	currentOutput, err := io.NewContent(otherTypeContent)
+	currentOutput, err := io.NewContent(otherTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
@@ -246,11 +246,11 @@ func (s *DbSuite) TestMake(c *check.C) {
 }
 
 func (s *DbSuite) TestMake_targetTypeExists(c *check.C) {
-	generatedOutput, err := io.NewContent(oneTypeContent)
+	generatedOutput, err := io.NewContent(oneTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
-	currentOutput, err := io.NewContent(oneTypeContent)
+	currentOutput, err := io.NewContent(oneTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
@@ -279,7 +279,7 @@ func (s *DbSuite) TestMake_nilParams(c *check.C) {
 }
 
 func (s *DbSuite) TestMake_nilGeneratedOutput(c *check.C) {
-	currentOutput, err := io.NewContent(oneTypeContent)
+	currentOutput, err := io.NewContent(oneTypeTestContent)
 	c.Assert(err, check.IsNil)
 
 	output, err := s.db.Make(nil, currentOutput)
@@ -289,7 +289,7 @@ func (s *DbSuite) TestMake_nilGeneratedOutput(c *check.C) {
 }
 
 func (s *DbSuite) TestMake_nilCurrentOutput(c *check.C) {
-	generatedOutput, err := io.NewContent(oneTypeContent)
+	generatedOutput, err := io.NewContent(oneTypeTestContent)
 	c.Assert(err, check.IsNil)
 
 	output, err := s.db.Make(generatedOutput, nil)
@@ -299,11 +299,11 @@ func (s *DbSuite) TestMake_nilCurrentOutput(c *check.C) {
 }
 
 func (s *DbSuite) TestMake_generatedOutputHasntDatastoreInterface(c *check.C) {
-	generatedOutput, err := io.NewContent(contentWithoutDatastoreIface)
+	generatedOutput, err := io.NewContent(testContentWithoutDatastoreIface)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
-	currentOutput, err := io.NewContent(otherTypeContent)
+	currentOutput, err := io.NewContent(otherTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
@@ -319,11 +319,11 @@ func (s *DbSuite) TestMake_generatedOutputHasntDatastoreInterface(c *check.C) {
 }
 
 func (s *DbSuite) TestMake_currentOutputHasntDatastoreInterface(c *check.C) {
-	generatedOutput, err := io.NewContent(oneTypeContent)
+	generatedOutput, err := io.NewContent(oneTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
-	currentOutput, err := io.NewContent(contentWithoutDatastoreIface)
+	currentOutput, err := io.NewContent(testContentWithoutDatastoreIface)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 

@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	mainContent = `package main
+	mainTestContent = `package main
 
 	import (
 		"fmt"
@@ -113,7 +113,7 @@ func (s *MainSuite) TestOutputPath_emptyBasePath(c *check.C) {
 }
 
 func (s *MainSuite) TestMake(c *check.C) {
-	generatedOutput, err := io.NewContent(mainContent)
+	generatedOutput, err := io.NewContent(mainTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
@@ -129,7 +129,7 @@ func (s *MainSuite) TestMake(c *check.C) {
 }
 
 func (s *MainSuite) TestMake_existingOutput(c *check.C) {
-	output, err := io.NewContent(mainContent)
+	output, err := io.NewContent(mainTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(output, check.NotNil)
 
@@ -151,7 +151,7 @@ func (s *MainSuite) TestMake_nilGeneratedOutput(c *check.C) {
 }
 
 func (s *MainSuite) TestMake_nilGeneratedOutputButExistsOutput(c *check.C) {
-	output, err := io.NewContent(mainContent)
+	output, err := io.NewContent(mainTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(output, check.NotNil)
 

@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	ddlMyTypeContent = `package datastore
+	ddlMyTypeTestContent = `package datastore
 
 	// UpdateDatabase creates or updates tables by using DDL
 	func UpdateDatabase() error {
@@ -47,7 +47,7 @@ const (
 	}
 	`
 
-	ddlMyOtherTypeContent = `package datastore
+	ddlMyOtherTypeTestContent = `package datastore
 
 	// UpdateDatabase creates or updates tables by using DDL
 	func UpdateDatabase() error {
@@ -59,7 +59,7 @@ const (
 	}
 	`
 
-	ddlContentWithoutUpdateDatabaseFunc = `package datastore
+	ddlTestContentWithoutUpdateDatabaseFunc = `package datastore
 
 	func otherMethod() error {
 		if err := Db.CreateMyOtherTypeTable(); err != nil {
@@ -70,7 +70,7 @@ const (
 	}
 	`
 
-	ddlContentWithSeveralStatements = `package datastore
+	ddlTestContentWithSeveralStatements = `package datastore
 
 	// UpdateDatabase creates or updates tables by using DDL
 	func UpdateDatabase() error {
@@ -89,7 +89,7 @@ const (
 	}
 	`
 
-	ddlContentWithoutStatements = `package datastore
+	ddlTestContentWithoutStatements = `package datastore
 
 	// UpdateDatabase creates or updates tables by using DDL
 	func UpdateDatabase() error {
@@ -136,11 +136,11 @@ func (s *DDLSuite) TestOutputPath_EmptyBasePath(c *check.C) {
 }
 
 func (s *DDLSuite) TestMake(c *check.C) {
-	generatedOutput, err := io.NewContent(ddlMyTypeContent)
+	generatedOutput, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
-	currentOutput, err := io.NewContent(ddlMyOtherTypeContent)
+	currentOutput, err := io.NewContent(ddlMyOtherTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
@@ -157,11 +157,11 @@ func (s *DDLSuite) TestMake(c *check.C) {
 }
 
 func (s *DDLSuite) TestMake_currentOutputWithoutStmts(c *check.C) {
-	generatedOutput, err := io.NewContent(ddlMyTypeContent)
+	generatedOutput, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
-	currentOutput, err := io.NewContent(ddlContentWithoutStatements)
+	currentOutput, err := io.NewContent(ddlTestContentWithoutStatements)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
@@ -177,11 +177,11 @@ func (s *DDLSuite) TestMake_currentOutputWithoutStmts(c *check.C) {
 }
 
 func (s *DDLSuite) TestMake_generatedOutputWithoutStmts(c *check.C) {
-	generatedOutput, err := io.NewContent(ddlContentWithoutStatements)
+	generatedOutput, err := io.NewContent(ddlTestContentWithoutStatements)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
-	currentOutput, err := io.NewContent(ddlMyTypeContent)
+	currentOutput, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
@@ -192,11 +192,11 @@ func (s *DDLSuite) TestMake_generatedOutputWithoutStmts(c *check.C) {
 }
 
 func (s *DDLSuite) TestMake_targetTypeExistsInOutput(c *check.C) {
-	generatedOutput, err := io.NewContent(ddlMyTypeContent)
+	generatedOutput, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
-	currentOutput, err := io.NewContent(ddlMyTypeContent)
+	currentOutput, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
@@ -213,7 +213,7 @@ func (s *DDLSuite) TestMake_nilParams(c *check.C) {
 }
 
 func (s *DDLSuite) TestMake_nilGeneratedOutput(c *check.C) {
-	currentOutput, err := io.NewContent(ddlMyTypeContent)
+	currentOutput, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 
 	output, err := s.ddl.Make(nil, currentOutput)
@@ -223,7 +223,7 @@ func (s *DDLSuite) TestMake_nilGeneratedOutput(c *check.C) {
 }
 
 func (s *DDLSuite) TestMake_nilCurrentOutput(c *check.C) {
-	generatedOutput, err := io.NewContent(ddlMyTypeContent)
+	generatedOutput, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 
 	output, err := s.ddl.Make(generatedOutput, nil)
@@ -233,11 +233,11 @@ func (s *DDLSuite) TestMake_nilCurrentOutput(c *check.C) {
 }
 
 func (s *DDLSuite) TestMake_generatedOutputHasntUpdateDatabaseFunc(c *check.C) {
-	generatedOutput, err := io.NewContent(ddlContentWithoutUpdateDatabaseFunc)
+	generatedOutput, err := io.NewContent(ddlTestContentWithoutUpdateDatabaseFunc)
 	c.Assert(err, check.IsNil)
 	c.Assert(generatedOutput, check.NotNil)
 
-	currentOutput, err := io.NewContent(ddlMyOtherTypeContent)
+	currentOutput, err := io.NewContent(ddlMyOtherTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(currentOutput, check.NotNil)
 
@@ -253,7 +253,7 @@ func (s *DDLSuite) TestMake_generatedOutputHasntUpdateDatabaseFunc(c *check.C) {
 }
 
 func (s *DDLSuite) TestUpdateDatabaseFunction(c *check.C) {
-	content, err := io.NewContent(ddlMyTypeContent)
+	content, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 
 	decl := findUpdateDatabaseFunction(content.Ast)
@@ -261,7 +261,7 @@ func (s *DDLSuite) TestUpdateDatabaseFunction(c *check.C) {
 }
 
 func (s *DDLSuite) TestUpdateDatabaseFunction_notFound(c *check.C) {
-	content, err := io.NewContent(ddlContentWithoutUpdateDatabaseFunc)
+	content, err := io.NewContent(ddlTestContentWithoutUpdateDatabaseFunc)
 	c.Assert(err, check.IsNil)
 
 	decl := findUpdateDatabaseFunction(content.Ast)
@@ -269,7 +269,7 @@ func (s *DDLSuite) TestUpdateDatabaseFunction_notFound(c *check.C) {
 }
 
 func (s *DDLSuite) TestGetUpdateDatabaseStmts(c *check.C) {
-	content, err := io.NewContent(ddlContentWithSeveralStatements)
+	content, err := io.NewContent(ddlTestContentWithSeveralStatements)
 	c.Assert(err, check.IsNil)
 
 	stmts, err := getUpdateDatabaseStmts(content.Ast)
@@ -279,7 +279,7 @@ func (s *DDLSuite) TestGetUpdateDatabaseStmts(c *check.C) {
 }
 
 func (s *DDLSuite) TestGetUpdateDatabaseStmts_notFoundFunc(c *check.C) {
-	content, err := io.NewContent(ddlContentWithoutUpdateDatabaseFunc)
+	content, err := io.NewContent(ddlTestContentWithoutUpdateDatabaseFunc)
 	c.Assert(err, check.IsNil)
 
 	stmts, err := getUpdateDatabaseStmts(content.Ast)
@@ -294,7 +294,7 @@ func (s *DDLSuite) TestGetUpdateDatabaseStmts_notFoundFunc(c *check.C) {
 }
 
 func (s *DDLSuite) TestGetUpdateDatabaseTargetStatement(c *check.C) {
-	content, err := io.NewContent(ddlContentWithSeveralStatements)
+	content, err := io.NewContent(ddlTestContentWithSeveralStatements)
 	c.Assert(err, check.IsNil)
 
 	stmt, err := getUpdateDatabaseTargetStatement(content.Ast, "MyType")
@@ -311,7 +311,7 @@ func (s *DDLSuite) TestGetUpdateDatabaseTargetStatement(c *check.C) {
 }
 
 func (s *DDLSuite) TestGetUpdateDatabaseTargetStatement_notFound(c *check.C) {
-	content, err := io.NewContent(ddlContentWithSeveralStatements)
+	content, err := io.NewContent(ddlTestContentWithSeveralStatements)
 	c.Assert(err, check.IsNil)
 
 	stmt, err := getUpdateDatabaseTargetStatement(content.Ast, "Foo")
@@ -320,11 +320,11 @@ func (s *DDLSuite) TestGetUpdateDatabaseTargetStatement_notFound(c *check.C) {
 }
 
 func (s *DDLSuite) TestSetStatements(c *check.C) {
-	content1, err := io.NewContent(ddlMyTypeContent)
+	content1, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(content1, check.NotNil)
 
-	content2, err := io.NewContent(ddlMyOtherTypeContent)
+	content2, err := io.NewContent(ddlMyOtherTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(content2, check.NotNil)
 
@@ -344,11 +344,11 @@ func (s *DDLSuite) TestSetStatements(c *check.C) {
 }
 
 func (s *DDLSuite) TestSetStatements_updateDatabaseFuncNotFound(c *check.C) {
-	content1, err := io.NewContent(ddlMyTypeContent)
+	content1, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(content1, check.NotNil)
 
-	content2, err := io.NewContent(ddlContentWithoutUpdateDatabaseFunc)
+	content2, err := io.NewContent(ddlTestContentWithoutUpdateDatabaseFunc)
 	c.Assert(err, check.IsNil)
 	c.Assert(content2, check.NotNil)
 
@@ -361,7 +361,7 @@ func (s *DDLSuite) TestSetStatements_updateDatabaseFuncNotFound(c *check.C) {
 }
 
 func (s *DDLSuite) TestSetStatements_setNone(c *check.C) {
-	content, err := io.NewContent(ddlMyTypeContent)
+	content, err := io.NewContent(ddlMyTypeTestContent)
 	c.Assert(err, check.IsNil)
 	c.Assert(content, check.NotNil)
 
