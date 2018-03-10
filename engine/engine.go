@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"plugin"
+	"strings"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/errs"
@@ -188,6 +189,11 @@ func merge(typeHolder *parser.TypeHolder, templateFilepath string) (string, erro
 	if err != nil {
 		return "", fmt.Errorf("Error replacing configuration over template %v",
 			filepath.Base(templateFilepath))
+	}
+
+	if strings.Contains(replacedStr, "_#") || strings.Contains(replacedStr, "#_") {
+		return replacedStr, fmt.Errorf("%v type did not replace all %v template symbols",
+			typeHolder.Name, filepath.Base(templateFilepath))
 	}
 
 	return replacedStr, err

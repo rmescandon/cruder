@@ -81,7 +81,7 @@ func (c *Options) ValidateAndInitialize() error {
 	}
 
 	//normalize settings file path
-	err = normalizePath(&c.Settings)
+	err = io.NormalizePath(&c.Settings)
 	if err != nil {
 		return err
 	}
@@ -162,33 +162,23 @@ func (c *Options) loadSettings() error {
 	return nil
 }
 
-func normalizePath(ptrStr *string) error {
-	if strings.Contains(*ptrStr, "~") {
-		*ptrStr = strings.Replace(*ptrStr, "~", os.Getenv("HOME"), -1)
-	}
-
-	var err error
-	*ptrStr, err = filepath.Abs(*ptrStr)
-	return err
-}
-
 func (c *Options) normalizePaths() error {
-	err := normalizePath(&c.TemplatesPath)
+	err := io.NormalizePath(&c.TemplatesPath)
 	if err != nil {
 		return err
 	}
 
-	err = normalizePath(&c.TypesFile)
+	err = io.NormalizePath(&c.TypesFile)
 	if err != nil {
 		return err
 	}
 
-	err = normalizePath(&c.UserPlugins)
+	err = io.NormalizePath(&c.UserPlugins)
 	if err != nil {
 		return err
 	}
 
-	err = normalizePath(&c.BuiltinPlugins)
+	err = io.NormalizePath(&c.BuiltinPlugins)
 	if err != nil {
 		return err
 	}

@@ -20,10 +20,15 @@
 package engine
 
 import (
+	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/parser"
+	"github.com/rmescandon/cruder/testdata"
 
 	check "gopkg.in/check.v1"
 )
@@ -38,6 +43,41 @@ var _ = check.Suite(&EngineSuite{})
 
 // Test rewrites testing in a suite
 func Test(t *testing.T) { check.TestingT(t) }
+
+func (s *EngineSuite) TestMerge(c *check.C) {
+	h, err := testdata.TestTypeHolder()
+	c.Assert(err, check.IsNil)
+
+	config.Config.TemplatesPath = "../testdata/templates/"
+	io.NormalizePath(&config.Config.TemplatesPath)
+	templates, err := availableTemplates()
+	c.Assert(err, check.IsNil)
+	c.Assert(templates, check.HasLen, 8)
+
+	for _, t := range templates {
+		str, err := merge(h, t)
+		c.Assert(err, check.IsNil)
+		c.Assert(strings.Contains(str, "_#"), check.Equals, false)
+		c.Assert(strings.Contains(str, "#_"), check.Equals, false)
+	}
+}
+
+func (s *EngineSuite) TestMerge_cannotReplace(c *check.C) {
+	f, err := ioutil.TempFile("", "")
+	c.Assert(f, check.NotNil)
+	c.Assert(err, check.IsNil)
+
+	defer f.Close()
+
+	_, err = f.WriteString("_#")
+	c.Assert(err, check.IsNil)
+
+	h, err := testdata.TestTypeHolder()
+	c.Assert(err, check.IsNil)
+
+	_, err = merge(h, f.Name())
+	c.Assert(err, check.ErrorMatches, ".*type did not replace all.*template symbols")
+}
 
 /* TEMPORARY COMMENTED OUT
 func (s *EngineSuite) SetUpTest(c *check.C) {

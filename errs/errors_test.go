@@ -19,13 +19,34 @@
 
 package errs
 
-import check "gopkg.in/check.v1"
+import (
+	"testing"
+
+	check "gopkg.in/check.v1"
+)
 
 type ErrorSuite struct{}
 
 var _ = check.Suite(&ErrorSuite{})
 
-func (s *ErrorSuite) TestErrOutputExistsMessage(c *check.C) {
+func Test(t *testing.T) { check.TestingT(t) }
+
+func (s *ErrorSuite) TestErrOutputExists(c *check.C) {
 	err := NewErrOutputExists("/any/random/path")
 	c.Assert(err.Error(), check.Equals, "File /any/random/path already exists. Skip writing")
+}
+
+func (s *ErrorSuite) TestErrNotFound(c *check.C) {
+	err := NewErrNotFound("Whatever thing")
+	c.Assert(err.Error(), check.Equals, "Whatever thing not found")
+}
+
+func (s *ErrorSuite) TestErrEmptyString(c *check.C) {
+	err := NewErrEmptyString("Whatever thing")
+	c.Assert(err.Error(), check.Equals, "Whatever thing empty string")
+}
+
+func (s *ErrorSuite) TestErrDuplicatedMaker(c *check.C) {
+	err := NewErrDuplicatedMaker("makerID")
+	c.Assert(err.Error(), check.Equals, "Cannot register duplicated maker \"makerID\"")
 }

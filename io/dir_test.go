@@ -22,26 +22,30 @@ package io
 import (
 	"os"
 	"path/filepath"
-	"strings"
+
+	check "gopkg.in/check.v1"
 )
 
-// EnsureDir checks for a dir existence and creates it if not exists
-func EnsureDir(dir string) error {
-	_, err := os.Stat(dir)
-	if os.IsNotExist(err) {
-		return os.MkdirAll(dir, 0755)
-	}
-	return nil
+const (
+	fakePath = "a/random/path"
+)
+
+type DirSuite struct{}
+
+var _ = check.Suite(&DirSuite{})
+
+func (s *DirSuite) SetUpSuite(c *check.C) {
+	os.Remove(filepath.Join(os.TempDir(), fakePath))
 }
 
-// NormalizePath takes a path and resolves ~ to HOME env value and
-// returns abs path
-func NormalizePath(ptrStr *string) error {
-	if strings.Contains(*ptrStr, "~") {
-		*ptrStr = strings.Replace(*ptrStr, "~", os.Getenv("HOME"), -1)
-	}
+func (s *DirSuite) TestEnsureDir(c *check.C) {
+	path := filepath.Join(os.TempDir(), fakePath)
+	_, err := os.Stat(path)
+	c.Assert(os.IsNotExist(err), check.Equals, true)
 
-	var err error
-	*ptrStr, err = filepath.Abs(*ptrStr)
-	return err
+	err = EnsureDir(path)
+	c.Assert(err, check.IsNil)
+
+	_, err = os.Stat(path)
+	c.Assert(err, check.IsNil)
 }

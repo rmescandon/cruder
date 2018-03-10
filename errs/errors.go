@@ -73,12 +73,12 @@ func NewErrDuplicatedMaker(id string) ErrDuplicatedMaker {
 
 // Error returns the error string
 func (e ErrOutputExists) Error() string {
-	return fmt.Sprintf("File %q already exists. Skip writing", e.Path)
+	return fmt.Sprintf("File %v already exists. Skip writing", e.Path)
 }
 
 // Error returns the error string
 func (e ErrNotFound) Error() string {
-	return fmt.Sprintf("%v not Found", e.What)
+	return fmt.Sprintf("%v not found", e.What)
 }
 
 // Error returns the error string
@@ -87,5 +87,5 @@ func (e ErrEmptyString) Error() string {
 }
 
 func (e ErrDuplicatedMaker) Error() string {
-	return fmt.Sprintf("cannot register duplicated maker %q", e.ID)
+	return fmt.Sprintf("Cannot register duplicated maker %q", e.ID)
 }
