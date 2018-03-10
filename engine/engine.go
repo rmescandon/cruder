@@ -172,24 +172,14 @@ func processMaker(typeHolder *parser.TypeHolder, template string) error {
 
 // Merges type, config and template, returning the result as a string
 func merge(typeHolder *parser.TypeHolder, templateFilepath string) (string, error) {
-	// execute the replacement
 	log.Debugf("Loading template: %v", filepath.Base(templateFilepath))
 	templateContent, err := io.FileToString(templateFilepath)
 	if err != nil {
 		return "", fmt.Errorf("Error reading template file: %v", err)
 	}
 
-	replacedStr, err := typeHolder.ReplaceInTemplate(templateContent)
-	if err != nil {
-		return "", fmt.Errorf("Error replacing type %v over template %v",
-			typeHolder.Name, filepath.Base(templateFilepath))
-	}
-
-	replacedStr, err = config.Config.ReplaceInTemplate(replacedStr)
-	if err != nil {
-		return "", fmt.Errorf("Error replacing configuration over template %v",
-			filepath.Base(templateFilepath))
-	}
+	replacedStr := typeHolder.ReplaceInTemplate(templateContent)
+	replacedStr = config.Config.ReplaceInTemplate(replacedStr)
 
 	if strings.Contains(replacedStr, "_#") || strings.Contains(replacedStr, "#_") {
 		return replacedStr, fmt.Errorf("%v type did not replace all %v template symbols",

@@ -69,13 +69,11 @@ func (s *ConfigSuite) TestProjectURL(c *check.C) {
 
 	template := "_#PROJECT#_"
 
-	result, err := Config.ReplaceInTemplate(template)
-	c.Assert(err, check.IsNil)
+	result := Config.ReplaceInTemplate(template)
 	c.Assert(result, check.Equals, defaultProjectURL)
 
 	Config.ProjectURL = "launchpad.com/myuser/myproject"
 
-	result, err = Config.ReplaceInTemplate(template)
-	c.Assert(err, check.IsNil)
+	result = Config.ReplaceInTemplate(template)
 	c.Assert(result, check.Equals, "launchpad.com/myuser/myproject")
 }

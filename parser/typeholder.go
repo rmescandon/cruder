@@ -246,7 +246,7 @@ func (holder *TypeHolder) IDFieldPattern() string {
 }
 
 // ReplaceInTemplate replaces template marks with holder data
-func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, error) {
+func (holder *TypeHolder) ReplaceInTemplate(templateContent string) string {
 	replaced := templateContent
 
 	/*
@@ -318,5 +318,5 @@ func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, err
 	// [a-z]+
 	replaced = strings.Replace(replaced, "_#ID.FIELD.PATTERN#_", holder.IDFieldPattern(), -1)
 
-	return replaced, nil
+	return replaced
 }

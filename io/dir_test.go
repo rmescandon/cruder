@@ -49,3 +49,33 @@ func (s *DirSuite) TestEnsureDir(c *check.C) {
 	_, err = os.Stat(path)
 	c.Assert(err, check.IsNil)
 }
+
+func (s *DirSuite) TestNormalizePath_noChange(c *check.C) {
+	path := "/any/path"
+	err := NormalizePath(&path)
+	c.Assert(err, check.IsNil)
+	c.Assert(path, check.Equals, "/any/path")
+}
+
+func (s *DirSuite) TestNormalizePath_endingSlash(c *check.C) {
+	path := "/any/path/"
+	err := NormalizePath(&path)
+	c.Assert(err, check.IsNil)
+	c.Assert(path, check.Equals, "/any/path")
+}
+
+func (s *DirSuite) TestNormalizePath_home(c *check.C) {
+	path := "~/any/path"
+	err := NormalizePath(&path)
+	c.Assert(err, check.IsNil)
+	c.Assert(path, check.Equals, filepath.Join(os.Getenv("HOME"), "any/path"))
+}
+
+func (s *DirSuite) TestNormalizePath_relativePath(c *check.C) {
+	path := "any/path"
+	err := NormalizePath(&path)
+	c.Assert(err, check.IsNil)
+	current, err := os.Getwd()
+	c.Assert(err, check.IsNil)
+	c.Assert(path, check.Equals, filepath.Join(current, "any/path"))
+}

@@ -100,7 +100,7 @@ func (c *Options) ValidateAndInitialize() error {
 }
 
 // ReplaceInTemplate replaces config values in template
-func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
+func (c *Options) ReplaceInTemplate(templateContent string) string {
 	replaced := templateContent
 
 	// github.com/myaccount/myproject
@@ -109,7 +109,7 @@ func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
 	// v1
 	replaced = strings.Replace(replaced, "_#API.VERSION#_", c.APIVersion, -1)
 
-	return replaced, nil
+	return replaced
 }
 
 func (c *Options) setDefaultValuesWhenNeeded() error {

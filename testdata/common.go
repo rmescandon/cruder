@@ -23,6 +23,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/parser"
@@ -55,11 +56,40 @@ const (
 		AFloatingThing float
 	}	
 	`
+
+	TestTemplateContent = `
+	package pkg
+
+	func anyFunction() error {
+		if err := Db.Do_#TYPE#_Thing(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	`
 )
+
+// TestTemplate returns a file
+func TestTemplate(id string) (string, error) {
+	dir, err := ioutil.TempDir(os.TempDir(), "")
+	if err != nil {
+		return "", err
+	}
+
+	f, err := os.Create(filepath.Join(dir, id+".template"))
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(TestTemplateContent)
+	return f.Name(), err
+}
 
 // TestTypeFile returns a temporary file with a test type into it
 func TestTypeFile() (*os.File, error) {
-
 	f, err := ioutil.TempFile("", "")
 	if err != nil {
 		return f, err
