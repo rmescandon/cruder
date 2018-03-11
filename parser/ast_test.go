@@ -222,7 +222,7 @@ func (s *AstSuite) TestUpdateInterfaceMethods(c *check.C) {
 	c.Assert(iface, check.NotNil)
 
 	iface2 := GetInterface(content.Ast, "MyOtherInterface")
-	c.Assert(iface, check.NotNil)
+	c.Assert(iface2, check.NotNil)
 
 	fields2 := GetInterfaceMethods(iface2)
 	c.Assert(fields2, check.HasLen, 1)
@@ -253,6 +253,7 @@ func (s *AstSuite) TestComposeTypeHolder(c *check.C) {
 	_, err = f.WriteString(testTypeFileContent)
 	c.Assert(err, check.IsNil)
 	gof, err := io.NewGoFile(f.Name())
+	c.Assert(err, check.IsNil)
 	th, err := ComposeTypeHolders(gof)
 	c.Assert(err, check.IsNil)
 	c.Assert(th, check.HasLen, 1)
