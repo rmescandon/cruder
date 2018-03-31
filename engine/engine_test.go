@@ -21,11 +21,13 @@ package engine
 
 import (
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
 	"github.com/rmescandon/cruder/testdata"
@@ -65,7 +67,8 @@ const (
 )
 
 type mockMaker struct {
-	id string
+	id       string
+	basePath string
 }
 
 func (m *mockMaker) ID() string {
@@ -73,7 +76,15 @@ func (m *mockMaker) ID() string {
 }
 
 func (m *mockMaker) OutputFilepath() string {
-	return mockOutputpath
+	if len(m.basePath) == 0 {
+		var err error
+		m.basePath, err = ioutil.TempDir("", "cruder_test")
+		if err != nil {
+			log.Error(err)
+			return ""
+		}
+	}
+	return filepath.Join(m.basePath, mockOutputpath)
 }
 
 func (m *mockMaker) Make(g *io.Content, c *io.Content) (*io.Content, error) {
@@ -83,7 +94,7 @@ func (m *mockMaker) Make(g *io.Content, c *io.Content) (*io.Content, error) {
 func (m *mockMaker) SetTypeHolder(*parser.TypeHolder) {}
 
 func newMockMaker(id string) *mockMaker {
-	return &mockMaker{id}
+	return &mockMaker{id: id}
 }
 
 type EngineSuite struct{}
@@ -143,7 +154,7 @@ func (s *EngineSuite) TestProcessMaker(c *check.C) {
 	h, err := testdata.TestTypeHolder()
 	c.Assert(err, check.IsNil)
 
-	makers.Register(&mockMaker{mockName})
+	makers.Register(&mockMaker{id: mockName})
 
 	t, err := testdata.TestTemplate(mockName)
 	c.Assert(err, check.IsNil)
@@ -155,8 +166,8 @@ func (s *EngineSuite) TestProcessMakers(c *check.C) {
 	h, err := testdata.TestTypeHolder()
 	c.Assert(err, check.IsNil)
 
-	makers.Register(&mockMaker{mockName})
-	makers.Register(&mockMaker{mock2Name})
+	makers.Register(&mockMaker{id: mockName})
+	makers.Register(&mockMaker{id: mock2Name})
 
 	t, err := testdata.TestTemplate(mockName)
 	c.Assert(err, check.IsNil)

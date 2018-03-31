@@ -60,7 +60,7 @@ func (s *ConfigSuite) TestLoadConfig(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(Config.Settings, check.Equals, f.Name())
 	c.Assert(Config.Output, check.Equals, "")
-	c.Assert(Config.TypesFile, check.Equals, "")
+	c.Assert(Config.Args.TypesFile, check.Equals, "")
 	c.Assert(len(Config.Verbose), check.Equals, 0)
 	c.Assert(Config.Version, check.Equals, "1.2-3")
 	c.Assert(Config.TemplatesPath, check.Equals, "/local/path/templates")
