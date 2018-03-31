@@ -42,8 +42,12 @@ const (
 
 // Options type holding possible cli params
 type Options struct {
-	Verbose     []bool `short:"v" long:"verbose" description:"Verbose output"`
-	TypesFile   string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code" required:"yes"`
+	Args struct {
+		TypesFile string `positional-arg-name:"types"`
+	} `positional-args:"yes" required:"yes"`
+
+	Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
+	//TypesFile   string `short:"t" long:"types" description:"File with struct types to consider for generating the skeletom code" required:"yes"`
 	Output      string `short:"o" long:"output" description:"Folder where building output structure of generated files"`
 	ProjectURL  string `short:"u" long:"url" description:"Url of this project. If not specified 'github.com/myproject' is used"`
 	APIVersion  string `short:"a" long:"apiversion" description:"Version of the REST api"`
@@ -61,7 +65,7 @@ var Config Options
 
 // ValidateAndInitialize check received params and initialize default ones
 func (c *Options) ValidateAndInitialize() error {
-	if len(c.TypesFile) == 0 {
+	if len(c.Args.TypesFile) == 0 {
 		return &flags.Error{
 			Type:    flags.ErrHelp,
 			Message: "Types file not provided",
@@ -167,7 +171,7 @@ func (c *Options) normalizePaths() error {
 		return err
 	}
 
-	err = io.NormalizePath(&c.TypesFile)
+	err = io.NormalizePath(&c.Args.TypesFile)
 	if err != nil {
 		return err
 	}

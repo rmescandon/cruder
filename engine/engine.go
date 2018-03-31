@@ -48,7 +48,7 @@ func Run() error {
 		return err
 	}
 
-	source, err := io.NewGoFile(config.Config.TypesFile)
+	source, err := io.NewGoFile(config.Config.Args.TypesFile)
 	if err != nil {
 		return fmt.Errorf("Error reading go source file: %v", err)
 	}
