@@ -28,6 +28,10 @@ import (
 	"github.com/rmescandon/cruder/parser"
 )
 
+const (
+	templateExt = ".template"
+)
+
 // BasePath local folder taken as base path by Makers to write their results
 var BasePath string
 
@@ -40,13 +44,7 @@ type Maker interface {
 
 // Base represents common members for any maker
 type Base struct {
-	BasePath   string
 	TypeHolder *parser.TypeHolder
-}
-
-// SetBasePath sets the output local path for the generated stuff
-func (b *Base) SetBasePath(basePath string) {
-	b.BasePath = basePath
 }
 
 // SetTypeHolder sets the holder for the type this maker uses
@@ -72,5 +70,8 @@ func Get(template string) (Maker, error) {
 func templateIdentifier(templateAbsPath string) string {
 	filename := filepath.Base(templateAbsPath)
 	var extension = filepath.Ext(filename)
-	return filename[0 : len(filename)-len(extension)]
+	if extension == templateExt {
+		return filename[0 : len(filename)-len(extension)]
+	}
+	return ""
 }

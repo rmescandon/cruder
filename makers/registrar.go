@@ -20,8 +20,7 @@
 package makers
 
 import (
-	"fmt"
-
+	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/parser"
 )
@@ -30,7 +29,6 @@ import (
 // It is used to allow registering new makers
 type Registrant interface {
 	Maker
-	SetBasePath(string)
 	SetTypeHolder(*parser.TypeHolder)
 }
 
@@ -38,9 +36,14 @@ var registeredMakers map[string]Registrant
 
 // Register registers a builtin maker
 func Register(m Registrant) error {
-	if registeredMakers[m.ID()] != nil {
-		return fmt.Errorf("cannot register duplicated maker %q", m.ID())
+	if m == nil {
+		return errs.ErrNilObject
 	}
+
+	if registeredMakers[m.ID()] != nil {
+		return errs.NewErrDuplicatedMaker(m.ID())
+	}
+
 	if registeredMakers == nil {
 		registeredMakers = make(map[string]Registrant)
 	}

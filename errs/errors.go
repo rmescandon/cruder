@@ -26,7 +26,9 @@ import (
 
 // Errors
 var (
-	ErrNoMakerRegistered = errors.New("Any maker has been registered")
+	ErrNoMakerRegistered = errors.New("No maker has been registered")
+	ErrNoContent         = errors.New("No content")
+	ErrNilObject         = errors.New("Nil object")
 )
 
 // ErrOutputExists error struct for an existing output file
@@ -44,6 +46,11 @@ type ErrEmptyString struct {
 	What string
 }
 
+// ErrDuplicatedMaker error for a duplicated entry in registrar
+type ErrDuplicatedMaker struct {
+	ID string
+}
+
 // NewErrOutputExists returns a new ErrOutputExists struct
 func NewErrOutputExists(output string) ErrOutputExists {
 	return ErrOutputExists{Path: output}
@@ -59,6 +66,11 @@ func NewErrEmptyString(what string) ErrEmptyString {
 	return ErrEmptyString{What: what}
 }
 
+// NewErrDuplicatedMaker returns a new ErrDuplicatedMaker
+func NewErrDuplicatedMaker(id string) ErrDuplicatedMaker {
+	return ErrDuplicatedMaker{ID: id}
+}
+
 // Error returns the error string
 func (e ErrOutputExists) Error() string {
 	return fmt.Sprintf("File %v already exists. Skip writing", e.Path)
@@ -66,10 +78,14 @@ func (e ErrOutputExists) Error() string {
 
 // Error returns the error string
 func (e ErrNotFound) Error() string {
-	return fmt.Sprintf("%v not Found", e.What)
+	return fmt.Sprintf("%v not found", e.What)
 }
 
 // Error returns the error string
 func (e ErrEmptyString) Error() string {
 	return fmt.Sprintf("%v empty string", e.What)
+}
+
+func (e ErrDuplicatedMaker) Error() string {
+	return fmt.Sprintf("Cannot register duplicated maker %q", e.ID)
 }

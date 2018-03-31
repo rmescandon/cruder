@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/makers"
 )
@@ -40,6 +41,10 @@ func (ds *Datastore) ID() string {
 
 // OutputFilepath returns the path to generated file
 func (ds *Datastore) OutputFilepath() string {
+	if ds.TypeHolder == nil || len(ds.TypeHolder.Name) == 0 {
+		return ""
+	}
+
 	return filepath.Join(
 		makers.BasePath,
 		ds.ID(),
@@ -48,6 +53,10 @@ func (ds *Datastore) OutputFilepath() string {
 
 // Make generates the result
 func (ds *Datastore) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
+	if generatedOutput == nil {
+		return nil, errs.ErrNoContent
+	}
+
 	// always include type definition into this datastore generated file
 	foundFirstFunc := false
 	for i, decl := range generatedOutput.Ast.Decls {
@@ -63,6 +72,10 @@ func (ds *Datastore) Make(generatedOutput *io.Content, currentOutput *io.Content
 		if foundFirstFunc {
 			break
 		}
+	}
+
+	if !foundFirstFunc {
+		return nil, errs.NewErrNotFound("First function in generated output")
 	}
 
 	return generatedOutput, nil

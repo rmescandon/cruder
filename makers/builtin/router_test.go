@@ -20,80 +20,167 @@
 package builtin
 
 import (
+	"io/ioutil"
+	"path/filepath"
+
+	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers"
+	"github.com/rmescandon/cruder/testdata"
 	check "gopkg.in/check.v1"
 )
 
-type RouterSuite struct{}
+const (
+	routerTestContent = `
+	package service
+
+	import (
+		"net/http"
+
+		"github.com/gorilla/mux"
+
+		"github.com/rmescandon/myproject/handler"
+	)
+
+	const apiVersion = "v1"
+
+	func composePath(operation string) string {
+		return "/" + apiVersion + "/" + operation
+	}
+
+	// Router REST path multiplexer
+	func Router() *mux.Router {
+		router := mux.NewRouter().StrictSlash(true)
+
+		router.Handle(composePath("mytype"), http.HandlerFunc(handler.CreateMyType)).Methods("POST")
+		router.Handle(composePath("mytype"), http.HandlerFunc(handler.ListMyTypes)).Methods("GET")
+		router.Handle(composePath("mytype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(handler.GetMyType)).Methods("GET")
+		router.Handle(composePath("mytype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(handler.UpdateMyType)).Methods("PUT")
+		router.Handle(composePath("mytype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(handler.DeleteMyType)).Methods("DELETE")
+
+		return router
+	}
+	`
+
+	routerTestExistingContent = `
+	package service
+
+	import (
+		"net/http"
+
+		"github.com/gorilla/mux"
+
+		"github.com/rmescandon/myproject/handler"
+	)
+
+	const apiVersion = "v1"
+
+	func composePath(operation string) string {
+		return "/" + apiVersion + "/" + operation
+	}
+
+	// Router REST path multiplexer
+	func Router() *mux.Router {
+		router := mux.NewRouter().StrictSlash(true)
+
+		router.Handle(composePath("myothertype"), http.HandlerFunc(handler.CreateMyOtherType)).Methods("POST")
+		router.Handle(composePath("myothertype"), http.HandlerFunc(handler.ListMyOtherTypes)).Methods("GET")
+		router.Handle(composePath("myothertype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(handler.GetMyOtherType)).Methods("GET")
+		router.Handle(composePath("myothertype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(handler.UpdateMyOtherType)).Methods("PUT")
+		router.Handle(composePath("myothertype/{id:[a-zA-Z0-9-_:]+}"), http.HandlerFunc(handler.DeleteMyOtherType)).Methods("DELETE")
+
+		return router
+	}
+	`
+)
+
+type RouterSuite struct {
+	r *Router
+}
 
 var _ = check.Suite(&RouterSuite{})
 
-/*
-func (s *RouterSuite) TestMakeRouter(c *check.C) {
-	//--------------------------------------------------------------------------
-	// 1.- Create an output file for MyType, not having a previous existing file
-	typeFile, err := testdata.TestTypeFile()
+func (s *RouterSuite) SetUpTest(c *check.C) {
+	typeHolder, err := testdata.TestTypeHolder()
 	c.Assert(err, check.IsNil)
-	c.Assert(typeFile, check.NotNil)
-
-	source, err := io.NewGoFile(typeFile.Name())
-	c.Assert(err, check.IsNil)
-
-	typeHolders, err := parser.ComposeTypeHolders(source)
-	c.Assert(err, check.IsNil)
-	c.Assert(typeHolders, check.HasLen, 1)
 
 	config.Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
-	r := &Router{
-		makers.BaseMaker{
-			TypeHolder: typeHolders[0],
-			Template:   "../testdata/templates/router.template",
-		},
-	}
+	makers.BasePath = config.Config.Output
 
-	c.Assert(r.Make(), check.IsNil)
-
-	content, err := io.FileToString(r.OutputFilepath())
-	c.Assert(err, check.IsNil)
-	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
-	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
-
-	// -----------------------------------------------------------------------
-	// 2.- Reset typeHolders and load now OtherType. Create the output and see
-	// if both MyType and OtherType are included into
-	otherTypeFile, err := testdata.TestOtherTypeFile()
-	c.Assert(err, check.IsNil)
-	c.Assert(otherTypeFile, check.NotNil)
-
-	source, err = io.NewGoFile(otherTypeFile.Name())
-	c.Assert(err, check.IsNil)
-
-	typeHolders, err = parser.ComposeTypeHolders(source)
-	c.Assert(err, check.IsNil)
-	c.Assert(typeHolders, check.HasLen, 1)
-
-	r.TypeHolder = typeHolders[0]
-
-	c.Assert(r.Make(), check.IsNil)
-
-	content, err = io.FileToString(r.OutputFilepath())
-
-	// Verify here if both types are included in output
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype\"), http.HandlerFunc(CreateMyType)).Methods(\"POST\")"), check.Equals, true)
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype\"), http.HandlerFunc(ListMyTypes)).Methods(\"GET\")"), check.Equals, true)
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype/{ID:[0-9]+}\"), http.HandlerFunc(GetMyType)).Methods(\"GET\")"), check.Equals, true)
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype/{ID:[0-9]+}\"), http.HandlerFunc(UpdateMyType)).Methods(\"PUT\")"), check.Equals, true)
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"mytype/{ID:[0-9]+}\"), http.HandlerFunc(DeleteMyType)).Methods(\"DELETE\")"), check.Equals, true)
-
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype\"), http.HandlerFunc(CreateMyOtherType)).Methods(\"POST\")"), check.Equals, true)
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype\"), http.HandlerFunc(ListMyOtherTypes)).Methods(\"GET\")"), check.Equals, true)
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype/{AnID:[0-9]+}\"), http.HandlerFunc(GetMyOtherType)).Methods(\"GET\")"), check.Equals, true)
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype/{AnID:[0-9]+}\"), http.HandlerFunc(UpdateMyOtherType)).Methods(\"PUT\")"), check.Equals, true)
-	c.Assert(strings.Contains(content, "router.Handle(composePath(\"myothertype/{AnID:[0-9]+}\"), http.HandlerFunc(DeleteMyOtherType)).Methods(\"DELETE\")"), check.Equals, true)
-
-	c.Assert(err, check.IsNil)
-	c.Assert(strings.Contains(content, "_#"), check.Equals, false)
-	c.Assert(strings.Contains(content, "#_"), check.Equals, false)
+	s.r = &Router{makers.Base{TypeHolder: typeHolder}}
 }
-*/
+
+func (s *RouterSuite) TestID(c *check.C) {
+	c.Assert(s.r.ID(), check.Equals, "router")
+}
+
+func (s *RouterSuite) TestOutputPath(c *check.C) {
+	c.Assert(s.r.OutputFilepath(),
+		check.Equals,
+		filepath.Join(makers.BasePath, "service", s.r.ID()+".go"))
+}
+
+func (s *RouterSuite) TestOutputPath_emptyBasePath(c *check.C) {
+	makers.BasePath = ""
+	c.Assert(s.r.OutputFilepath(),
+		check.Equals,
+		filepath.Join("service", s.r.ID()+".go"))
+}
+
+func (s *RouterSuite) TestMake(c *check.C) {
+	generatedOutput, err := io.NewContent(routerTestContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(generatedOutput, check.NotNil)
+
+	output, err := s.r.Make(generatedOutput, nil)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.NotNil)
+
+	str, err := output.String()
+	c.Assert(err, check.IsNil)
+	c.Assert(len(str) > 0, check.Equals, true)
+	c.Assert(output, check.Equals, generatedOutput)
+}
+
+func (s *RouterSuite) TestMake_existingOutput(c *check.C) {
+	generatedOutput, err := io.NewContent(routerTestContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(generatedOutput, check.NotNil)
+
+	existingOutput, err := io.NewContent(routerTestExistingContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(existingOutput, check.NotNil)
+
+	out, err := s.r.Make(generatedOutput, existingOutput)
+	c.Assert(err, check.IsNil)
+	c.Assert(out, check.NotNil)
+
+	stmts := getRouterFunctionStatements(out.Ast)
+	c.Assert(stmts, check.HasLen, 10)
+	m := findHandlersInStatements(stmts)
+
+	for key := range m {
+		switch key {
+		case "CreateMyType":
+		case "UpdateMyType":
+		case "GetMyType":
+		case "DeleteMyType":
+		case "ListMyTypes":
+		case "CreateMyOtherType":
+		case "UpdateMyOtherType":
+		case "GetMyOtherType":
+		case "DeleteMyOtherType":
+		case "ListMyOtherTypes":
+		default:
+			c.Fail()
+		}
+	}
+}
+
+func (s *RouterSuite) TestMake_nilGeneratedOutput(c *check.C) {
+	output, err := s.r.Make(nil, nil)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.IsNil)
+}

@@ -29,19 +29,17 @@ import (
 	"go/token"
 
 	"github.com/rmescandon/cruder/io"
-	"github.com/rmescandon/cruder/log"
 )
 
 // ComposeTypeHolders composes the type holders for the types in source file
 func ComposeTypeHolders(source *io.GoFile) ([]*TypeHolder, error) {
 	var holders []*TypeHolder
-	decls := getTypeDecls(source.Ast)
+	decls := getStructs(source.Ast)
 
 	for _, decl := range decls {
 		for _, spec := range decl.Specs {
 			var buf bytes.Buffer
 			printer.Fprint(&buf, token.NewFileSet(), spec)
-			log.Info(string(buf.Bytes()))
 
 			fields, err := composeTypeFields(spec)
 			if err != nil {
@@ -78,6 +76,20 @@ func getTypeDecls(file *ast.File) []*ast.GenDecl {
 		}
 	}
 	return typeDecls
+}
+
+func getStructs(file *ast.File) []*ast.GenDecl {
+	structs := []*ast.GenDecl{}
+	typeDecls := getTypeDecls(file)
+	for _, decl := range typeDecls {
+		for _, spec := range decl.Specs {
+			switch spec.(*ast.TypeSpec).Type.(type) {
+			case *ast.StructType:
+				structs = append(structs, decl)
+			}
+		}
+	}
+	return structs
 }
 
 // GetFuncDecls returns the list of func declarations

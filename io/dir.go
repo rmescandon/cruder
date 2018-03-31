@@ -19,7 +19,11 @@
 
 package io
 
-import "os"
+import (
+	"os"
+	"path/filepath"
+	"strings"
+)
 
 // EnsureDir checks for a dir existence and creates it if not exists
 func EnsureDir(dir string) error {
@@ -28,4 +32,16 @@ func EnsureDir(dir string) error {
 		return os.MkdirAll(dir, 0755)
 	}
 	return nil
+}
+
+// NormalizePath takes a path and resolves ~ to HOME env value and
+// returns abs path
+func NormalizePath(ptrStr *string) error {
+	if strings.Contains(*ptrStr, "~") {
+		*ptrStr = strings.Replace(*ptrStr, "~", os.Getenv("HOME"), -1)
+	}
+
+	var err error
+	*ptrStr, err = filepath.Abs(*ptrStr)
+	return err
 }

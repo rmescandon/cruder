@@ -40,7 +40,7 @@ func (r *Router) ID() string {
 
 // OutputFilepath returns the path to generated file
 func (r *Router) OutputFilepath() string {
-	return filepath.Join(makers.BasePath, "/service/router.go")
+	return filepath.Join(makers.BasePath, "service/router.go")
 }
 
 // Make copies template to output path

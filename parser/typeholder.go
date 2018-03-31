@@ -58,6 +58,34 @@ func (holder *TypeHolder) Identifier() string {
 	return ""
 }
 
+// IDFieldName returns the name of the first field, taken as ID
+func (holder *TypeHolder) IDFieldName() string {
+	if len(holder.Fields) == 0 {
+		return ""
+	}
+	return holder.Fields[0].Name
+}
+
+// IDFieldType returns the type of the first field, taken as ID
+func (holder *TypeHolder) IDFieldType() string {
+	if len(holder.Fields) == 0 {
+		return ""
+	}
+	return holder.Fields[0].Type
+}
+
+// FindFieldName return the name of the field used for searches
+func (holder *TypeHolder) FindFieldName() string {
+	switch len(holder.Fields) {
+	case 0:
+		return ""
+	case 1:
+		return holder.Fields[0].Name
+	default:
+		return holder.Fields[1].Name
+	}
+}
+
 // FieldsEnum returns enum of the fields including type indentifier and field name:
 // "theType.Field1, theType.Field2, theType.FieldN"
 func (holder *TypeHolder) FieldsEnum() string {
@@ -91,21 +119,6 @@ func (holder *TypeHolder) fieldsEnum(asRef bool) string {
 	return strings.Join(tokens, ", ")
 }
 
-// IDFieldName returns the name of the first field, taken as ID
-func (holder *TypeHolder) IDFieldName() string {
-	return holder.Fields[0].Name
-}
-
-// IDFieldType returns the type of the first field, taken as ID
-func (holder *TypeHolder) IDFieldType() string {
-	return holder.Fields[0].Type
-}
-
-// FindFieldName return the name of the field used for searches
-func (holder *TypeHolder) FindFieldName() string {
-	return holder.Fields[1].Name
-}
-
 // identifierDotField returns type identifier plus dot plus parameter fieldname, like:
 // "theType.Field1"
 func (holder *TypeHolder) identifierDotField(fieldName string) string {
@@ -114,15 +127,35 @@ func (holder *TypeHolder) identifierDotField(fieldName string) string {
 
 // IDFieldInDDL returns the IDField as seen in SQL DDL operations
 func (holder *TypeHolder) IDFieldInDDL() string {
-	result := strings.ToLower(holder.IDFieldName()) + " "
-	if holder.IDFieldType() == "int" {
-		result = result + "integer "
-	} else {
-		result = result + holder.IDFieldType() + " "
+	id := strings.ToLower(holder.IDFieldName())
+	if len(id) == 0 {
+		return ""
 	}
 
-	result = result + "primary key not null,"
-	return result
+	t := ddlType(holder.IDFieldType())
+	if len(t) == 0 {
+		return ""
+	}
+
+	return id + " " + t + " primary key not null,"
+}
+
+func ddlType(t string) string {
+	switch t {
+	case "string":
+		return "varchar"
+	case "int":
+		return "integer"
+	case "decimal":
+		return "decimal"
+	case "bool":
+		return "boolean"
+	case "time.Time":
+		return "timestamp"
+		// FIXME fill the rest of the types
+	default:
+		return ""
+	}
 }
 
 // FieldsInDDL returns the type fields as they are used for SQL DDL operations, like:
@@ -137,21 +170,7 @@ func (holder *TypeHolder) FieldsInDDL() string {
 			continue
 		}
 
-		var t string
-		switch field.Type {
-		case "string":
-			t = "varchar(200)"
-		case "int":
-			t = "integer"
-		case "decimal":
-			t = "decimal"
-		case "bool":
-			t = "boolean"
-		case "time.Time":
-			t = "timestamp"
-			// FIXME fill the rest of the types
-		}
-
+		t := ddlType(field.Type)
 		token := fmt.Sprintf("%v %v", strings.ToLower(field.Name), t)
 		tokens = append(tokens, token)
 	}
@@ -185,7 +204,10 @@ func (holder *TypeHolder) ValuesInDMLParams() string {
 
 // IDFieldAsDMLParam returns something like "id=$4"
 func (holder *TypeHolder) IDFieldAsDMLParam() string {
-	return holder.IDFieldName() + "=$" + strconv.Itoa(len(holder.Fields))
+	if len(holder.IDFieldName()) == 0 {
+		return ""
+	}
+	return strings.ToLower(holder.IDFieldName()) + "=$" + strconv.Itoa(len(holder.Fields))
 }
 
 // FieldsAsDMLParams returns something like "field1=$1, field2=$2, field3=$3"
@@ -197,7 +219,7 @@ func (holder *TypeHolder) FieldsAsDMLParams() string {
 			continue
 		}
 
-		token := field.Name + "=$" + strconv.Itoa(i)
+		token := strings.ToLower(field.Name) + "=$" + strconv.Itoa(i)
 		tokens = append(tokens, token)
 	}
 	return strings.Join(tokens, ", ")
@@ -223,9 +245,9 @@ func (holder *TypeHolder) IDFieldTypeFormat() string {
 	case "int":
 		return "strconv.Itoa(" + strings.ToLower(holder.IDFieldName()) + ")"
 	case "decimal":
-		return "strconf.FormatFloat(" + strings.ToLower(holder.IDFieldName()) + ")"
+		return "strconv.FormatFloat(" + strings.ToLower(holder.IDFieldName()) + ")"
 	case "bool":
-		return "strconf.FormatBool(" + strings.ToLower(holder.IDFieldName()) + ")"
+		return "strconv.FormatBool(" + strings.ToLower(holder.IDFieldName()) + ")"
 	default:
 		return strings.ToLower(holder.IDFieldName())
 	}
@@ -246,7 +268,7 @@ func (holder *TypeHolder) IDFieldPattern() string {
 }
 
 // ReplaceInTemplate replaces template marks with holder data
-func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, error) {
+func (holder *TypeHolder) ReplaceInTemplate(templateContent string) string {
 	replaced := templateContent
 
 	/*
@@ -318,5 +340,5 @@ func (holder *TypeHolder) ReplaceInTemplate(templateContent string) (string, err
 	// [a-z]+
 	replaced = strings.Replace(replaced, "_#ID.FIELD.PATTERN#_", holder.IDFieldPattern(), -1)
 
-	return replaced, nil
+	return replaced
 }

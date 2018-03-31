@@ -61,7 +61,6 @@ var Config Options
 
 // ValidateAndInitialize check received params and initialize default ones
 func (c *Options) ValidateAndInitialize() error {
-
 	if len(c.TypesFile) == 0 {
 		return &flags.Error{
 			Type:    flags.ErrHelp,
@@ -81,7 +80,7 @@ func (c *Options) ValidateAndInitialize() error {
 	}
 
 	//normalize settings file path
-	err = normalizePath(&c.Settings)
+	err = io.NormalizePath(&c.Settings)
 	if err != nil {
 		return err
 	}
@@ -100,7 +99,7 @@ func (c *Options) ValidateAndInitialize() error {
 }
 
 // ReplaceInTemplate replaces config values in template
-func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
+func (c *Options) ReplaceInTemplate(templateContent string) string {
 	replaced := templateContent
 
 	// github.com/myaccount/myproject
@@ -109,7 +108,7 @@ func (c *Options) ReplaceInTemplate(templateContent string) (string, error) {
 	// v1
 	replaced = strings.Replace(replaced, "_#API.VERSION#_", c.APIVersion, -1)
 
-	return replaced, nil
+	return replaced
 }
 
 func (c *Options) setDefaultValuesWhenNeeded() error {
@@ -162,33 +161,23 @@ func (c *Options) loadSettings() error {
 	return nil
 }
 
-func normalizePath(ptrStr *string) error {
-	if strings.Contains(*ptrStr, "~") {
-		*ptrStr = strings.Replace(*ptrStr, "~", os.Getenv("HOME"), -1)
-	}
-
-	var err error
-	*ptrStr, err = filepath.Abs(*ptrStr)
-	return err
-}
-
 func (c *Options) normalizePaths() error {
-	err := normalizePath(&c.TemplatesPath)
+	err := io.NormalizePath(&c.TemplatesPath)
 	if err != nil {
 		return err
 	}
 
-	err = normalizePath(&c.TypesFile)
+	err = io.NormalizePath(&c.TypesFile)
 	if err != nil {
 		return err
 	}
 
-	err = normalizePath(&c.UserPlugins)
+	err = io.NormalizePath(&c.UserPlugins)
 	if err != nil {
 		return err
 	}
 
-	err = normalizePath(&c.BuiltinPlugins)
+	err = io.NormalizePath(&c.BuiltinPlugins)
 	if err != nil {
 		return err
 	}

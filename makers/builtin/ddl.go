@@ -23,6 +23,7 @@ import (
 	"go/ast"
 	"path/filepath"
 
+	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/makers"
 	"github.com/rmescandon/cruder/parser"
@@ -45,15 +46,34 @@ func (d *DDL) OutputFilepath() string {
 
 // Make generates the results
 func (d *DDL) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
+	if generatedOutput == nil {
+		return nil, errs.ErrNoContent
+	}
+
 	if currentOutput != nil {
 		// search create table for target type statement in current output. If not found, add it
-		stmt := getUpdateDatabaseTargetStatement(currentOutput.Ast, d.TypeHolder.Name)
+		stmt, err := getUpdateDatabaseTargetStatement(currentOutput.Ast, d.TypeHolder.Name)
+		if err != nil {
+			return nil, err
+		}
+
 		if stmt == nil {
-			existingStmts := getUpdateDatabaseStmts(currentOutput.Ast)
-			newStmt := getUpdateDatabaseTargetStatement(generatedOutput.Ast, d.TypeHolder.Name)
+			existingStmts, err := getUpdateDatabaseStmts(currentOutput.Ast)
+			if err != nil {
+				return nil, err
+			}
+
+			newStmt, err := getUpdateDatabaseTargetStatement(generatedOutput.Ast, d.TypeHolder.Name)
+			if err != nil {
+				return nil, err
+			}
+
 			// prepend to existing statements and update
 			stmtsToSet := append([]ast.Stmt{newStmt}, existingStmts...)
-			setStatements(currentOutput.Ast, stmtsToSet)
+			err = setStatements(currentOutput.Ast, stmtsToSet)
+			if err != nil {
+				return nil, err
+			}
 
 			return currentOutput, nil
 		}
@@ -75,13 +95,20 @@ func findUpdateDatabaseFunction(file *ast.File) *ast.FuncDecl {
 	return nil
 }
 
-func getUpdateDatabaseStmts(file *ast.File) []ast.Stmt {
+func getUpdateDatabaseStmts(file *ast.File) ([]ast.Stmt, error) {
 	r := findUpdateDatabaseFunction(file)
-	return r.Body.List
+	if r == nil {
+		return []ast.Stmt{}, errs.NewErrNotFound("UpdateDatabase function")
+	}
+	return r.Body.List, nil
 }
 
-func getUpdateDatabaseTargetStatement(file *ast.File, typeName string) ast.Stmt {
+func getUpdateDatabaseTargetStatement(file *ast.File, typeName string) (ast.Stmt, error) {
 	r := findUpdateDatabaseFunction(file)
+	if r == nil {
+		return nil, errs.NewErrNotFound("UpdateDatabase function")
+	}
+
 	for _, stmt := range r.Body.List {
 		switch stmt.(type) {
 		case *ast.IfStmt:
@@ -94,7 +121,7 @@ func getUpdateDatabaseTargetStatement(file *ast.File, typeName string) ast.Stmt 
 						switch e.(*ast.CallExpr).Fun.(type) {
 						case *ast.SelectorExpr:
 							if e.(*ast.CallExpr).Fun.(*ast.SelectorExpr).Sel.Name == "Create"+typeName+"Table" {
-								return stmt
+								return stmt, nil
 							}
 						}
 					}
@@ -102,12 +129,17 @@ func getUpdateDatabaseTargetStatement(file *ast.File, typeName string) ast.Stmt 
 			}
 		}
 	}
-	return nil
+	// If not found the statement, simply return null, but it is not an error
+	return nil, nil
 }
 
-func setStatements(file *ast.File, stmts []ast.Stmt) {
+func setStatements(file *ast.File, stmts []ast.Stmt) error {
 	r := findUpdateDatabaseFunction(file)
+	if r == nil {
+		return errs.NewErrNotFound("UpdateDatabase function")
+	}
 	r.Body.List = stmts
+	return nil
 }
 
 func init() {

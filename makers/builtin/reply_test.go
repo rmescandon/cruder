@@ -20,70 +20,149 @@
 package builtin
 
 import (
+	"io/ioutil"
+	"path/filepath"
+
+	"github.com/rmescandon/cruder/config"
+	"github.com/rmescandon/cruder/errs"
+	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/makers"
+	"github.com/rmescandon/cruder/testdata"
 	check "gopkg.in/check.v1"
 )
 
-type ReplySuite struct{}
+const (
+	replyTestContent = `
+	package handler
+
+	import (
+		"encoding/json"
+		"log"
+		"net/http"
+	)
+
+	type emptyResponse struct{}
+
+	type errorResponse struct {
+		Code    string
+		Message string
+	}
+
+	func replyWithError(statusCode int, errorBody errorResponse, w http.ResponseWriter) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(statusCode)
+		if err := json.NewEncoder(w).Encode(errorBody); err != nil {
+			log.Printf("Error forming the error response: %v\n", err)
+		}
+	}
+
+	func reply200OK(w http.ResponseWriter) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(emptyResponse{}); err != nil {
+			log.Printf("Error forming the empty response: %v\n", err)
+		}
+	}
+
+	func reply204NoContent(w http.ResponseWriter) {
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	func reply201Created(w http.ResponseWriter, location string) {
+		w.Header().Set("Location", location)
+		w.WriteHeader(http.StatusCreated)
+	}
+
+	func composeLocation(r *http.Request, id string) string {
+		return "http://" + r.Host + r.URL.Path + "/" + id
+	}
+	`
+)
+
+type ReplySuite struct {
+	r *Reply
+}
 
 var _ = check.Suite(&ReplySuite{})
 
-/*
-func (s *ReplySuite) TestCopyReply(c *check.C) {
-	//--------------------------------------------------------------------------
-	// 1.- Create an output file, not having a previous existing file
-	typeFile, err := testdata.TestTypeFile()
+func (s *ReplySuite) SetUpTest(c *check.C) {
+	typeHolder, err := testdata.TestTypeHolder()
 	c.Assert(err, check.IsNil)
-	c.Assert(typeFile, check.NotNil)
-
-	source, err := io.NewGoFile(typeFile.Name())
-	c.Assert(err, check.IsNil)
-
-	typeHolders, err := parser.ComposeTypeHolders(source)
-	c.Assert(err, check.IsNil)
-	c.Assert(typeHolders, check.HasLen, 1)
 
 	config.Config.Output, err = ioutil.TempDir("", "cruder_")
 	c.Assert(err, check.IsNil)
 
-	r := &Reply{
-		makers.CopyMaker{
-			BaseMaker: makers.BaseMaker{
-				TypeHolder: typeHolders[0],
-				Template:   "../testdata/templates/reply.template",
-			},
-		},
-	}
+	makers.BasePath = config.Config.Output
 
-	c.Assert(r.Make(), check.IsNil)
+	s.r = &Reply{makers.Base{TypeHolder: typeHolder}}
+}
 
-	srcContent, err := io.FileToString(r.Template)
+func (s *ReplySuite) TestID(c *check.C) {
+	c.Assert(s.r.ID(), check.Equals, "reply")
+}
+
+func (s *ReplySuite) TestOutputPath(c *check.C) {
+	c.Assert(s.r.OutputFilepath(),
+		check.Equals,
+		filepath.Join(makers.BasePath, "handler", s.r.ID()+".go"))
+}
+
+func (s *ReplySuite) TestOutputPath_emptyBasePath(c *check.C) {
+	makers.BasePath = ""
+	c.Assert(s.r.OutputFilepath(),
+		check.Equals,
+		filepath.Join("handler", s.r.ID()+".go"))
+}
+
+func (s *ReplySuite) TestMake(c *check.C) {
+	generatedOutput, err := io.NewContent(replyTestContent)
 	c.Assert(err, check.IsNil)
-	dstContent, err := io.FileToString(r.OutputFilepath())
+	c.Assert(generatedOutput, check.NotNil)
+
+	output, err := s.r.Make(generatedOutput, nil)
 	c.Assert(err, check.IsNil)
-	c.Assert(srcContent, check.Equals, dstContent)
+	c.Assert(output, check.NotNil)
 
-	// -----------------------------------------------------------------------
-	// 2.- Reset typeHolders and load now OtherType. Create the output and see
-	// if both MyType and OtherType are included into
-	otherTypeFile, err := testdata.TestOtherTypeFile()
+	str, err := output.String()
 	c.Assert(err, check.IsNil)
-	c.Assert(otherTypeFile, check.NotNil)
+	c.Assert(len(str) > 0, check.Equals, true)
+	c.Assert(output, check.Equals, generatedOutput)
+}
 
-	source, err = io.NewGoFile(otherTypeFile.Name())
+func (s *ReplySuite) TestMake_existingOutput(c *check.C) {
+	output, err := io.NewContent(replyTestContent)
 	c.Assert(err, check.IsNil)
+	c.Assert(output, check.NotNil)
 
-	typeHolders, err = parser.ComposeTypeHolders(source)
-	c.Assert(err, check.IsNil)
-	c.Assert(typeHolders, check.HasLen, 1)
-
-	r.TypeHolder = typeHolders[0]
-
-	err = r.Make()
+	out, err := s.r.Make(output, output)
 	c.Assert(err, check.NotNil)
+	c.Assert(out, check.IsNil)
+
 	switch err.(type) {
 	case errs.ErrOutputExists:
 	default:
 		c.Fail()
 	}
 }
-*/
+
+func (s *ReplySuite) TestMake_nilGeneratedOutput(c *check.C) {
+	output, err := s.r.Make(nil, nil)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.IsNil)
+}
+
+func (s *ReplySuite) TestMake_nilGeneratedOutputButExistsOutput(c *check.C) {
+	output, err := io.NewContent(replyTestContent)
+	c.Assert(err, check.IsNil)
+	c.Assert(output, check.NotNil)
+
+	out, err := s.r.Make(nil, output)
+	c.Assert(err, check.NotNil)
+	c.Assert(out, check.IsNil)
+
+	switch err.(type) {
+	case errs.ErrOutputExists:
+	default:
+		c.Fail()
+	}
+}

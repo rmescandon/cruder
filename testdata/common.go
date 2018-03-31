@@ -20,8 +20,13 @@
 package testdata
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+
+	"github.com/rmescandon/cruder/io"
+	"github.com/rmescandon/cruder/parser"
 )
 
 // TestTypeFileContent testing type
@@ -31,10 +36,11 @@ const (
 	
 	// MyType test type to generate skeletom code
 	type MyType struct {
-		ID          int
-		Name        string
-		Description string
-		SubTypes    []string
+		ID            int
+		Name          string
+		Description   string
+		TheBoolThing  bool
+		TheFloatThing float
 	}	
 	`
 
@@ -43,17 +49,47 @@ const (
 	
 	// MyOtherType test type to generate skeletom code
 	type MyOtherType struct {
-		AnID         int
-		AName        string
-		ADescription string
-		TheSubTypes  []string
+		AnID           int
+		AName          string
+		ADescription   string
+		ABoolThing     bool
+		AFloatingThing float
 	}	
+	`
+
+	TestTemplateContent = `
+	package pkg
+
+	func anyFunction() error {
+		if err := Db.Do_#TYPE#_Thing(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
 	`
 )
 
+// TestTemplate returns a file
+func TestTemplate(id string) (string, error) {
+	dir, err := ioutil.TempDir(os.TempDir(), "")
+	if err != nil {
+		return "", err
+	}
+
+	f, err := os.Create(filepath.Join(dir, id+".template"))
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(TestTemplateContent)
+	return f.Name(), err
+}
+
 // TestTypeFile returns a temporary file with a test type into it
 func TestTypeFile() (*os.File, error) {
-
 	f, err := ioutil.TempFile("", "")
 	if err != nil {
 		return f, err
@@ -74,4 +110,28 @@ func TestOtherTypeFile() (*os.File, error) {
 
 	_, err = f.WriteString(TestOtherTypeFileContent)
 	return f, err
+}
+
+// TestTypeHolder returns a type holder for testing purposes
+func TestTypeHolder() (*parser.TypeHolder, error) {
+	typeFile, err := TestTypeFile()
+	if err != nil {
+		return nil, err
+	}
+
+	source, err := io.NewGoFile(typeFile.Name())
+	if err != nil {
+		return nil, err
+	}
+
+	typeHolders, err := parser.ComposeTypeHolders(source)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(typeHolders) != 1 {
+		return nil, errors.New("Generated a number of type holders different than 1")
+	}
+
+	return typeHolders[0], nil
 }

@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"plugin"
+	"strings"
 
 	"github.com/rmescandon/cruder/config"
 	"github.com/rmescandon/cruder/errs"
@@ -122,7 +123,6 @@ func processMaker(typeHolder *parser.TypeHolder, template string) error {
 		return err
 	}
 
-	maker.(makers.Registrant).SetBasePath(config.Config.Output)
 	maker.(makers.Registrant).SetTypeHolder(typeHolder)
 
 	merged, err := merge(typeHolder, template)
@@ -172,23 +172,18 @@ func processMaker(typeHolder *parser.TypeHolder, template string) error {
 
 // Merges type, config and template, returning the result as a string
 func merge(typeHolder *parser.TypeHolder, templateFilepath string) (string, error) {
-	// execute the replacement
 	log.Debugf("Loading template: %v", filepath.Base(templateFilepath))
 	templateContent, err := io.FileToString(templateFilepath)
 	if err != nil {
 		return "", fmt.Errorf("Error reading template file: %v", err)
 	}
 
-	replacedStr, err := typeHolder.ReplaceInTemplate(templateContent)
-	if err != nil {
-		return "", fmt.Errorf("Error replacing type %v over template %v",
-			typeHolder.Name, filepath.Base(templateFilepath))
-	}
+	replacedStr := typeHolder.ReplaceInTemplate(templateContent)
+	replacedStr = config.Config.ReplaceInTemplate(replacedStr)
 
-	replacedStr, err = config.Config.ReplaceInTemplate(replacedStr)
-	if err != nil {
-		return "", fmt.Errorf("Error replacing configuration over template %v",
-			filepath.Base(templateFilepath))
+	if strings.Contains(replacedStr, "_#") || strings.Contains(replacedStr, "#_") {
+		return replacedStr, fmt.Errorf("%v type did not replace all %v template symbols",
+			typeHolder.Name, filepath.Base(templateFilepath))
 	}
 
 	return replacedStr, err
