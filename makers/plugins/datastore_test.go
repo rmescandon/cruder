@@ -17,7 +17,7 @@
  *
  */
 
-package builtin
+package main
 
 import (
 	"io/ioutil"

@@ -1,7 +1,7 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 
 /*
- * Copyright (C) 2018 Roberto Mier Escandon <rmescandon@gmail.com>
+ * Copyright (C) 2017 Roberto Mier Escandon <rmescandon@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -17,48 +17,40 @@
  *
  */
 
-package builtin
+package main
 
 import (
 	"path/filepath"
-	"strings"
 
 	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/makers"
 )
 
-// Handler makes the controller
-type Handler struct {
+// Reply struct holding data to copy reply template
+type Reply struct {
 	makers.Base
 }
 
-// ID returns the identifier 'handler' for this maker
-func (h *Handler) ID() string {
-	return "handler"
+// ID returns 'reply' as this maker identifier
+func (r *Reply) ID() string {
+	return "reply"
 }
 
-// OutputFilepath returns the path to the generated file
-func (h *Handler) OutputFilepath() string {
-	if h.TypeHolder == nil || len(h.TypeHolder.Name) == 0 {
-		return ""
-	}
-
-	return filepath.Join(
-		makers.BasePath,
-		h.ID(),
-		strings.ToLower(h.TypeHolder.Identifier())+".go")
+// OutputFilepath returns the path to the output file
+func (r *Reply) OutputFilepath() string {
+	return filepath.Join(makers.BasePath, "handler/reply.go")
 }
 
-// Make generates the results
-func (h *Handler) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
+// Make copies template to output path
+func (r *Reply) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
 	if currentOutput != nil {
-		return nil, errs.NewErrOutputExists(h.OutputFilepath())
+		return nil, errs.NewErrOutputExists(r.OutputFilepath())
 	}
 
 	return generatedOutput, nil
 }
 
 func init() {
-	makers.Register(&Handler{})
+	makers.Register(&Reply{})
 }

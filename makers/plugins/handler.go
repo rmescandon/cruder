@@ -17,40 +17,48 @@
  *
  */
 
-package builtin
+package main
 
 import (
 	"path/filepath"
+	"strings"
 
 	"github.com/rmescandon/cruder/errs"
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/makers"
 )
 
-// Service makes the controller
-type Service struct {
+// Handler makes the controller
+type Handler struct {
 	makers.Base
 }
 
 // ID returns the identifier 'handler' for this maker
-func (s *Service) ID() string {
-	return "service"
+func (h *Handler) ID() string {
+	return "handler"
 }
 
 // OutputFilepath returns the path to the generated file
-func (s *Service) OutputFilepath() string {
-	return filepath.Join(makers.BasePath, s.ID(), s.ID()+".go")
+func (h *Handler) OutputFilepath() string {
+	if h.TypeHolder == nil || len(h.TypeHolder.Name) == 0 {
+		return ""
+	}
+
+	return filepath.Join(
+		makers.BasePath,
+		h.ID(),
+		strings.ToLower(h.TypeHolder.Identifier())+".go")
 }
 
 // Make generates the results
-func (s *Service) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
+func (h *Handler) Make(generatedOutput *io.Content, currentOutput *io.Content) (*io.Content, error) {
 	if currentOutput != nil {
-		return nil, errs.NewErrOutputExists(s.OutputFilepath())
+		return nil, errs.NewErrOutputExists(h.OutputFilepath())
 	}
 
 	return generatedOutput, nil
 }
 
 func init() {
-	makers.Register(&Service{})
+	makers.Register(&Handler{})
 }

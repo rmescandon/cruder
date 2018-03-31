@@ -30,16 +30,12 @@ import (
 	"github.com/rmescandon/cruder/io"
 	"github.com/rmescandon/cruder/log"
 	"github.com/rmescandon/cruder/makers"
-	"github.com/rmescandon/cruder/makers/builtin"
 	"github.com/rmescandon/cruder/parser"
 )
 
 // Run generates the code, based on loaded configuration and available templates
 func Run() error {
 	log.Info("Generating code...")
-
-	//TODO TEST
-	builtin.DoNothing()
 
 	makers.BasePath = config.Config.Output
 
