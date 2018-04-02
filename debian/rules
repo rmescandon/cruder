@@ -1,11 +1,13 @@
 #!/usr/bin/make -f
 
 PROJECT := cruder
+GOVERSION := 1.9
 export DH_OPTIONS
 export DH_GOPKG := github.com/rmescandon/${PROJECT}
+export GOROOT := /usr/lib/go-${GOVERSION}
 export GOPATH := ${CURDIR}/_build
 export GOBIN := ${GOPATH}/bin
-export PATH := ${GOBIN}:${PATH}
+export PATH := ${GOROOT}/bin:${GOBIN}:${PATH}
 BLDPATH := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 SRCDIR := ${CURDIR}/_build/src/${DH_GOPKG}
 DESTDIR := ${CURDIR}/debian/${PROJECT}

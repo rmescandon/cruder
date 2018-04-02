@@ -10,14 +10,10 @@ is a full implemented REST service based on that struct type.
 
 ### From debian package
 
-Add private ppa:
+Add private ppa and install:
 
 ```sh
-
-```
-and install
-
-```sh
+sudo add-apt-repository ppa:rmescandon/cruder
 sudo apt update
 sudo apt install cruder
 ```
