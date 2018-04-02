@@ -1,4 +1,0 @@
-host: localhost
-port: 8080
-driver: sqlite3
-datasource: ./main.db
