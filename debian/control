@@ -1,0 +1,20 @@
+Source: cruder
+Section: devel
+Priority: extra
+Maintainer: Roberto Mier Escandon <roberto.escandon@canonical.com>
+Build-Depends: debhelper (>= 9),
+               dh-golang,
+               golang-go
+Standards-Version: 3.9.6
+Homepage: https://github.com/rmescandon/cruder
+Vcs-Browser: https://github.com/rmescandon/cruder
+Vcs-Git: https://github.com/rmescandon/cruder.git
+
+Package: cruder
+Architecture: amd64
+Built-Using: ${misc:Built-Using}
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: 
+ A tool to build a quick REST service in golang code based on a struct
+ type defined into a .go file

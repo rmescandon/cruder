@@ -1,0 +1,51 @@
+#!/usr/bin/make -f
+
+PROJECT := cruder
+export DH_OPTIONS
+export DH_GOPKG := github.com/rmescandon/${PROJECT}
+export GOPATH := ${CURDIR}/_build
+export GOBIN := ${GOPATH}/bin
+export PATH := ${GOBIN}:${PATH}
+BLDPATH := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+SRCDIR := ${CURDIR}/_build/src/${DH_GOPKG}
+DESTDIR := ${CURDIR}/debian/${PROJECT}
+BINDIR := /usr/bin
+LIBDIR := /usr/lib/${PROJECT}
+PLUGINSDIR := ${LIBDIR}/plugins
+CONFDIR := /etc/${PROJECT}
+ASSETSDIR := /usr/share/${PROJECT}
+
+%:
+	dh $@ --buildsystem=golang --with=golang
+
+override_dh_auto_build:
+	mkdir -p ${SRCDIR}
+	mkdir -p ${GOBIN}
+	# copy project to local srcdir to build from there
+	rsync -avz --progress --exclude=_build --exclude=obj-${BLDPATH} --exclude=debian . $(SRCDIR)
+	# build go code
+	(cd ${SRCDIR} && ./build.sh)
+
+override_dh_auto_test:
+	(cd ${SRCDIR} && go test -v ./...)
+
+override_dh_auto_install:
+	mkdir -p ${DESTDIR}/${BINDIR}
+	mkdir -p ${DESTDIR}/${LIBDIR}
+	mkdir -p ${DESTDIR}/${CONFDIR}
+	mkdir -p ${DESTDIR}/${ASSETSDIR}
+	mkdir -p ${DESTDIR}/${PLUGINSDIR}
+	cp ${CURDIR}/_build/bin/cruder ${DESTDIR}/${LIBDIR}
+	cp ${SRCDIR}/cruder.launcher ${DESTDIR}/${BINDIR}/cruder
+	cp ${SRCDIR}/settings.yaml ${DESTDIR}/${CONFDIR}
+	cp -rf ${SRCDIR}/templates ${DESTDIR}/${ASSETSDIR}
+	cp -rf ${SRCDIR}/_plugins/* ${DESTDIR}/${PLUGINSDIR}
+	# configure launchers to be used in systemd service
+	sed -i 's/{{[ ]*bindir[ ]*}}/\/usr\/lib\/cruder/g' ${DESTDIR}/${BINDIR}/cruder
+	sed -i 's/{{[ ]*confdir[ ]*}}/\/etc\/cruder/g' ${DESTDIR}/${BINDIR}/cruder
+	chmod a+x ${DESTDIR}/${BINDIR}/cruder
+
+override_dh_auto_clean:
+	dh_clean
+	rm -rf ${CURDIR}/obj-${BLDPATH}
+	rm -rf ${CURDIR}/_build

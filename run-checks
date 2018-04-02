@@ -114,17 +114,11 @@ if [ ! -z "$STATIC" ]; then
     if which shellcheck >/dev/null; then
         echo Checking shell scripts...
         ( git ls-files -z 2>/dev/null ||
-                find . \( -name .git -o -name vendor \) -prune -o -print0 ) |
+                find . \( -name .git -o -name cruder.launcher -o -name vendor \) -prune -o -print0 ) |
             xargs -0 file -N |
+            grep -v cruder.launcher |
             awk -F": " '$2~/shell.script/{print $1}' |
             xargs shellcheck
-        regexp='GOPATH(?!%%:\*)(?!:)[^=]*/'
-        if grep -qPr --exclude HACKING.md --exclude-dir .git --exclude-dir vendor "$regexp"; then
-            echo "Using GOPATH as if it were a single entry and not a list:"
-            grep -PHrn -C1 --color=auto --exclude HACKING.md --exclude-dir .git --exclude-dir vendor "$regexp"
-            exit 1
-        fi
-        unset regexp
     fi
 
     echo Checking spelling errors
@@ -164,7 +158,7 @@ if [ ! -z "$UNIT" ]; then
     echo "mode: $COVERMODE" > .coverage/coverage.out
 
     echo Building
-    go build -v ./cruder/...
+    ./build.sh
 
     # tests
     echo Running tests from "$PWD"

@@ -42,7 +42,11 @@ var _ = check.Suite(&ConfigSuite{})
 // Test rewrites testing in a suite
 func Test(t *tst.T) { check.TestingT(t) }
 
-func (s *ConfigSuite) SetUpTest(c *check.C) {}
+func (s *ConfigSuite) SetUpTest(c *check.C) {
+	// Reset GOPATH to prevent taking cruder project as target project when
+	// calculating projectURL
+	os.Setenv("GOPATH", "")
+}
 
 func (s *ConfigSuite) TestLoadConfig(c *check.C) {
 
@@ -91,4 +95,39 @@ func (s *ConfigSuite) TestSetDefaultValues(c *check.C) {
 	c.Assert(Config.Settings, check.Equals, filepath.Join(curr, defaultSettingsFile))
 	c.Assert(Config.ProjectURL, check.Equals, defaultProjectURL)
 	c.Assert(Config.APIVersion, check.Equals, defaultAPIVersion)
+}
+
+func (s *ConfigSuite) TestCalculateProjectURL(c *check.C) {
+	projectPath := "theserver.com/theuser/theproject"
+
+	d, err := ioutil.TempDir("", "")
+	c.Assert(err, check.IsNil)
+
+	os.Setenv("GOPATH", d)
+	dst := filepath.Join(d, "src", projectPath)
+
+	err = os.MkdirAll(dst, 0755)
+	c.Assert(err, check.IsNil)
+
+	err = os.Chdir(dst)
+	c.Assert(err, check.IsNil)
+
+	url := calculateProjectURL()
+	c.Assert(url, check.Equals, projectPath)
+}
+
+func (s *ConfigSuite) TestCalculateProjectURL_notGopathSubdir(c *check.C) {
+	projectPath := "theserver.com/theuser/theproject"
+
+	d, err := ioutil.TempDir("", "")
+	c.Assert(err, check.IsNil)
+
+	os.Setenv("GOPATH", d)
+	dst := filepath.Join(d, "src", projectPath)
+
+	err = os.MkdirAll(dst, 0755)
+	c.Assert(err, check.IsNil)
+
+	url := calculateProjectURL()
+	c.Assert(url, check.Equals, defaultProjectURL)
 }

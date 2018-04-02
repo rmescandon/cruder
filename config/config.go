@@ -43,7 +43,7 @@ const (
 // Options type holding possible cli params
 type Options struct {
 	Args struct {
-		TypesFile string `positional-arg-name:"types"`
+		TypesFile string `positional-arg-name:"types_file"`
 	} `positional-args:"yes" required:"yes"`
 
 	Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
@@ -141,7 +141,7 @@ func (c *Options) setDefaultValuesWhenNeeded() error {
 	}
 
 	if len(c.ProjectURL) == 0 {
-		c.ProjectURL = defaultProjectURL
+		c.ProjectURL = calculateProjectURL()
 	}
 
 	if len(c.APIVersion) == 0 {
@@ -187,4 +187,25 @@ func (c *Options) normalizePaths() error {
 	}
 
 	return nil
+}
+
+func calculateProjectURL() string {
+	gopath := os.Getenv("GOPATH")
+	if len(gopath) == 0 {
+		return defaultProjectURL
+	}
+
+	src := filepath.Join(gopath, "src")
+	current, err := os.Getwd()
+	if err != nil {
+		log.Errorf("Could not get current directory. Use default project URL: %v", defaultProjectURL)
+		return defaultProjectURL
+	}
+
+	if strings.Index(current, src) == -1 {
+		log.Errorf("Current folder is not a $GOPATH/src subfolder. Use default project URL: %v", defaultProjectURL)
+		return defaultProjectURL
+	}
+
+	return strings.TrimPrefix(current, src+"/")
 }
