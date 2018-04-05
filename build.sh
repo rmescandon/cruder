@@ -86,7 +86,9 @@ done
 if [ "$skip_plugins" -eq 0 ]; then
     build_plugins "$1" "$2"
 fi
-    
+
+echo "Install binaries..."
 go install ./cmd/...
+
 echo "Project built."
 echo "All done."

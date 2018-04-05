@@ -42,9 +42,6 @@ override_dh_auto_install:
 	cp ${SRCDIR}/settings.yaml ${DESTDIR}/${CONFDIR}
 	cp -rf ${SRCDIR}/templates ${DESTDIR}/${ASSETSDIR}
 	cp -rf ${SRCDIR}/_plugins/* ${DESTDIR}/${PLUGINSDIR}
-	# configure launchers to be used in systemd service
-	sed -i 's/{{[ ]*bindir[ ]*}}/\/usr\/lib\/cruder/g' ${DESTDIR}/${BINDIR}/cruder
-	sed -i 's/{{[ ]*confdir[ ]*}}/\/etc\/cruder/g' ${DESTDIR}/${BINDIR}/cruder
 	chmod a+x ${DESTDIR}/${BINDIR}/cruder
 
 override_dh_auto_clean:

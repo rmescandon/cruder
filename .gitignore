@@ -1,3 +1,7 @@
 .coverage
 vendor/*/
 _plugins/*.so
+parts
+prime
+stage
+snap/.snapcraft
