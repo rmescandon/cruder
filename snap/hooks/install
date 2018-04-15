@@ -14,10 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-cp -rf "$SNAP"/templates $SNAP_DATA
-cp -rf "$SNAP"/plugins $SNAP_DATA
+cp -rf "$SNAP"/templates "$SNAP_DATA"
+cp -rf "$SNAP"/plugins "$SNAP_DATA"
 
-cat <<-EOF > $SNAP_DATA/settings.yaml
+cat <<-EOF > "$SNAP_DATA"/settings.yaml
 version: $SNAP_VERSION
 templates: $SNAP_DATA/templates
 plugins: $SNAP_DATA/plugins
