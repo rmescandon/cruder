@@ -32,6 +32,10 @@ Just move to the project folder
 cd $GOPATH/src/theserver.com/youruser/yourproject
 ```
 
+> Note: If CRUDer is installed from snap, GOPATH env var must point to a
+> path accessible from the snap. This includes $HOME subfolders or snap specific
+> ones.
+
 Open your favourite editor and edit a new file where defining your type:
 
 ```sh
@@ -385,6 +389,9 @@ This generates `myplugin.so` as output file
 Move `myplugin.template` to `/usr/share/cruder/templates` and `myplugin.so` to `/usr/lib/cruder/plugins`
 
 That's it. The plugin will be used in next CRUDer execution
+
+If CRUDer is installed as a snap, templates are at `/var/snap/cruder/current/templates` and plugins at
+`/var/snap/cruder/current/plugins`
 
 #### A sample transformation code
 

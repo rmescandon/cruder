@@ -1,0 +1,56 @@
+name: cruder
+version: '0.1-1'
+summary: Generates a REST service from a golang struct type definition
+description: |
+  Creates the needed golang code to offer a REST endpoint from a struct type definition. 
+  Generated bits include the listening endpoint, the logic and the database operations. 
+
+  You simply need to create a golang struct type in a file and execute this tool. The result
+  is a full implemented REST service based on that struct type.
+
+grade: stable
+confinement: strict
+
+apps:
+  cruder:
+    command: bin/cruder.launcher
+    plugs: [home]
+
+parts:
+  go:
+    source-tag: go1.9.4
+    source-depth: 1
+
+  binaries:
+    plugin: go
+    source: .
+    go-importpath: github.com/rmescandon/cruder
+    build: |
+      export GOPATH=$(cd ../go && pwd)
+      GOBIN=$GOPATH/bin
+      PKG=github.com/rmescandon/cruder
+      mkdir -p $GOBIN
+      cd $GOPATH/src/$PKG
+      ./get-deps.sh
+      ./build.sh
+    install: |
+      GOPATH=$(cd ../go && pwd)
+      GOBIN=$GOPATH/bin
+      PKG=github.com/rmescandon/cruder
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin
+      mkdir -p $SNAPCRAFT_PART_INSTALL/plugins
+      cp $GOBIN/cruder $SNAPCRAFT_PART_INSTALL/bin
+      cp $GOPATH/src/$PKG/_plugins/* $SNAPCRAFT_PART_INSTALL/plugins/
+    after: [go]
+
+  customizations:
+    plugin: dump
+    source: .
+    organize:
+      cruder.launcher: bin/
+    stage:
+      - bin
+      - templates
+      - CODE_OF_CONDUCT.md
+      - LICENSE
+      - README.md
