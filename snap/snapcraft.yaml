@@ -8,12 +8,13 @@ description: |
   You simply need to create a golang struct type in a file and execute this tool. The result
   is a full implemented REST service based on that struct type.
 
-grade: devel
-confinement: devmode
+grade: stable
+confinement: strict
 
 apps:
   cruder:
     command: bin/cruder.launcher
+    plugs: [home]
 
 parts:
   go:
